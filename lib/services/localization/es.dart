@@ -573,6 +573,7 @@ class Es implements En {
     "calendarView_desc": "Elige cómo se muestran las citas en el calendario.",
     "agenda": "Agenda (lista)",
     "timeline": "Línea de tiempo (cuadrícula)",
+    "workWeek": "Semana laboral (lun–vie)",
     "dateFormat_desc":
         "Este formato se usará para mostrar fechas cuando aplique.",
     "cacheReset": "Reiniciar caché",

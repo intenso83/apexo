@@ -197,6 +197,11 @@ class LocalSettings extends ObservablePersistingObject {
     notifyAndPersist();
   }
 
+  void setEventsViewMode(EventsViewMode mode) {
+    calendarEventsViewMode = mode;
+    notifyAndPersist();
+  }
+
   String get transcriptionOutputLocale {
     if (transcriptionLocaleNonFinal.isNotEmpty) {
       return transcriptionLocaleNonFinal;

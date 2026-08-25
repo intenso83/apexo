@@ -16,6 +16,8 @@ import '../../utils/colors_without_yellow.dart';
 import '../../utils/round.dart';
 import 'events_agenda_widget.dart';
 import 'events_timeline_widget.dart';
+import 'events_work_week_widget.dart';
+import 'work_week_layout.dart';
 
 /// Which view to show below the day title bar.
 enum EventsViewMode {
@@ -24,6 +26,9 @@ enum EventsViewMode {
 
   /// Google‑Calendar‑style time grid with duration‑based positioning.
   timeline,
+
+  /// Desktop Monday-to-Friday clinical schedule.
+  workWeek,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -88,46 +93,72 @@ class WeekAgendaCalendarState<Item extends Appointment>
   List<Item> _getItemsForSelectedDay() =>
       widget.items.where((item) => isSameDay(selectedDate, item.date)).toList();
 
+  List<Item> _getItemsForWorkWeek() {
+    final start = startOfWorkWeek(selectedDate);
+    final end = start.add(const Duration(days: 5));
+    return widget.items
+        .where((item) => !item.date.isBefore(start) && item.date.isBefore(end))
+        .toList();
+  }
+
   bool isSameDay(DateTime a, DateTime b) =>
       a.day == b.day && a.month == b.month && a.year == b.year;
 
   @override
   Widget build(BuildContext context) {
     final itemsForSelectedDay = _getItemsForSelectedDay();
+    final supportsWorkWeek = MediaQuery.sizeOf(context).width >= 900;
+    final storedMode = localSettings.calendarEventsViewMode;
+    final mode = storedMode == EventsViewMode.workWeek && !supportsWorkWeek
+        ? EventsViewMode.timeline
+        : storedMode;
+    final titleItems = mode == EventsViewMode.workWeek
+        ? _getItemsForWorkWeek()
+        : itemsForSelectedDay;
     return Column(
       children: [
         _buildCommandBar(),
-        _buildCalendar(),
+        if (mode != EventsViewMode.workWeek) _buildCalendar(),
         const SizedBox(height: 1),
         Expanded(
           child: SwipeDetector(
             onSwipePrev: () => setState(() {
-              selectedDate = selectedDate.subtract(const Duration(days: 1));
+              selectedDate = selectedDate.subtract(
+                  Duration(days: mode == EventsViewMode.workWeek ? 7 : 1));
             }),
             onSwipeNext: () => setState(() {
-              selectedDate = selectedDate.add(const Duration(days: 1));
+              selectedDate = selectedDate
+                  .add(Duration(days: mode == EventsViewMode.workWeek ? 7 : 1));
             }),
             child: Column(children: [
-              _buildDayTitleBar(itemsForSelectedDay),
+              _buildDayTitleBar(titleItems, mode, supportsWorkWeek),
               Expanded(
-                child: localSettings.calendarEventsViewMode ==
-                        EventsViewMode.agenda
-                    ? AgendaListView<Item>(
-                        items: itemsForSelectedDay,
-                        showPayments: showPayments,
-                        onSelect: widget.onSelect,
-                        onSetTime: widget.onSetTime,
-                      )
-                    : CalendarTimelineView(
-                        items: itemsForSelectedDay.cast<Appointment>().toList(),
-                        showPayments: showPayments,
-                        selectedDate: selectedDate,
-                        onSelect: (appointment) =>
-                            widget.onSelect(appointment as Item),
-                        onSetTime: (appointment) =>
-                            widget.onSetTime(appointment as Item),
-                        onAddNew: widget.onAddNew,
-                      ),
+                child: switch (mode) {
+                  EventsViewMode.agenda => AgendaListView<Item>(
+                      items: itemsForSelectedDay,
+                      showPayments: showPayments,
+                      onSelect: widget.onSelect,
+                      onSetTime: widget.onSetTime,
+                    ),
+                  EventsViewMode.timeline => CalendarTimelineView(
+                      items: itemsForSelectedDay.cast<Appointment>().toList(),
+                      showPayments: showPayments,
+                      selectedDate: selectedDate,
+                      onSelect: (appointment) =>
+                          widget.onSelect(appointment as Item),
+                      onSetTime: (appointment) =>
+                          widget.onSetTime(appointment as Item),
+                      onAddNew: widget.onAddNew,
+                    ),
+                  EventsViewMode.workWeek => WorkWeekCalendarView(
+                      items: widget.items.cast<Appointment>().toList(),
+                      showPayments: showPayments,
+                      selectedDate: selectedDate,
+                      onSelect: (appointment) =>
+                          widget.onSelect(appointment as Item),
+                      onAddNew: widget.onAddNew,
+                    ),
+                },
               ),
             ]),
           ),
@@ -253,7 +284,15 @@ class WeekAgendaCalendarState<Item extends Appointment>
   }
 
   // ─── Day title bar ─────────────────────────────────────────────────────
-  Widget _buildDayTitleBar(List<Item> items) {
+  Widget _buildDayTitleBar(
+      List<Item> items, EventsViewMode mode, bool supportsWorkWeek) {
+    final weekStart = startOfWorkWeek(selectedDate);
+    final weekEnd = weekStart.add(const Duration(days: 4));
+    final title = mode == EventsViewMode.workWeek
+        ? '${DF.allNumbers(weekStart)} – ${DF.allNumbers(weekEnd)}'
+        : localSettings.calendarSystem == "persian"
+            ? " ${DF.jalaliCommonDate(selectedDate)}"
+            : " ${DF.commonDate(selectedDate)}";
     return Container(
       decoration: topBarDecoration(context, Colors.grey),
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -261,35 +300,80 @@ class WeekAgendaCalendarState<Item extends Appointment>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            onPressed: () => setState(() {
-              localSettings.toggleEventsViewMode();
-            }),
-            icon: Row(
-              spacing: 10,
+          Flexible(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Txt(
-                  localSettings.calendarSystem == "persian"
-                      ? " ${DF.jalaliCommonDate(selectedDate)}"
-                      : " ${DF.commonDate(selectedDate)}",
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                if (mode == EventsViewMode.workWeek)
+                  IconButton(
+                    icon: const Icon(FluentIcons.chevron_left, size: 14),
+                    onPressed: () => setState(() => selectedDate =
+                        selectedDate.subtract(const Duration(days: 7))),
+                  ),
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
                 ),
-                Tooltip(
-                    message: localSettings.calendarEventsViewMode ==
-                            EventsViewMode.agenda
-                        ? txt("switchToTimelineView")
-                        : txt("switchToAgendaView"),
-                    child: Icon(
-                      localSettings.calendarEventsViewMode ==
-                              EventsViewMode.agenda
-                          ? WindowsIcons.group_list
-                          : WindowsIcons.grid_view,
-                      size: 20,
-                    )),
+                if (mode == EventsViewMode.workWeek) ...[
+                  IconButton(
+                    icon: const Icon(FluentIcons.chevron_right, size: 14),
+                    onPressed: () => setState(() => selectedDate =
+                        selectedDate.add(const Duration(days: 7))),
+                  ),
+                  Tooltip(
+                    message: txt('today'),
+                    child: IconButton(
+                      icon: const Icon(FluentIcons.goto_today, size: 16),
+                      onPressed: _goToToday,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          if (supportsWorkWeek)
+            SizedBox(
+              width: 175,
+              child: ComboBox<EventsViewMode>(
+                value: mode,
+                isExpanded: true,
+                items: EventsViewMode.values
+                    .map((viewMode) => ComboBoxItem(
+                          value: viewMode,
+                          child: Row(children: [
+                            Icon(_viewModeIcon(viewMode), size: 16),
+                            const SizedBox(width: 7),
+                            Flexible(
+                              child: Text(
+                                txt(viewMode.name),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ]),
+                        ))
+                    .toList(),
+                onChanged: (newMode) {
+                  if (newMode == null) return;
+                  setState(() => localSettings.setEventsViewMode(newMode));
+                },
+              ),
+            )
+          else
+            Tooltip(
+              message: mode == EventsViewMode.agenda
+                  ? txt("switchToTimelineView")
+                  : txt("switchToAgendaView"),
+              child: IconButton(
+                onPressed: () => setState(localSettings.toggleEventsViewMode),
+                icon: Icon(_viewModeIcon(mode), size: 20),
+              ),
+            ),
+          const SizedBox(width: 8),
           if (login.perm(Perm.revenue).read)
             Row(
               children: [
@@ -322,6 +406,12 @@ class WeekAgendaCalendarState<Item extends Appointment>
       ),
     );
   }
+
+  IconData _viewModeIcon(EventsViewMode mode) => switch (mode) {
+        EventsViewMode.agenda => WindowsIcons.group_list,
+        EventsViewMode.timeline => WindowsIcons.calendar_day,
+        EventsViewMode.workWeek => WindowsIcons.calendar_week,
+      };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
