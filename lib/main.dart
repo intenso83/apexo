@@ -7,9 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:logging/logging.dart';
-import 'package:apexo/sentry_dsn.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:apexo/utils/js/js_bridge.dart';
+
+const sentryDsn = String.fromEnvironment('SENTRY_DSN');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,14 +43,15 @@ void main() async {
   ));
 
   if (kDebugMode) {
-    // ignore: prefer_const_constructors
-    runApp(ApexoApp());
-  } else {
+    runApp(const ApexoApp());
+  } else if (sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
-        options.dsn = sentryDSN;
+        options.dsn = sentryDsn;
       },
-      appRunner: () => runApp(ApexoApp()),
+      appRunner: () => runApp(const ApexoApp()),
     );
+  } else {
+    runApp(const ApexoApp());
   }
 }

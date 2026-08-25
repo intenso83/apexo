@@ -38,6 +38,7 @@ app_specific_password.txt
 .pub-cache/
 .pub/
 /build/
+/linux/flutter/ephemeral/
 
 # Symbolication related
 app.*.symbols
