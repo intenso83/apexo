@@ -11,9 +11,11 @@ import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
+import 'package:apexo/features/patients/patient_contact.dart';
 import 'package:apexo/utils/encode.dart';
 import 'package:apexo/utils/parsed_phone_number.dart';
 import 'package:apexo/utils/phone_numbers_extractor.dart';
+import 'package:apexo/utils/search_normalization.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:http/http.dart' as http;
 
@@ -42,6 +44,9 @@ class PatientTableLabel {
 }
 
 class Patient extends Model {
+  bool _legacyBirthWasProvided = false;
+  bool _legacyGenderWasProvided = false;
+
   List<String> get allPredefinedTreatments {
     final List<String> list = List.from(teeth.values);
     list.addAll((appointments.byPatient[id]?["all"] ?? []).fold<Set<String>>(
@@ -110,6 +115,57 @@ class Patient extends Model {
 
   int get age {
     return DateTime.now().year - birth;
+  }
+
+  String get prototypeDisplayName {
+    final splitName = [surname, firstName]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ')
+        .trim();
+    if (splitName.isNotEmpty) return splitName;
+    if (legacyFullName.trim().isNotEmpty) return legacyFullName.trim();
+    return title.trim();
+  }
+
+  int? get prototypeBirthYear {
+    if (birthDate != null) return birthDate!.year;
+    if (approximateBirthYear != null) return approximateBirthYear;
+    if (_legacyBirthWasProvided) return birth;
+    return null;
+  }
+
+  String get prototypeAddressLine =>
+      addressLine.trim().isNotEmpty ? addressLine : address;
+
+  String get prototypeAdministrativeNotes =>
+      administrativeNotes.trim().isNotEmpty ? administrativeNotes : notes;
+
+  String get prototypeActiveStatus {
+    if (activeStatus.trim().isNotEmpty) return activeStatus;
+    return archived == true ? 'archived' : 'active';
+  }
+
+  String get prototypeSexOrGender {
+    if (sexOrGender != 'unknown') return sexOrGender;
+    if (!_legacyGenderWasProvided) return 'unknown';
+    return gender == 1 ? 'male' : 'female';
+  }
+
+  List<PatientContact> get prototypeContacts {
+    if (contacts.isNotEmpty) return List.unmodifiable(contacts);
+    return [
+      ...phone.map((number) => PatientContact.fromJson({
+            'type': PatientContactType.phone,
+            'raw_value': number.e164,
+            'normalized_value': number.e164,
+          })),
+      if (email.trim().isNotEmpty)
+        PatientContact.fromJson({
+          'type': PatientContactType.email,
+          'raw_value': email.trim(),
+          'normalized_value': email.trim().toLowerCase(),
+        }),
+    ];
   }
 
   double get paymentsMade {
@@ -233,10 +289,26 @@ class Patient extends Model {
   }
 
   String get searchString {
-    return _searchString ??=
-        (title + tableLabels.map((x) => x.searchableString).join(" "))
-            .toLowerCase()
-            .replaceAll(RegExp("أ|إ"), "ا");
+    return _searchString ??= normalizePatientSearch([
+      title,
+      surname,
+      firstName,
+      legacyFullName,
+      patronymic,
+      motherName,
+      occupation,
+      registrationNumber,
+      amka,
+      afm,
+      legacyFolderNumber,
+      prototypeAddressLine,
+      area,
+      city,
+      postalCode,
+      ...prototypeContacts
+          .expand((contact) => [contact.rawValue, contact.normalizedValue]),
+      ...tableLabels.map((label) => label.searchableString),
+    ].join(' '));
   }
 
   List<PatientTableLabel> get tableLabels {
@@ -401,6 +473,44 @@ class Patient extends Model {
   /* 8b */ Map<String, String> teethExtraNotes = {};
   /* 9 */ String? link;
 
+  // Patient-fields prototype. These optional values are read-only in the
+  // prototype UI and remain compatible with the existing Apexo JSON shape.
+  String registrationNumber = '';
+  String surname = '';
+  String firstName = '';
+  String legacyFullName = '';
+  String patronymic = '';
+  String motherName = '';
+  DateTime? birthDate;
+  int? approximateBirthYear;
+  String birthDatePrecision = 'unknown';
+  String sexOrGender = 'unknown';
+  String occupation = '';
+  String secondaryOccupationLabel = '';
+  String placeOfOriginOrBirth = '';
+  DateTime? registrationDate;
+  String activeStatus = '';
+  String addressLine = '';
+  String area = '';
+  String city = '';
+  String postalCode = '';
+  String countryCode = '';
+  String amka = '';
+  String afm = '';
+  String doy = '';
+  String identityCardNumber = '';
+  String identityIssueDetails = '';
+  String insurance = '';
+  String patientCategory = '';
+  String financialCategory = '';
+  String salutation1 = '';
+  String salutation2 = '';
+  String referralSource = '';
+  String administrativeNotes = '';
+  String legacyFolderNumber = '';
+  Map<String, String> legacyCustomFields = {};
+  List<PatientContact> contacts = [];
+
   String get phonesString => phone.map((p) => p.e164).join(" ");
 
   @override
@@ -416,6 +526,8 @@ class Patient extends Model {
     nullifyLabels();
     super.fromJson(json);
 
+    _legacyBirthWasProvided = json.containsKey('birth');
+    _legacyGenderWasProvided = json.containsKey('gender');
     /* 1 */ birth = json['birth'] ?? birth;
     /* 2 */ gender = json['gender'] ?? gender;
     /* 3 */ phone = json['phone'] == null
@@ -431,6 +543,47 @@ class Patient extends Model {
     /* 8b */ teethExtraNotes =
         Map<String, String>.from(json['teethExtraNotes'] ?? teethExtraNotes);
     /* 9 */ link = json["link"] ?? link;
+
+    registrationNumber = json['registration_number']?.toString() ?? '';
+    surname = json['surname']?.toString() ?? '';
+    firstName = json['first_name']?.toString() ?? '';
+    legacyFullName = json['legacy_full_name']?.toString() ?? '';
+    patronymic = json['patronymic']?.toString() ?? '';
+    motherName = json['mother_name']?.toString() ?? '';
+    birthDate = _parseDate(json['birth_date']);
+    approximateBirthYear = _parseInt(json['approximate_birth_year']);
+    birthDatePrecision = json['birth_date_precision']?.toString() ?? 'unknown';
+    sexOrGender = json['sex_or_gender']?.toString() ?? 'unknown';
+    occupation = json['occupation']?.toString() ?? '';
+    secondaryOccupationLabel =
+        json['secondary_occupation_label']?.toString() ?? '';
+    placeOfOriginOrBirth = json['place_of_origin_or_birth']?.toString() ?? '';
+    registrationDate = _parseDate(json['registration_date']);
+    activeStatus = json['active_status']?.toString() ?? '';
+    addressLine = json['address_line']?.toString() ?? '';
+    area = json['area']?.toString() ?? '';
+    city = json['city']?.toString() ?? '';
+    postalCode = json['postal_code']?.toString() ?? '';
+    countryCode = json['country_code']?.toString() ?? '';
+    amka = json['amka']?.toString() ?? '';
+    afm = json['afm']?.toString() ?? '';
+    doy = json['doy']?.toString() ?? '';
+    identityCardNumber = json['identity_card_number']?.toString() ?? '';
+    identityIssueDetails = json['identity_issue_details']?.toString() ?? '';
+    insurance = json['insurance']?.toString() ?? '';
+    patientCategory = json['patient_category']?.toString() ?? '';
+    financialCategory = json['financial_category']?.toString() ?? '';
+    salutation1 = json['salutation_1']?.toString() ?? '';
+    salutation2 = json['salutation_2']?.toString() ?? '';
+    referralSource = json['referral_source']?.toString() ?? '';
+    administrativeNotes = json['administrative_notes']?.toString() ?? '';
+    legacyFolderNumber = json['legacy_folder_number']?.toString() ?? '';
+    legacyCustomFields =
+        Map<String, String>.from(json['legacy_custom_fields'] ?? {});
+    contacts = (json['contacts'] as List<dynamic>? ?? [])
+        .map((contact) =>
+            PatientContact.fromJson(Map<String, dynamic>.from(contact as Map)))
+        .toList();
   }
 
   @override
@@ -446,9 +599,90 @@ class Patient extends Model {
     /* 6 */ if (tags.toString() != d.tags.toString()) json['tags'] = tags;
     /* 7 */ if (notes != d.notes) json['notes'] = notes;
     /* 8 */ if (teeth.isNotEmpty) json['teeth'] = teeth;
-    /* 8b */ if (teethExtraNotes.isNotEmpty)
+    /* 8b */ if (teethExtraNotes.isNotEmpty) {
       json['teethExtraNotes'] = teethExtraNotes;
+    }
     /* 9 */ if (link != d.link) json['link'] = link;
+
+    if (registrationNumber.isNotEmpty) {
+      json['registration_number'] = registrationNumber;
+    }
+    if (surname.isNotEmpty) json['surname'] = surname;
+    if (firstName.isNotEmpty) json['first_name'] = firstName;
+    if (legacyFullName.isNotEmpty) json['legacy_full_name'] = legacyFullName;
+    if (patronymic.isNotEmpty) json['patronymic'] = patronymic;
+    if (motherName.isNotEmpty) json['mother_name'] = motherName;
+    if (birthDate != null) json['birth_date'] = _dateOnly(birthDate!);
+    if (approximateBirthYear != null) {
+      json['approximate_birth_year'] = approximateBirthYear;
+    }
+    if (birthDatePrecision != 'unknown') {
+      json['birth_date_precision'] = birthDatePrecision;
+    }
+    if (sexOrGender != 'unknown') json['sex_or_gender'] = sexOrGender;
+    if (occupation.isNotEmpty) json['occupation'] = occupation;
+    if (secondaryOccupationLabel.isNotEmpty) {
+      json['secondary_occupation_label'] = secondaryOccupationLabel;
+    }
+    if (placeOfOriginOrBirth.isNotEmpty) {
+      json['place_of_origin_or_birth'] = placeOfOriginOrBirth;
+    }
+    if (registrationDate != null) {
+      json['registration_date'] = _dateOnly(registrationDate!);
+    }
+    if (activeStatus.isNotEmpty) json['active_status'] = activeStatus;
+    if (addressLine.isNotEmpty) json['address_line'] = addressLine;
+    if (area.isNotEmpty) json['area'] = area;
+    if (city.isNotEmpty) json['city'] = city;
+    if (postalCode.isNotEmpty) json['postal_code'] = postalCode;
+    if (countryCode.isNotEmpty) json['country_code'] = countryCode;
+    if (amka.isNotEmpty) json['amka'] = amka;
+    if (afm.isNotEmpty) json['afm'] = afm;
+    if (doy.isNotEmpty) json['doy'] = doy;
+    if (identityCardNumber.isNotEmpty) {
+      json['identity_card_number'] = identityCardNumber;
+    }
+    if (identityIssueDetails.isNotEmpty) {
+      json['identity_issue_details'] = identityIssueDetails;
+    }
+    if (insurance.isNotEmpty) json['insurance'] = insurance;
+    if (patientCategory.isNotEmpty) {
+      json['patient_category'] = patientCategory;
+    }
+    if (financialCategory.isNotEmpty) {
+      json['financial_category'] = financialCategory;
+    }
+    if (salutation1.isNotEmpty) json['salutation_1'] = salutation1;
+    if (salutation2.isNotEmpty) json['salutation_2'] = salutation2;
+    if (referralSource.isNotEmpty) json['referral_source'] = referralSource;
+    if (administrativeNotes.isNotEmpty) {
+      json['administrative_notes'] = administrativeNotes;
+    }
+    if (legacyFolderNumber.isNotEmpty) {
+      json['legacy_folder_number'] = legacyFolderNumber;
+    }
+    if (legacyCustomFields.isNotEmpty) {
+      json['legacy_custom_fields'] = legacyCustomFields;
+    }
+    if (contacts.isNotEmpty) {
+      json['contacts'] = contacts.map((contact) => contact.toJson()).toList();
+    }
     return json;
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null || value.toString().trim().isEmpty) return null;
+    return DateTime.tryParse(value.toString());
+  }
+
+  static int? _parseInt(dynamic value) {
+    if (value == null || value.toString().trim().isEmpty) return null;
+    return int.tryParse(value.toString());
+  }
+
+  static String _dateOnly(DateTime value) {
+    final month = value.month.toString().padLeft(2, '0');
+    final day = value.day.toString().padLeft(2, '0');
+    return '${value.year}-$month-$day';
   }
 }

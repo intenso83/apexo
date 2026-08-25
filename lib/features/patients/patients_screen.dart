@@ -15,6 +15,7 @@ import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/utils/parsed_phone_number.dart';
+import 'package:apexo/utils/search_normalization.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:apexo/common_widgets/screen_command_bar.dart';
 import 'package:flutter/foundation.dart';
@@ -94,8 +95,7 @@ class _PatientsPageState extends State<_PatientsPage> {
 
   void _updateItems() {
     final searchString = _searchController.text;
-    final words =
-        searchString.toLowerCase().replaceAll(RegExp("أ|إ"), "ا").split(" ");
+    final words = normalizePatientSearch(searchString).split(" ");
 
     List<Patient> candidates = [];
 

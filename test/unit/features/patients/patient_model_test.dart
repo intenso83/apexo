@@ -1,4 +1,5 @@
 import 'package:apexo/features/patients/patient_model.dart';
+import 'package:apexo/features/patients/patient_contact.dart';
 import 'package:flutter_test/flutter_test.dart';
 import '../../../helpers/model_factory.dart';
 
@@ -96,6 +97,109 @@ void main() {
     });
   });
 
+  group('Patient fields prototype', () {
+    test('new prototype values remain unknown instead of using legacy defaults',
+        () {
+      final patient = Patient.fromJson({'id': 'new-fields-empty'});
+
+      expect(patient.birthDate, isNull);
+      expect(patient.approximateBirthYear, isNull);
+      expect(patient.prototypeBirthYear, isNull);
+      expect(patient.birthDatePrecision, 'unknown');
+      expect(patient.sexOrGender, 'unknown');
+      expect(patient.registrationNumber, isEmpty);
+      expect(patient.contacts, isEmpty);
+    });
+
+    test('old Apexo values remain available through prototype fallbacks', () {
+      final patient = Patient.fromJson({
+        'id': 'legacy-patient',
+        'title': 'Legacy Patient',
+        'birth': 1985,
+        'gender': 1,
+        'phone': '+12025550147',
+        'email': 'legacy@example.com',
+        'address': 'Old address',
+      });
+
+      expect(patient.prototypeDisplayName, 'Legacy Patient');
+      expect(patient.prototypeBirthYear, 1985);
+      expect(patient.prototypeSexOrGender, 'male');
+      expect(patient.prototypeAddressLine, 'Old address');
+      expect(patient.prototypeContacts, hasLength(2));
+      expect(patient.prototypeContacts.last.type, PatientContactType.email);
+    });
+
+    test('round-trip preserves approved personal fields and contacts', () {
+      final patient = Patient.fromJson({
+        'id': 'prototype-roundtrip',
+        'registration_number': '000123',
+        'surname': 'Dimitrakopoulos',
+        'first_name': 'Evripidis',
+        'patronymic': 'Georgios',
+        'mother_name': 'Maria',
+        'birth_date': '1980-06-15',
+        'birth_date_precision': 'exact',
+        'sex_or_gender': 'male',
+        'occupation': 'Dentist',
+        'address_line': '11 Example Street',
+        'area': 'Center',
+        'city': 'Thessaloniki',
+        'postal_code': '054622',
+        'amka': '00123456789',
+        'afm': '001234567',
+        'doy': 'A Thessalonikis',
+        'legacy_folder_number': '001131',
+        'contacts': [
+          {
+            'id': 'contact00000001',
+            'type': 'mobile',
+            'raw_value': '+30 690 000 0000',
+            'normalized_value': '+306900000000',
+            'is_primary': true,
+            'sms_allowed': true,
+          },
+          {
+            'id': 'contact00000002',
+            'type': 'email',
+            'raw_value': 'patient@example.com',
+          },
+        ],
+      });
+
+      final copy = Patient.fromJson(patient.toJson());
+
+      expect(copy.registrationNumber, '000123');
+      expect(copy.prototypeDisplayName, 'Dimitrakopoulos Evripidis');
+      expect(copy.birthDate, DateTime(1980, 6, 15));
+      expect(copy.postalCode, '054622');
+      expect(copy.amka, '00123456789');
+      expect(copy.afm, '001234567');
+      expect(copy.legacyFolderNumber, '001131');
+      expect(copy.contacts, hasLength(2));
+      expect(copy.contacts.first.isPrimary, isTrue);
+      expect(copy.contacts.first.smsAllowed, isTrue);
+      expect(copy.toJson()['birth_date'], '1980-06-15');
+    });
+
+    test('copy deep-copies structured contacts and legacy custom fields', () {
+      final patient = Patient.fromJson({
+        'id': 'prototype-deep-copy',
+        'contacts': [
+          {'type': 'phone', 'raw_value': '+302310000000'},
+        ],
+        'legacy_custom_fields': {'field_1': 'preserved'},
+      });
+
+      final copy = patient.copy(false);
+      copy.contacts.first.rawValue = '+302310999999';
+      copy.legacyCustomFields['field_1'] = 'changed';
+
+      expect(patient.contacts.first.rawValue, '+302310000000');
+      expect(patient.legacyCustomFields['field_1'], 'preserved');
+    });
+  });
+
   group('Patient computed getters', () {
     test('age = current year - birth', () {
       final p = testPatient(id: 'age1', birth: 2000);
@@ -117,6 +221,17 @@ void main() {
       final p = testPatient(id: 'ss2', name: 'أحمد');
       final s = p.searchString;
       expect(s.contains('أ'), false);
+    });
+
+    test('searchString normalizes Greek accents and final sigma', () {
+      final patient = Patient.fromJson({
+        'id': 'greek-search',
+        'surname': 'Δημητρακόπουλος',
+        'first_name': 'Ευριπίδης',
+      });
+
+      expect(patient.searchString, contains('δημητρακοπουλοσ'));
+      expect(patient.searchString, contains('ευριπιδησ'));
     });
 
     test('nullifyLabels clears cached search and labels', () {

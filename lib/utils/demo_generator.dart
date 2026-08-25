@@ -133,6 +133,15 @@ const _patientTags = [
   "Smoker",
 ];
 
+const _occupations = [
+  'Teacher',
+  'Engineer',
+  'Accountant',
+  'Designer',
+  'Office worker',
+  'Student',
+];
+
 const _preOpNotes = [
   "routine dental checkup.",
   "root canal treatment.",
@@ -376,16 +385,60 @@ List<Patient> _savedPatients = [];
 List<RecordModel> _savedAccounts = [];
 List<Expense> _savedSuppliers = [];
 
-Patient _demoPatient() {
-  final name = _generateName();
+Patient _demoPatient(int index) {
+  final random = Random();
+  final firstName = _firstNames[random.nextInt(_firstNames.length)];
+  final surname = _lastNames[random.nextInt(_lastNames.length)];
+  final name = '$firstName $surname';
+  final gender = random.nextInt(5).isEven ? 0 : 1;
+  final birthYear = DateTime.now().year - 5 - random.nextInt(55);
+  final address = _randomAddress();
+  final email = _generateEmail(name).toLowerCase();
   return Patient.fromJson({
     "title": name,
-    "gender": Random().nextInt(5).isEven ? 0 : 1,
+    "registration_number": (10000 + index).toString().padLeft(6, '0'),
+    "surname": surname,
+    "first_name": firstName,
+    "legacy_full_name": name,
+    "patronymic": 'Demo parent ${index + 1}',
+    "birth_date": '$birthYear-06-15',
+    "birth_date_precision": 'exact',
+    "sex_or_gender": gender == 1 ? 'male' : 'female',
+    "occupation": _occupations[random.nextInt(_occupations.length)],
+    "registration_date":
+        DateTime.now().subtract(Duration(days: index + 30)).toIso8601String(),
+    "active_status": "active",
+    "gender": gender,
     "phone": "+1 555-555-5555",
-    "address": _randomAddress(),
-    "birth": DateTime.now().year - 5 - Random().nextInt(55),
-    "tags": List.generate(Random().nextInt(5).isEven ? 0 : 1,
-        (_) => _patientTags[Random().nextInt(_patientTags.length)]),
+    "email": email,
+    "address": address,
+    "address_line": address,
+    "city": "Demo City",
+    "postal_code": (10000 + index).toString(),
+    "country_code": "US",
+    "insurance": "Demo insurance",
+    "patient_category": "Demo patient",
+    "referral_source": "Demo referral",
+    "legacy_folder_number": "DW-DEMO-${index + 1}",
+    "contacts": [
+      {
+        "id": "demomobile${index.toString().padLeft(5, '0')}",
+        "type": "mobile",
+        "raw_value": "+1 555-555-5555",
+        "normalized_value": "+15555555555",
+        "is_primary": true,
+        "sms_allowed": true,
+      },
+      {
+        "id": "demoemail${index.toString().padLeft(6, '0')}",
+        "type": "email",
+        "raw_value": email,
+        "normalized_value": email,
+      },
+    ],
+    "birth": birthYear,
+    "tags": List.generate(random.nextInt(5).isEven ? 0 : 1,
+        (_) => _patientTags[random.nextInt(_patientTags.length)]),
   });
 }
 
@@ -467,7 +520,7 @@ List<RecordModel> demoAccounts(int length) {
 }
 
 List<Patient> demoPatients(int length) {
-  _savedPatients = List.generate(length, (_) => _demoPatient());
+  _savedPatients = List.generate(length, _demoPatient);
   return _savedPatients;
 }
 

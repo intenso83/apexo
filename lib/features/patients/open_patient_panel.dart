@@ -29,6 +29,7 @@ import 'package:apexo/common_widgets/qrlink.dart';
 import 'package:apexo/common_widgets/tag_input.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/patients/patient_model.dart';
+import 'package:apexo/features/patients/patient_fields_prototype.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/widget_keys.dart';
@@ -55,6 +56,11 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
         title: txt("patientDetails"),
         icon: FluentIcons.medication_admin,
         body: _PatientDetails(editingCopy),
+      ),
+      PanelTab(
+        title: txt("patientFieldsPrototype"),
+        icon: FluentIcons.view,
+        body: PatientFieldsPrototype(patient: editingCopy),
       ),
       PanelTab(
         title: txt("dentalNotes"),
