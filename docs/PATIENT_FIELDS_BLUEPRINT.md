@@ -1,6 +1,6 @@
 # Patient Fields Blueprint
 
-Status: Draft for owner review
+Status: Approved by owner
 
 Date: 2026-08-25
 
@@ -28,25 +28,38 @@ The following decisions were confirmed by the owner on 2026-08-25:
 3. The paper form contributes only its `ΠΡΟΣΩΠΙΚΑ ΣΤΟΙΧΕΙΑ` section to this blueprint.
 4. The DentalWin screenshots and paper fields should be united into one target model suitable for automatic migration and tablet intake.
 5. Exact source-column mappings may be proposed from verified evidence, but unknown DentalWin columns must not be guessed.
+6. Surname and first name are the only fields that are always required for every new patient.
+7. A patient registration number is generated automatically; staff and patients do not type it.
+8. A tablet intake submission requires at least one mobile number, telephone number, or email address.
 
 ## 3. Required-field policy
 
 There is a difference between a field being **supported** and being **required**.
 
-### 3.1 Proposed default for a patient created by staff
+### 3.1 Approved default for a patient created by staff
 
 - `surname`: required;
 - `first_name`: required;
-- at least one telephone number or email: recommended, but not initially enforced;
+- a telephone number, mobile number, or email: recommended, but not required for staff entry;
 - every other field: optional.
 
-The clinic may later make a contact method mandatory through a setting. AMKA, AFM, email, address, and date of birth must not be universally mandatory because legitimate patients and legacy records may not have them.
+AMKA, AFM, email, address, contact details, and date of birth must not be universally mandatory because legitimate patients and legacy records may not have them.
 
-### 3.2 Imported and exceptional records
+### 3.2 Approved default for tablet intake
+
+A tablet intake submission requires:
+
+- `surname`;
+- `first_name`;
+- at least one contact value classified as mobile telephone, other telephone, or email.
+
+The form may accept several contacts. Empty spaces and an invalid telephone number or email do not satisfy the requirement. The patient registration number is generated only after the submission is accepted into the authoritative patient registry.
+
+### 3.3 Imported and exceptional records
 
 An imported patient must not be discarded merely because a modern required field is missing. Such a record may use `legacy_full_name`, must retain its DentalWin identity, and should enter a review queue when its name cannot be separated reliably.
 
-### 3.3 No invented defaults
+### 3.4 No invented defaults
 
 Unknown information must remain unknown.
 
@@ -106,6 +119,7 @@ Legend for source confidence:
 | Target field | Type | Required | Default visibility | Sources and mapping | Notes |
 |---|---|---:|---|---|---|
 | `id` | immutable text ID | automatic | system | Apexo existing | Keep the existing 15-character Apexo ID format if adequate. Never reuse an ID. |
+| `registration_number` | server-generated unique text/number | automatic | summary/administrative | new target field | Generated when a patient is accepted into the registry. It is a human-facing clinic reference, not the database primary key. Imported DentalWin folder numbers remain separate legacy identifiers. |
 | `surname` | text | yes for new staff entry | summary | DentalWin `Customers.NAME` - **Confirmed** | The DentalWin column name is counterintuitive: `NAME` means surname. |
 | `first_name` | text | yes for new staff entry | summary | DentalWin `Customers.LAST` - **Confirmed** | The DentalWin column name is counterintuitive: `LAST` means first name. |
 | `legacy_full_name` | text | conditional import fallback | additional | Apexo `title`; paper `ΟΝΟΜΑΤΕΠΩΝΥΜΟ` | Preserve an unsplit name when separation is uncertain. It must not overwrite confidently split names. |
@@ -237,6 +251,7 @@ The user interface should expose information progressively.
 
 ### 7.1 Everyday summary
 
+- automatic patient registration number;
 - surname and first name;
 - date of birth or approximate year;
 - sex/gender when used;
@@ -293,31 +308,31 @@ Duplicate suggestions should consider combinations of name, date/year of birth, 
 The patient foundation is not complete until tests demonstrate that:
 
 1. An old Apexo patient loads without data loss.
-2. A new patient can be stored with surname and first name while every other optional field is blank.
-3. Unknown date of birth and sex/gender remain unknown.
-4. A year-only birth value does not become a false exact date.
-5. Multiple home, work, mobile, and email contacts round-trip without collapsing into one field.
-6. Original contact values survive normalization.
-7. Hidden optional values survive unrelated edits.
-8. AMKA, AFM, postal codes, and source IDs preserve leading zeroes.
-9. Greek search works with and without accents and regardless of letter case.
-10. External identifiers prevent the same DentalWin source record from being created twice.
-11. Ambiguous imported names and possible duplicates enter a review queue.
-12. Archive and restore work without ordinary hard deletion.
-13. Unauthorized roles cannot retrieve protected fields directly from PocketBase.
-14. No test uses real patient information.
+2. A staff-created patient can be stored with surname and first name while every other optional field is blank.
+3. Every accepted patient receives a unique registration number automatically, including accepted imports and tablet submissions.
+4. A tablet submission cannot proceed without surname, first name, and at least one valid mobile, telephone, or email contact.
+5. Unknown date of birth and sex/gender remain unknown.
+6. A year-only birth value does not become a false exact date.
+7. Multiple home, work, mobile, and email contacts round-trip without collapsing into one field.
+8. Original contact values survive normalization.
+9. Hidden optional values survive unrelated edits.
+10. AMKA, AFM, postal codes, and source IDs preserve leading zeroes.
+11. Greek search works with and without accents and regardless of letter case.
+12. External identifiers prevent the same DentalWin source record from being created twice.
+13. Ambiguous imported names and possible duplicates enter a review queue.
+14. Archive and restore work without ordinary hard deletion.
+15. Unauthorized roles cannot retrieve protected fields directly from PocketBase.
+16. No test uses real patient information.
 
 ## 11. Decisions still requiring owner confirmation
 
 These decisions should be made before application implementation, but they do not block database discovery:
 
-1. Confirm whether surname and first name should be the only universally required fields for staff-created patients.
-2. Decide whether at least one contact method should be mandatory for tablet submissions only.
-3. Confirm which fields appear in the everyday patient summary versus the collapsed additional section.
-4. Confirm the final labels and allowed values for sex/gender, including `unknown` and any additional value.
-5. Clarify the DentalWin label `Επάγγελμα Μ` after reviewing real values.
-6. Decide initial receptionist and dental-assistant access to AMKA, AFM, DOY, identity details, address, and administrative notes.
-7. Decide whether auxiliary DentalWin fields 1-5 should initially appear in a legacy panel or stay hidden until populated records are reviewed.
+1. Confirm which fields appear in the everyday patient summary versus the collapsed additional section.
+2. Confirm the final labels and allowed values for sex/gender, including `unknown` and any additional value.
+3. Clarify the DentalWin label `Επάγγελμα Μ` after reviewing real values.
+4. Decide initial receptionist and dental-assistant access to AMKA, AFM, DOY, identity details, address, and administrative notes.
+5. Decide whether auxiliary DentalWin fields 1-5 should initially appear in a legacy panel or stay hidden until populated records are reviewed.
 
 ## 12. Implementation sequence after blueprint approval
 
