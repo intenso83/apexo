@@ -137,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
               passwordField(),
             ], [
               _buildLoginBtn(),
+              _buildDemoBtn(),
               if (loginCtrl.loginError().isNotEmpty)
                 _buildOfflineBtn()
               else if (login.url.isNotEmpty || login.email.isNotEmpty)
@@ -213,6 +214,18 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(width: 10),
         Txt(txt("login"))
       ]),
+    );
+  }
+
+  Widget _buildDemoBtn() {
+    return Tooltip(
+      message: txt("demoUsesFakeData"),
+      child: FilledButton(
+        key: WK.btnDemo,
+        onPressed: loginCtrl.demoButton,
+        style: greyButtonStyle,
+        child: ButtonContent(FluentIcons.play, txt("demoMode")),
+      ),
     );
   }
 

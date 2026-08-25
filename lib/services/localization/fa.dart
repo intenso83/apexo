@@ -753,6 +753,9 @@ class Fa implements En {
 
     // login
     "login": "ورود",
+    "demoMode": "نسخه نمایشی",
+    "demoUsesFakeData":
+        "یک نسخه نمایشی امن با اطلاعات ساختگی بیماران باز کنید. هیچ چیزی به سرور ارسال نمی‌شود.",
     "clear": "پاک کردن",
     "resetPassword": "بازنشانی رمز عبور",
     "serverUrl": "آدرس سرور",

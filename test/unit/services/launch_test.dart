@@ -14,6 +14,7 @@ void main() {
     late Open originalOpen;
     late bool originalOverlay;
     late double originalWidth;
+    late bool originalLocalDemo;
 
     setUp(() {
       originalDialog = launch.dialogShown();
@@ -21,6 +22,7 @@ void main() {
       originalOpen = launch.open();
       originalOverlay = launch.paneIsOverlaying();
       originalWidth = launch.layoutWidth;
+      originalLocalDemo = launch.isLocalDemo;
     });
 
     tearDown(() {
@@ -29,6 +31,11 @@ void main() {
       launch.open(originalOpen);
       launch.paneIsOverlaying(originalOverlay);
       launch.layoutWidth = originalWidth;
+      if (originalLocalDemo) {
+        launch.enterLocalDemo();
+      } else {
+        launch.exitLocalDemo();
+      }
     });
 
     test('singleton exists', () {
@@ -59,6 +66,18 @@ void main() {
 
     test('isDemo is a bool', () {
       expect(launch.isDemo, isA<bool>());
+    });
+
+    test('local demo mode can be entered and exited', () {
+      launch.exitLocalDemo();
+      expect(launch.isLocalDemo, isFalse);
+
+      launch.enterLocalDemo();
+      expect(launch.isLocalDemo, isTrue);
+      expect(launch.isDemo, isTrue);
+
+      launch.exitLocalDemo();
+      expect(launch.isLocalDemo, isFalse);
     });
 
     test('open defaults to Open.login', () {

@@ -255,7 +255,9 @@ class DashboardScreen extends StatelessWidget {
   Widget _builCommandBar(BuildContext context) {
     return ScreenCommandBar(
       mainButton: _topWelcomingText(context),
-      otherButtons: [if (!launch.isDemo) const LogoutButton()],
+      otherButtons: [
+        if (!launch.isDemo || launch.isLocalDemo) const LogoutButton()
+      ],
     );
   }
 

@@ -766,6 +766,9 @@ class El implements En {
 
     // login
     "login": "Σύνδεση",
+    "demoMode": "Επίδειξη",
+    "demoUsesFakeData":
+        "Ανοίξτε μια ασφαλή επίδειξη με ψεύτικα δεδομένα ασθενών. Τίποτα δεν αποστέλλεται σε διακομιστή.",
     "clear": "Εκκαθάριση",
     "resetPassword": "Επαναφορά κωδικού",
     "serverUrl": "URL Server",

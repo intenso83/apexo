@@ -26,6 +26,7 @@ class WK {
   static const resetPasswordTab = Key("resetPasswordTab");
   static const btnResetPassword = Key("btnResetPassword");
   static const btnLogin = Key("btnLogin");
+  static const btnDemo = Key("btnDemo");
   static const btnProceedOffline = Key("btnProceedOffline");
   static const loginErr = Key("loginErr");
   static const btnLogout = Key("btnLogout");

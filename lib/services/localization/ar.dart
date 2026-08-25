@@ -747,6 +747,9 @@ class Ar implements En {
 
     // login
     "login": "تسجيل الدخول",
+    "demoMode": "عرض تجريبي",
+    "demoUsesFakeData":
+        "افتح عرضًا تجريبيًا آمنًا ببيانات مرضى وهمية. لن يتم إرسال أي شيء إلى الخادم.",
     "clear": "مسح",
     "resetPassword": "إعادة تعيين كلمة المرور",
     "serverUrl": "رابط الخادم",

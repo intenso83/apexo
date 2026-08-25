@@ -28,6 +28,22 @@ import 'package:pocketbase/pocketbase.dart';
 /// between `lib/services/` and `lib/features/`.
 final List<void Function()> onLogoutCallbacks = [];
 
+const _localDemoUrl = 'https://local-demo.apexo.invalid';
+
+class _LoginSessionSnapshot {
+  final String url;
+  final String email;
+  final String token;
+  final PocketBase? pb;
+
+  const _LoginSessionSnapshot({
+    required this.url,
+    required this.email,
+    required this.token,
+    required this.pb,
+  });
+}
+
 class _LoginService extends ObservablePersistingObject {
   _LoginService(super.identifier);
 
@@ -38,6 +54,7 @@ class _LoginService extends ObservablePersistingObject {
   String adminCollectionId = "__UNDEFINED__";
   String pushNotificationsToken = "";
   bool didAskForLoginAgain = false;
+  _LoginSessionSnapshot? _beforeLocalDemo;
 
   String get currentAccountID {
     if (launch.isDemo) {
@@ -148,9 +165,29 @@ class _LoginService extends ObservablePersistingObject {
     }
   }
 
+  Future<void> startLocalDemo() async {
+    if (launch.isLocalDemo) return;
+
+    _beforeLocalDemo = _LoginSessionSnapshot(
+      url: url,
+      email: email,
+      token: token,
+      pb: pb,
+    );
+    launch.enterLocalDemo();
+    url = _localDemoUrl;
+    email = '';
+    token = '';
+    pb = null;
+
+    await activate(_localDemoUrl, const [], false);
+  }
+
   void logout([bool cleanCredentials = true]) {
+    final wasLocalDemo = launch.isLocalDemo;
+    final previousSession = _beforeLocalDemo;
     launch.open(Open.login);
-    if (cleanCredentials) {
+    if (!wasLocalDemo && cleanCredentials) {
       url = "";
       email = "";
     }
@@ -172,7 +209,19 @@ class _LoginService extends ObservablePersistingObject {
     // Deferred push is keyed by server URL — reset so the next login
     // opens the correct Hive box for the new server.
     deferredPush.reset();
-    notifyAndPersist();
+    if (wasLocalDemo) {
+      launch.exitLocalDemo();
+      if (previousSession != null) {
+        url = previousSession.url;
+        email = previousSession.email;
+        token = previousSession.token;
+        pb = previousSession.pb;
+      }
+      _beforeLocalDemo = null;
+      notifyWithoutPersisting();
+    } else {
+      notifyAndPersist();
+    }
     routes.panels([]);
     return loginCtrl.finishedLoginProcess();
   }
@@ -329,7 +378,12 @@ class _LoginService extends ObservablePersistingObject {
       try {
         final secondStage = await callback();
         if (online && launch.isDemo == false) await secondStage();
-        notifyAndPersist(); // this would persist the data to the disk so we don't have to login again
+        if (launch.isLocalDemo) {
+          notifyWithoutPersisting();
+        } else {
+          // Persist real login state, but never replace it with demo details.
+          notifyAndPersist();
+        }
       } catch (e, s) {
         logger("Error during running activators: $e", s);
       }

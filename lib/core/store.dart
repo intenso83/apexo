@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:apexo/common_widgets/error_dialog.dart';
 import 'package:apexo/services/login.dart';
+import 'package:apexo/services/launch.dart';
 import 'package:apexo/services/notifications/static_notifications.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -60,6 +61,7 @@ class Store<G extends Model> {
   int lastProcessChanges = 0;
   bool? manualSyncOnly;
   bool? isDemo;
+  bool get _demoMode => isDemo == true || launch.isDemo;
   int _persistenceSession = 0;
   final Set<Future<void>> _activePersistenceTasks = {};
 
@@ -157,7 +159,7 @@ class Store<G extends Model> {
     SaveLocal? sessionLocal,
     SaveRemote? sessionRemote,
   ) async {
-    if (isDemo == true) notify();
+    if (_demoMode) notify();
 
     if (session != _persistenceSession || sessionLocal == null) {
       return;
@@ -269,7 +271,7 @@ class Store<G extends Model> {
   }
 
   Future<SyncResult> _syncTry() async {
-    if (isDemo == true) {
+    if (_demoMode) {
       return SyncResult(exception: "sync is disabled in demo mode");
     }
     if (local == null || remote == null) {

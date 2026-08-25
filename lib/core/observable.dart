@@ -134,6 +134,10 @@ abstract class ObservablePersistingObject
   // a short hand for calling notifyObservers
   notifyAndPersist() => notifyObservers(this);
 
+  /// Notifies listeners without writing the current value to persistence.
+  /// Useful for temporary session state such as the isolated local demo.
+  notifyWithoutPersisting() => super.notifyObservers(this);
+
   fromJson(Map<String, dynamic> json);
   Map<String, dynamic> toJson();
 }

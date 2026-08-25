@@ -755,6 +755,9 @@ class En {
 
     // login
     "login": "Login",
+    "demoMode": "Demo",
+    "demoUsesFakeData":
+        "Open a safe demo with fake patient data. Nothing is sent to a server.",
     "clear": "Clear",
     "resetPassword": "Reset password",
     "serverUrl": "Server URL",

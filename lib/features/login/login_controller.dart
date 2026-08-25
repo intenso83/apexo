@@ -44,6 +44,11 @@ class _LoginScreenState {
     routes.reset();
   }
 
+  Future<void> demoButton() async {
+    routes.reset();
+    await login.startLocalDemo();
+  }
+
   _LoginScreenState() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (launch.isDemo) {

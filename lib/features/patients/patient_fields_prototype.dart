@@ -11,131 +11,133 @@ class PatientFieldsPrototype extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InfoBar(
-          title: Text(txt('patientFieldsPrototype')),
-          content: Text(txt('patientFieldsPrototypeDescription')),
-          severity: InfoBarSeverity.info,
-        ),
-        const SizedBox(height: 12),
-        _section(
-          context,
-          txt('identityAndDemographics'),
-          [
-            _FieldValue(
-              txt('registrationNumber'),
-              patient.registrationNumber.isEmpty
-                  ? txt('assignedAfterAcceptance')
-                  : patient.registrationNumber,
-            ),
-            _FieldValue(txt('surname'), patient.surname),
-            _FieldValue(txt('firstName'), patient.firstName),
-            _FieldValue(
-              txt('legacyFullName'),
-              patient.legacyFullName.isEmpty
-                  ? patient.title
-                  : patient.legacyFullName,
-            ),
-            _FieldValue(txt('fatherName'), patient.patronymic),
-            _FieldValue(txt('motherName'), patient.motherName),
-            _FieldValue(
-              txt('birthDate'),
-              patient.birthDate == null
-                  ? ''
-                  : DF.allNumbers(patient.birthDate!),
-            ),
-            _FieldValue(
-              txt('approximateBirthYear'),
-              patient.birthDate == null
-                  ? patient.prototypeBirthYear?.toString() ?? ''
-                  : '',
-            ),
-            _FieldValue(
-              txt('gender'),
-              _translatedValue(patient.prototypeSexOrGender),
-            ),
-            _FieldValue(txt('occupation'), patient.occupation),
-            _FieldValue(
-              txt('secondaryOccupation'),
-              patient.secondaryOccupationLabel,
-            ),
-            _FieldValue(
-              txt('placeOfOrigin'),
-              patient.placeOfOriginOrBirth,
-            ),
-            _FieldValue(
-              txt('registrationDate'),
-              patient.registrationDate == null
-                  ? ''
-                  : DF.allNumbers(patient.registrationDate!),
-            ),
-            _FieldValue(
-              txt('status'),
-              _translatedValue(patient.prototypeActiveStatus),
-            ),
-          ],
-        ),
-        _section(
-          context,
-          txt('contactDetails'),
-          _contactFields(patient.prototypeContacts),
-        ),
-        _section(
-          context,
-          txt('addressDetails'),
-          [
-            _FieldValue(txt('address'), patient.prototypeAddressLine),
-            _FieldValue(txt('area'), patient.area),
-            _FieldValue(txt('city'), patient.city),
-            _FieldValue(txt('postalCode'), patient.postalCode),
-            _FieldValue(txt('country'), patient.countryCode),
-          ],
-        ),
-        _section(
-          context,
-          txt('administrativeDetails'),
-          [
-            _FieldValue('AMKA', patient.amka),
-            _FieldValue('AFM', patient.afm),
-            _FieldValue('DOY', patient.doy),
-            _FieldValue(
-              txt('identityCardNumber'),
-              patient.identityCardNumber,
-            ),
-            _FieldValue(
-              txt('identityIssueDetails'),
-              patient.identityIssueDetails,
-            ),
-            _FieldValue(txt('insurance'), patient.insurance),
-            _FieldValue(txt('patientCategory'), patient.patientCategory),
-            _FieldValue(
-              txt('financialCategory'),
-              patient.financialCategory,
-            ),
-            _FieldValue(txt('salutation1'), patient.salutation1),
-            _FieldValue(txt('salutation2'), patient.salutation2),
-            _FieldValue(txt('referralSource'), patient.referralSource),
-            _FieldValue(
-              txt('legacyFolderNumber'),
-              patient.legacyFolderNumber,
-            ),
-            _FieldValue(
-              txt('notes'),
-              patient.prototypeAdministrativeNotes,
-            ),
-          ],
-        ),
-        if (patient.legacyCustomFields.isNotEmpty)
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoBar(
+            title: Text(txt('patientFieldsPrototype')),
+            content: Text(txt('patientFieldsPrototypeDescription')),
+            severity: InfoBarSeverity.info,
+          ),
+          const SizedBox(height: 12),
           _section(
             context,
-            txt('legacyFields'),
-            patient.legacyCustomFields.entries
-                .map((entry) => _FieldValue(entry.key, entry.value))
-                .toList(),
+            txt('identityAndDemographics'),
+            [
+              _FieldValue(
+                txt('registrationNumber'),
+                patient.registrationNumber.isEmpty
+                    ? txt('assignedAfterAcceptance')
+                    : patient.registrationNumber,
+              ),
+              _FieldValue(txt('surname'), patient.surname),
+              _FieldValue(txt('firstName'), patient.firstName),
+              _FieldValue(
+                txt('legacyFullName'),
+                patient.legacyFullName.isEmpty
+                    ? patient.title
+                    : patient.legacyFullName,
+              ),
+              _FieldValue(txt('fatherName'), patient.patronymic),
+              _FieldValue(txt('motherName'), patient.motherName),
+              _FieldValue(
+                txt('birthDate'),
+                patient.birthDate == null
+                    ? ''
+                    : DF.allNumbers(patient.birthDate!),
+              ),
+              _FieldValue(
+                txt('approximateBirthYear'),
+                patient.birthDate == null
+                    ? patient.prototypeBirthYear?.toString() ?? ''
+                    : '',
+              ),
+              _FieldValue(
+                txt('gender'),
+                _translatedValue(patient.prototypeSexOrGender),
+              ),
+              _FieldValue(txt('occupation'), patient.occupation),
+              _FieldValue(
+                txt('secondaryOccupation'),
+                patient.secondaryOccupationLabel,
+              ),
+              _FieldValue(
+                txt('placeOfOrigin'),
+                patient.placeOfOriginOrBirth,
+              ),
+              _FieldValue(
+                txt('registrationDate'),
+                patient.registrationDate == null
+                    ? ''
+                    : DF.allNumbers(patient.registrationDate!),
+              ),
+              _FieldValue(
+                txt('status'),
+                _translatedValue(patient.prototypeActiveStatus),
+              ),
+            ],
           ),
-      ],
+          _section(
+            context,
+            txt('contactDetails'),
+            _contactFields(patient.prototypeContacts),
+          ),
+          _section(
+            context,
+            txt('addressDetails'),
+            [
+              _FieldValue(txt('address'), patient.prototypeAddressLine),
+              _FieldValue(txt('area'), patient.area),
+              _FieldValue(txt('city'), patient.city),
+              _FieldValue(txt('postalCode'), patient.postalCode),
+              _FieldValue(txt('country'), patient.countryCode),
+            ],
+          ),
+          _section(
+            context,
+            txt('administrativeDetails'),
+            [
+              _FieldValue('AMKA', patient.amka),
+              _FieldValue('AFM', patient.afm),
+              _FieldValue('DOY', patient.doy),
+              _FieldValue(
+                txt('identityCardNumber'),
+                patient.identityCardNumber,
+              ),
+              _FieldValue(
+                txt('identityIssueDetails'),
+                patient.identityIssueDetails,
+              ),
+              _FieldValue(txt('insurance'), patient.insurance),
+              _FieldValue(txt('patientCategory'), patient.patientCategory),
+              _FieldValue(
+                txt('financialCategory'),
+                patient.financialCategory,
+              ),
+              _FieldValue(txt('salutation1'), patient.salutation1),
+              _FieldValue(txt('salutation2'), patient.salutation2),
+              _FieldValue(txt('referralSource'), patient.referralSource),
+              _FieldValue(
+                txt('legacyFolderNumber'),
+                patient.legacyFolderNumber,
+              ),
+              _FieldValue(
+                txt('notes'),
+                patient.prototypeAdministrativeNotes,
+              ),
+            ],
+          ),
+          if (patient.legacyCustomFields.isNotEmpty)
+            _section(
+              context,
+              txt('legacyFields'),
+              patient.legacyCustomFields.entries
+                  .map((entry) => _FieldValue(entry.key, entry.value))
+                  .toList(),
+            ),
+        ],
+      ),
     );
   }
 

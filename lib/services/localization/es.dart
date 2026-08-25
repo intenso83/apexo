@@ -767,6 +767,9 @@ class Es implements En {
 
     // login
     "login": "Iniciar sesión",
+    "demoMode": "Demostración",
+    "demoUsesFakeData":
+        "Abra una demostración segura con datos de pacientes ficticios. No se envía nada a un servidor.",
     "clear": "Limpiar",
     "resetPassword": "Restablecer contraseña",
     "serverUrl": "URL del servidor",
