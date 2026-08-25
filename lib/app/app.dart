@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:apexo/app/navbar_widget.dart';
 import 'package:apexo/app/panel_widget.dart';
+import 'package:apexo/app/panel_layout.dart';
 import 'package:apexo/app/routes.dart';
 import 'package:apexo/common_widgets/back_button.dart';
 import 'package:apexo/common_widgets/dialogs/changelog_dialog.dart';
@@ -203,6 +204,13 @@ class ApexoApp extends StatelessWidget {
   Widget _buildPositionedMainScreen(
       BoxConstraints constraints, bool hideSidePanel, BuildContext context) {
     final hasKeyboard = MediaQuery.of(context).viewInsets.bottom > 0;
+    final panelWidth = sidePanelWidthForLayout(
+      layoutWidth: constraints.maxWidth,
+      minimized: false,
+      desktopWidthFraction: routes.panels().isEmpty
+          ? null
+          : routes.panels().last.desktopWidthFraction,
+    );
     return AnimatedPositioned(
       duration: hasKeyboard ? Duration.zero : const Duration(milliseconds: 300),
       top: 0,
@@ -210,7 +218,7 @@ class ApexoApp extends StatelessWidget {
       right: locale.s.$direction == Direction.rtl ? 0 : null,
       height: constraints.maxHeight,
       width: (!hideSidePanel) && constraints.maxWidth >= 710
-          ? constraints.maxWidth - 355
+          ? constraints.maxWidth - panelWidth - 5
           : constraints.maxWidth,
       child: Container(
         decoration: BoxDecoration(boxShadow: kElevationToShadow[6]),
@@ -302,11 +310,16 @@ class ApexoApp extends StatelessWidget {
       BuildContext context, BoxConstraints constraints, bool hideSidePanel) {
     final minimized = routes.minimizePanels() && constraints.maxWidth < 710;
     final hasKeyboard = MediaQuery.of(context).viewInsets.bottom > 0;
+    final panelWidth = sidePanelWidthForLayout(
+      layoutWidth: constraints.maxWidth,
+      minimized: minimized,
+      desktopWidthFraction: routes.panels().isEmpty
+          ? null
+          : routes.panels().last.desktopWidthFraction,
+    );
     return AnimatedPositioned(
       duration: hasKeyboard ? Duration.zero : const Duration(milliseconds: 300),
-      width: (constraints.maxWidth < 490 && minimized)
-          ? constraints.maxWidth
-          : 350,
+      width: panelWidth,
       height: minimized ? 100 : constraints.maxHeight,
       top: minimized ? null : 0,
       bottom: minimized ? -20 : null,

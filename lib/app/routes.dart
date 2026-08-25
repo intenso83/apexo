@@ -64,6 +64,7 @@ class Panel<T extends Model> {
   final bool inherentlyScrollable;
   final bool showTitles;
   final bool showBottomControls;
+  final double? desktopWidthFraction;
   final bool canNotBeNew;
   final Widget? additionalControls;
   final Widget? archiveButtonReplacement;
@@ -88,6 +89,7 @@ class Panel<T extends Model> {
     this.showTitles = false,
     this.title,
     this.showBottomControls = true,
+    this.desktopWidthFraction,
     int? selectedTabIndex,
     this.canNotBeNew = false,
     this.additionalControls,

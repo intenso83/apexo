@@ -51,6 +51,7 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
     title: patients.get(editingCopy.id) == null
         ? txt("newPatient")
         : editingCopy.title,
+    desktopWidthFraction: 0.5,
     tabs: [
       PanelTab(
         title: txt("patientDetails"),
