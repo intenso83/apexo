@@ -67,6 +67,8 @@ class El implements En {
     "deleted": "Διαγράφηκε",
     "archive": "Αρχειοθέτηση",
     "restore": "Επαναφορά",
+    "focusMode": "Λειτουργία εστίασης",
+    "exitFocusMode": "Έξοδος από τη λειτουργία εστίασης",
     "logout": "Αποσύνδεση",
     "voiceInput": "Φωνητική εισαγωγή",
     "noResultsFound": "Δεν βρέθηκαν αποτελέσματα",

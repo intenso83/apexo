@@ -6,6 +6,7 @@ import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/appointments/open_appointment_panel.dart';
 import 'package:apexo/features/dashboard/dashboard_controller.dart';
+import 'package:apexo/features/dashboard/dashboard_column_header.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/expenses/open_expense_panel.dart';
 import 'package:apexo/features/labwork/labworks_ctrl.dart';
@@ -209,22 +210,10 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: colWidth,
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Txt(
-                  title,
-                  style: FluentTheme.of(context).typography.bodyStrong,
-                ),
-                IconButton(
-                  icon: Icon(icon),
-                  onPressed: onPressed,
-                )
-              ],
-            ),
+          DashboardColumnHeader(
+            title: title,
+            icon: icon,
+            onPressed: onPressed,
           ),
           const SizedBox(height: 10),
           Container(

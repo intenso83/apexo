@@ -67,6 +67,8 @@ class Es implements En {
     "deleted": "Eliminado",
     "archive": "Archivar",
     "restore": "Restaurar",
+    "focusMode": "Modo de enfoque",
+    "exitFocusMode": "Salir del modo de enfoque",
     "logout": "Cerrar sesión",
     "voiceInput": "Entrada de voz",
     "noResultsFound": "No se encontraron resultados",

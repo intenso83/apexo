@@ -76,7 +76,8 @@ class ApexoApp extends StatelessWidget {
                     launch.open.stream,
                     routes.showBottomNav.stream,
                     routes.panels.stream,
-                    routes.minimizePanels.stream
+                    routes.minimizePanels.stream,
+                    routes.panelLayoutVersion.stream,
                   ],
                   builder: (BuildContext context, _) {
                     bContext = context;
@@ -204,12 +205,15 @@ class ApexoApp extends StatelessWidget {
   Widget _buildPositionedMainScreen(
       BoxConstraints constraints, bool hideSidePanel, BuildContext context) {
     final hasKeyboard = MediaQuery.of(context).viewInsets.bottom > 0;
+    final desktopExpanded =
+        routes.panels().isNotEmpty && routes.panels().last.desktopExpanded();
     final panelWidth = sidePanelWidthForLayout(
       layoutWidth: constraints.maxWidth,
       minimized: false,
       desktopWidthFraction: routes.panels().isEmpty
           ? null
           : routes.panels().last.desktopWidthFraction,
+      desktopExpanded: desktopExpanded,
     );
     return AnimatedPositioned(
       duration: hasKeyboard ? Duration.zero : const Duration(milliseconds: 300),
@@ -217,9 +221,12 @@ class ApexoApp extends StatelessWidget {
       left: locale.s.$direction == Direction.rtl ? null : 0,
       right: locale.s.$direction == Direction.rtl ? 0 : null,
       height: constraints.maxHeight,
-      width: (!hideSidePanel) && constraints.maxWidth >= 710
-          ? constraints.maxWidth - panelWidth - 5
-          : constraints.maxWidth,
+      width: mainScreenWidthForLayout(
+        layoutWidth: constraints.maxWidth,
+        panelVisible: !hideSidePanel,
+        panelWidth: panelWidth,
+        desktopExpanded: desktopExpanded,
+      ),
       child: Container(
         decoration: BoxDecoration(boxShadow: kElevationToShadow[6]),
         child: NavigationView(
@@ -310,12 +317,15 @@ class ApexoApp extends StatelessWidget {
       BuildContext context, BoxConstraints constraints, bool hideSidePanel) {
     final minimized = routes.minimizePanels() && constraints.maxWidth < 710;
     final hasKeyboard = MediaQuery.of(context).viewInsets.bottom > 0;
+    final desktopExpanded =
+        routes.panels().isNotEmpty && routes.panels().last.desktopExpanded();
     final panelWidth = sidePanelWidthForLayout(
       layoutWidth: constraints.maxWidth,
       minimized: minimized,
       desktopWidthFraction: routes.panels().isEmpty
           ? null
           : routes.panels().last.desktopWidthFraction,
+      desktopExpanded: desktopExpanded,
     );
     return AnimatedPositioned(
       duration: hasKeyboard ? Duration.zero : const Duration(milliseconds: 300),

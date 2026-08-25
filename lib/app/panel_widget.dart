@@ -139,6 +139,7 @@ class _PanelScreenState extends State<PanelScreen> {
             streams: [
               localSettings.stream,
               widget.panel.selectedTab.stream,
+              widget.panel.desktopExpanded.stream,
               routes.minimizePanels.stream,
             ],
             builder: (context, snapshot) {
@@ -406,6 +407,9 @@ class _PanelScreenState extends State<PanelScreen> {
                   ]),
                   Row(children: [
                     if (routes.panels().length > 1) _buildPanelSwitcher(),
+                    if (widget.layoutWidth >= 710 &&
+                        widget.panel.desktopWidthFraction != null)
+                      _buildPanelFocusButton(),
                     // minimization is useless is prevented in big screens
                     if (widget.layoutWidth < 710) _buildPanelMinimizeButton(),
                     widget.panel.inProgress()
@@ -426,6 +430,22 @@ class _PanelScreenState extends State<PanelScreen> {
       child: IconButton(
         icon: const Icon(WindowsIcons.cancel),
         onPressed: closeOrConfirmCancel,
+      ),
+    );
+  }
+
+  Widget _buildPanelFocusButton() {
+    final expanded = widget.panel.desktopExpanded();
+    final tooltip = expanded ? txt("exitFocusMode") : txt("focusMode");
+    return Tooltip(
+      message: tooltip,
+      child: IconButton(
+        icon: Icon(
+            expanded ? WindowsIcons.back_to_window : WindowsIcons.full_screen),
+        onPressed: () {
+          widget.panel.desktopExpanded(!expanded);
+          routes.panelLayoutVersion(routes.panelLayoutVersion() + 1);
+        },
       ),
     );
   }

@@ -63,6 +63,8 @@ class Ar implements En {
     "deleted": "محذوف",
     "archive": "أرشفة",
     "restore": "استعادة",
+    "focusMode": "وضع التركيز",
+    "exitFocusMode": "الخروج من وضع التركيز",
     "logout": "خروج",
     "voiceInput": "إدخال صوتي",
     "noResultsFound": "لم يتم العثور على نتائج",

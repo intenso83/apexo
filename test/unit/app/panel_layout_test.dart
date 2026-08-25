@@ -56,5 +56,43 @@ void main() {
         450,
       );
     });
+
+    test('focus mode uses the full desktop width', () {
+      expect(
+        sidePanelWidthForLayout(
+          layoutWidth: 2000,
+          minimized: false,
+          desktopWidthFraction: 0.5,
+          desktopExpanded: true,
+        ),
+        2000,
+      );
+    });
+  });
+
+  group('mainScreenWidthForLayout', () {
+    test('split mode leaves room for the patient panel', () {
+      expect(
+        mainScreenWidthForLayout(
+          layoutWidth: 2000,
+          panelVisible: true,
+          panelWidth: 1000,
+          desktopExpanded: false,
+        ),
+        995,
+      );
+    });
+
+    test('focus mode keeps the main screen safely behind the panel', () {
+      expect(
+        mainScreenWidthForLayout(
+          layoutWidth: 2000,
+          panelVisible: true,
+          panelWidth: 2000,
+          desktopExpanded: true,
+        ),
+        2000,
+      );
+    });
   });
 }

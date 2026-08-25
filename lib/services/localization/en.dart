@@ -65,6 +65,8 @@ class En {
     "deleted": "Deleted",
     "archive": "Archive",
     "restore": "Restore",
+    "focusMode": "Focus mode",
+    "exitFocusMode": "Exit focus mode",
     "logout": "Logout",
     "voiceInput": "Voice Input",
     "noResultsFound": "No results found",

@@ -79,6 +79,7 @@ void openAppointment([Appointment? appointment, int? selectedTabIndex]) {
     title: appointments.get(editingCopy.id) == null
         ? txt("addAppointment")
         : editingCopy.title,
+    desktopWidthFraction: 0.5,
     tabs: [],
   );
   final tabs = [

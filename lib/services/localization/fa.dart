@@ -64,6 +64,8 @@ class Fa implements En {
     "deleted": "حذف شده",
     "archive": "بایگانی",
     "restore": "بازیابی",
+    "focusMode": "حالت تمرکز",
+    "exitFocusMode": "خروج از حالت تمرکز",
     "logout": "خروج",
     "voiceInput": "ورودی صوتی",
     "noResultsFound": "نتیجه‌ای یافت نشد",

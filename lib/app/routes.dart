@@ -65,6 +65,7 @@ class Panel<T extends Model> {
   final bool showTitles;
   final bool showBottomControls;
   final double? desktopWidthFraction;
+  final desktopExpanded = ObservableState(false);
   final bool canNotBeNew;
   final Widget? additionalControls;
   final Widget? archiveButtonReplacement;
@@ -139,6 +140,7 @@ class Route {
 
 class _Routes {
   final ObservableState<List<Panel>> panels = ObservableState([]);
+  final panelLayoutVersion = ObservableState(0);
 
   final minimizePanels = ObservableState(false);
 
