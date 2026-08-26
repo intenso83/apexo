@@ -1,0 +1,334 @@
+{
+  "metadata": {
+    "synthetic": true,
+    "description": "Synthetic DentalWin-shaped records for Phase 2 tests only",
+    "contains_real_patient_data": false
+  },
+  "tables": {
+    "Customers": [
+      {
+        "id": 1,
+        "EPON": "00000000-0000-0000-0000-000000000001",
+        "NAME": "ΔΟΚΙΜΗ",
+        "LAST": "ΑΛΦΑ",
+        "ar_mitroou": "SYN-0001",
+        "aa_number": "FOLDER-1",
+        "afm": "",
+        "amka": ""
+      },
+      {
+        "id": 2,
+        "EPON": "00000000-0000-0000-0000-000000000002",
+        "NAME": "ΔΟΚΙΜΗ",
+        "LAST": "ΒΗΤΑ",
+        "ar_mitroou": "SYN-0002",
+        "aa_number": "FOLDER-2",
+        "afm": "",
+        "amka": ""
+      },
+      {
+        "id": 3,
+        "EPON": "00000000-0000-0000-0000-000000000003",
+        "NAME": "",
+        "LAST": "ΜΟΝΟΟΝΟΜΑ",
+        "ar_mitroou": "SYN-0003",
+        "aa_number": "FOLDER-3",
+        "afm": "",
+        "amka": ""
+      }
+    ],
+    "CustomerEpikoinonies": [
+      {
+        "id": 101,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "typos": 2,
+        "epikoinonia": "+30 690 000 0001",
+        "sms_contact": true,
+        "memos": "synthetic mobile"
+      },
+      {
+        "id": 102,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "typos": 4,
+        "epikoinonia": "synthetic-one@example.invalid",
+        "sms_contact": false,
+        "memos": ""
+      },
+      {
+        "id": 103,
+        "guidsspelati": "00000000-0000-0000-0000-000000000002",
+        "typos": 9,
+        "epikoinonia": "synthetic custom contact",
+        "sms_contact": null,
+        "memos": "unknown synthetic type"
+      },
+      {
+        "id": 104,
+        "guidsspelati": "00000000-0000-0000-0000-000000000099",
+        "typos": 0,
+        "epikoinonia": "2100000099",
+        "sms_contact": null,
+        "memos": "orphan synthetic contact"
+      }
+    ],
+    "DentalSchoolIstoriko": [
+      {
+        "id": 201,
+        "kodikospelati": 1,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "aitiaproelesi": "Synthetic routine examination",
+        "parousakatastai": "Synthetic healthy state",
+        "MEMOS36": "No synthetic medicines",
+        "penikilinh": 0,
+        "latex": 1,
+        "ypertasi": 0
+      },
+      {
+        "id": 202,
+        "kodikospelati": 99,
+        "guidsspelati": "00000000-0000-0000-0000-000000000099",
+        "aitiaproelesi": "Synthetic orphan history",
+        "parousakatastai": "",
+        "MEMOS36": "",
+        "penikilinh": 0,
+        "latex": 0,
+        "ypertasi": 0
+      }
+    ],
+    "Works_Kategories": [
+      {
+        "id": 1,
+        "guidss": "10000000-0000-0000-0000-000000000001",
+        "kategory": "ΣΥΝΘΕΤΙΚΗ ΘΕΡΑΠΕΙΑ",
+        "order_num": 1,
+        "hidden_in_arxiki": 0
+      },
+      {
+        "id": 2,
+        "guidss": "10000000-0000-0000-0000-000000000002",
+        "kategory": "ΣΥΝΘΕΤΙΚΗ ΠΡΟΛΗΨΗ",
+        "order_num": 2,
+        "hidden_in_arxiki": 0
+      },
+      {
+        "id": 16,
+        "guidss": "10000000-0000-0000-0000-000000000016",
+        "kategory": "SYNTHETIC_PLACEHOLDER",
+        "order_num": 99,
+        "hidden_in_arxiki": 1
+      }
+    ],
+    "WooksTools": [
+      {
+        "id": 301,
+        "guidss": "20000000-0000-0000-0000-000000000301",
+        "id_code": "SYN-P001",
+        "frst": "Συνθετική έμφραξη",
+        "katigoria": 1,
+        "euro": 50,
+        "donti_required": 1,
+        "xronos": 30,
+        "timi_ana_donti": 1
+      },
+      {
+        "id": 302,
+        "guidss": "20000000-0000-0000-0000-000000000302",
+        "id_code": "SYN-P002",
+        "frst": "Συνθετικός καθαρισμός",
+        "katigoria": 2,
+        "euro": 40,
+        "donti_required": 0,
+        "xronos": 45,
+        "timi_ana_donti": 0
+      },
+      {
+        "id": 303,
+        "guidss": "20000000-0000-0000-0000-000000000303",
+        "id_code": "SYN-P003",
+        "frst": "Συνθετική εργασία χωρίς κατηγορία",
+        "katigoria": 99,
+        "euro": 0,
+        "donti_required": null,
+        "xronos": 0,
+        "timi_ana_donti": 0
+      }
+    ],
+    "WorksPelati": [
+      {
+        "id": 401,
+        "guidss": "30000000-0000-0000-0000-000000000401",
+        "kodikosPelati": 1,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "hmerominia": "2026-01-10T09:00:00",
+        "ergasia": "Συνθετική έμφραξη",
+        "id_code_work": "SYN-P001",
+        "katigoria": 1,
+        "donti": "11",
+        "memos": "Synthetic completed work",
+        "SxedioUerapias": 0,
+        "status": 0,
+        "xreosi": 50,
+        "pistosi": 50,
+        "sinolo": 50
+      },
+      {
+        "id": 402,
+        "guidss": "30000000-0000-0000-0000-000000000402",
+        "kodikosPelati": 1,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "hmerominia": "2026-02-10T09:00:00",
+        "ergasia": "Συνθετική παλιά προσαρμοσμένη εργασία",
+        "id_code_work": "OLD-SYN-999",
+        "katigoria": 1,
+        "donti": "11,12",
+        "memos": "Synthetic plan",
+        "SxedioUerapias": 1,
+        "status": 0,
+        "xreosi": 100,
+        "pistosi": 0,
+        "sinolo": 100
+      },
+      {
+        "id": 403,
+        "guidss": "30000000-0000-0000-0000-000000000403",
+        "kodikosPelati": 2,
+        "guidsspelati": "00000000-0000-0000-0000-000000000002",
+        "hmerominia": "2026-03-10T09:00:00",
+        "ergasia": "Συνθετικός καθαρισμός",
+        "id_code_work": "",
+        "katigoria": 2,
+        "donti": "00",
+        "memos": "Synthetic unique-name match",
+        "SxedioUerapias": 0,
+        "status": 0,
+        "xreosi": 40,
+        "pistosi": 40,
+        "sinolo": 40
+      },
+      {
+        "id": 404,
+        "guidss": "30000000-0000-0000-0000-000000000404",
+        "kodikosPelati": 99,
+        "guidsspelati": "00000000-0000-0000-0000-000000000099",
+        "hmerominia": "2026-04-10T09:00:00",
+        "ergasia": "Synthetic orphan work",
+        "id_code_work": "",
+        "katigoria": 0,
+        "donti": "",
+        "memos": "",
+        "SxedioUerapias": 0,
+        "status": 0,
+        "xreosi": 0,
+        "pistosi": 0,
+        "sinolo": 0
+      }
+    ],
+    "WorksPelatiD": [],
+    "WorksPelatiU": [],
+    "Appointments2": [
+      {
+        "id": 501,
+        "guidss": "40000000-0000-0000-0000-000000000501",
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "Subject": "ΑΛΦΑ ΔΟΚΙΜΗ",
+        "Description": "Synthetic deterministic appointment",
+        "StartTime": "2026-05-10T10:00:00",
+        "EndTime": "2026-05-10T10:45:00",
+        "Status": 0,
+        "Label": 1,
+        "guidss_google": "synthetic-google-id"
+      },
+      {
+        "id": 502,
+        "guidss": "40000000-0000-0000-0000-000000000502",
+        "guidsspelati": "",
+        "Subject": "ΒΗΤΑ ΔΟΚΙΜΗ",
+        "Description": "Synthetic name-only candidate",
+        "StartTime": "2026-05-11T10:00:00",
+        "EndTime": "2026-05-11T11:00:00",
+        "Status": 0,
+        "Label": 2,
+        "guidss_google": ""
+      },
+      {
+        "id": 503,
+        "guidss": "40000000-0000-0000-0000-000000000503",
+        "guidsspelati": "",
+        "Subject": "SYNTHETIC UNKNOWN PERSON",
+        "Description": "Synthetic unresolved appointment",
+        "StartTime": "2026-05-12T10:00:00",
+        "EndTime": "2026-05-12T10:15:00",
+        "Status": 0,
+        "Label": 0,
+        "guidss_google": ""
+      }
+    ],
+    "CustomerImages": [
+      {
+        "id": 601,
+        "guidss": "50000000-0000-0000-0000-000000000601",
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "title": "Synthetic image metadata",
+        "descr": "Not a real clinical image",
+        "file_path": "synthetic-files\\image-601.txt",
+        "thumb_path": "",
+        "xray_kind": 0
+      }
+    ],
+    "Aktinografies2": [
+      {
+        "id": 602,
+        "guidss": "50000000-0000-0000-0000-000000000602",
+        "guidsspelati": "00000000-0000-0000-0000-000000000099",
+        "eikona": "synthetic-embedded-placeholder"
+      }
+    ],
+    "CustomerMemos": [
+      {
+        "id": 701,
+        "guidss": "60000000-0000-0000-0000-000000000701",
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "imerominia": "2026-01-01T00:00:00",
+        "memos": "Synthetic note",
+        "eidos": 0,
+        "is_rtf_format": 0
+      }
+    ],
+    "RECALLS": [
+      {
+        "ID": 801,
+        "guidss": "70000000-0000-0000-0000-000000000801",
+        "guidsspelati": "00000000-0000-0000-0000-000000000002",
+        "dCompletion_Date": "2026-12-01T00:00:00",
+        "cNotes": "Synthetic recall",
+        "katastasi": 0,
+        "sms": 0
+      }
+    ],
+    "kinisi": [
+      {
+        "ID2": 1,
+        "OikonomikiID": 9001,
+        "Date_In": "2026-01-10T09:30:00",
+        "xreosi": 50,
+        "pay_way": 1
+      },
+      {
+        "ID2": 99,
+        "OikonomikiID": 9002,
+        "Date_In": "2026-01-11T09:30:00",
+        "xreosi": 25,
+        "pay_way": 1
+      }
+    ],
+    "WorkPliromes": [
+      {
+        "id": 901,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "pay_amount": 50,
+        "pay_date": "2026-01-10T09:35:00",
+        "pay_way": 1
+      }
+    ]
+  }
+}

@@ -24,6 +24,11 @@ lib/sentry_dsn.dart
 .idea/
 app_specific_password.txt
 
+# Local proprietary DentalWin reference and patient migration data.
+# Never commit clinical data, database backups, licences, or credentials.
+/DentalWin_reference/
+/dentalwin_migration_private/
+
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
