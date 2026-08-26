@@ -156,6 +156,8 @@ class WeekAgendaCalendarState<Item extends Appointment>
                       selectedDate: selectedDate,
                       onSelect: (appointment) =>
                           widget.onSelect(appointment as Item),
+                      onSetTime: (appointment) =>
+                          widget.onSetTime(appointment as Item),
                       onAddNew: widget.onAddNew,
                     ),
                 },

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:apexo/app/routes.dart';
 import 'package:apexo/common_widgets/duration_pill.dart';
 import 'package:apexo/common_widgets/money_display.dart';
+import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
@@ -66,6 +67,21 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
   final _hiddenOperators = <String>{};
   double _dragGridWCached = 0;
   Timer? _nowTimer;
+
+  Color _appointmentColor(Appointment appointment) {
+    if (appointment.isDone) return Colors.green;
+    if (appointment.isMissed) return Colors.red;
+    if (appointment.therapyGroup.isNotEmpty) {
+      return labelToColor(appointment.therapyGroup);
+    }
+    if (appointment.operatorsIDs.isEmpty) return Colors.grey;
+    return _chairs
+        .firstWhere(
+          (chair) => chair.id == appointment.operatorsIDs.first,
+          orElse: () => const ChairInfo(id: "", name: "", color: Colors.grey),
+        )
+        .color;
+  }
 
   @override
   void initState() {
@@ -577,15 +593,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
       final t = _timeToY(app.date);
       final h = _durToH(app.duration);
 
-      final opColor = app.operatorsIDs.isEmpty
-          ? Colors.grey
-          : _chairs
-              .firstWhere(
-                (c) => c.id == app.operatorsIDs.first,
-                orElse: () =>
-                    const ChairInfo(id: "", name: "", color: Colors.grey),
-              )
-              .color;
+      final opColor = _appointmentColor(app);
 
       wids.add(Positioned(
         left: l,
@@ -688,13 +696,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
   Widget _buildDragPrev() {
     final a = _dragItem!;
     final targetTime = _dragTop != null ? _yToTime(_dragTop!) : a.date;
-    final opColor = a.operatorsIDs.isEmpty
-        ? Colors.grey
-        : _chairs
-            .firstWhere((c) => c.id == a.operatorsIDs.first,
-                orElse: () =>
-                    const ChairInfo(id: "", name: "", color: Colors.grey))
-            .color;
+    final opColor = _appointmentColor(a);
     final totalH = _totalH;
     return Positioned(
       left: _gridX(_dragGridWCached),

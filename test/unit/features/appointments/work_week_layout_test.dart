@@ -42,7 +42,56 @@ void main() {
       );
       expect(
         dateAtWorkWeekPosition(day: day, y: 9999, hourHeight: 72),
-        DateTime(2026, 8, 25, 20, 45),
+        DateTime(2026, 8, 25, 21, 45),
+      );
+    });
+
+    test('dragging snaps time and moves between weekdays', () {
+      final moved = moveWorkWeekAppointment(
+        original: DateTime(2026, 8, 25, 9),
+        weekStart: DateTime(2026, 8, 24),
+        deltaX: 220,
+        deltaY: 90,
+        dayWidth: 200,
+        hourHeight: 72,
+        durationMinutes: 60,
+      );
+
+      expect(moved, DateTime(2026, 8, 26, 10, 15));
+    });
+
+    test('dragging stays inside Monday-Friday and 08:00-22:00', () {
+      final moved = moveWorkWeekAppointment(
+        original: DateTime(2026, 8, 28, 20, 30),
+        weekStart: DateTime(2026, 8, 24),
+        deltaX: 9999,
+        deltaY: 9999,
+        dayWidth: 200,
+        hourHeight: 72,
+        durationMinutes: 60,
+      );
+
+      expect(moved, DateTime(2026, 8, 28, 21));
+    });
+
+    test('resizing snaps to quarter hours and stops at 22:00', () {
+      expect(
+        resizeWorkWeekAppointment(
+          start: DateTime(2026, 8, 25, 10),
+          originalDurationMinutes: 30,
+          deltaY: 36,
+          hourHeight: 72,
+        ),
+        60,
+      );
+      expect(
+        resizeWorkWeekAppointment(
+          start: DateTime(2026, 8, 25, 21),
+          originalDurationMinutes: 30,
+          deltaY: 9999,
+          hourHeight: 72,
+        ),
+        60,
       );
     });
   });

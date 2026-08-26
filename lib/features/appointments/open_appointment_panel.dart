@@ -331,6 +331,22 @@ class _AppointmentDetails extends StatefulWidget {
 class _AppointmentDetailsState extends State<_AppointmentDetails> {
   final TextEditingController noteController = TextEditingController();
 
+  List<TxOption> get _therapyGroups =>
+      txOptions.where((option) => option.type != StateType.state).toList();
+
+  void _setEndTime(DateTime selected) {
+    final start = widget.appointment.date;
+    final proposed = DateTime(
+      start.year,
+      start.month,
+      start.day,
+      selected.hour,
+      selected.minute,
+    );
+    final minutes = proposed.difference(start).inMinutes;
+    setState(() => widget.appointment.duration = minutes < 15 ? 15 : minutes);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -403,13 +419,15 @@ class _AppointmentDetailsState extends State<_AppointmentDetails> {
             key: WK.fieldAppointmentDate,
             initValue: widget.appointment.date,
             onChange: (d) {
-              widget.appointment.date = DateTime(
-                d.year,
-                d.month,
-                d.day,
-                widget.appointment.date.hour,
-                widget.appointment.date.minute,
-              );
+              setState(() {
+                widget.appointment.date = DateTime(
+                  d.year,
+                  d.month,
+                  d.day,
+                  widget.appointment.date.hour,
+                  widget.appointment.date.minute,
+                );
+              });
             },
             buttonText: txt("changeDate"),
             buttonIcon: WindowsIcons.calendar,
@@ -420,15 +438,26 @@ class _AppointmentDetailsState extends State<_AppointmentDetails> {
           child: DateTimePicker(
             key: WK.fieldAppointmentTime,
             initValue: widget.appointment.date,
-            onChange: (d) => {
+            onChange: (d) => setState(() {
               widget.appointment.date = DateTime(
                 widget.appointment.date.year,
                 widget.appointment.date.month,
                 widget.appointment.date.day,
                 d.hour,
                 d.minute,
-              )
-            },
+              );
+            }),
+            buttonText: txt("changeTime"),
+            pickTime: true,
+            buttonIcon: FluentIcons.clock,
+          ),
+        ),
+        InfoLabel(
+          label: "${txt("endTime")}:",
+          child: DateTimePicker(
+            key: ValueKey(widget.appointment.endDate.millisecondsSinceEpoch),
+            initValue: widget.appointment.endDate,
+            onChange: _setEndTime,
             buttonText: txt("changeTime"),
             pickTime: true,
             buttonIcon: FluentIcons.clock,
@@ -439,8 +468,40 @@ class _AppointmentDetailsState extends State<_AppointmentDetails> {
           child: DurationPill(
             item: widget.appointment,
             color: Colors.blue,
-            onSet: (d) => widget.appointment.duration = d,
+            onSet: (d) => setState(() => widget.appointment.duration = d),
             isCompact: false,
+          ),
+        ),
+        InfoLabel(
+          label: "${txt("therapyGroup")}:",
+          child: ComboBox<String>(
+            isExpanded: true,
+            value: widget.appointment.therapyGroup,
+            items: [
+              ComboBoxItem<String>(
+                value: "",
+                child: Text(txt("notSpecified")),
+              ),
+              ..._therapyGroups.map((option) => ComboBoxItem<String>(
+                    value: option.label,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: option.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(txt(option.label)),
+                      ],
+                    ),
+                  )),
+            ],
+            onChanged: (value) =>
+                setState(() => widget.appointment.therapyGroup = value ?? ""),
           ),
         ),
         InfoLabel(

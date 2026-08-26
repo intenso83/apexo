@@ -141,6 +141,7 @@ class Appointment extends Model {
   /* 16 */ Map<String, String> drawings = {};
   /* 17 */ int duration = 15; // in minutes, default 15
   /* 18 */ List<String> dcmImgs = []; // DICOM X-ray filenames
+  /* 19 */ String therapyGroup = ""; // calendar colour / visit category
 
   Appointment.fromJson(super.json) : super.fromJson();
 
@@ -176,6 +177,7 @@ class Appointment extends Model {
     /* 16 */ drawings = Map<String, String>.from(json['drawings'] ?? drawings);
     /* 17 */ duration = (json["duration"] as int?) ?? duration;
     /* 18 */ dcmImgs = List<String>.from(json["dcmImgs"] ?? dcmImgs);
+    /* 19 */ therapyGroup = json["therapyGroup"] ?? therapyGroup;
   }
 
   @override
@@ -206,6 +208,9 @@ class Appointment extends Model {
     /* 16 */ if (drawings.isNotEmpty) json['drawings'] = drawings;
     /* 17 */ if (duration != d.duration) json['duration'] = duration;
     /* 18 */ if (dcmImgs.isNotEmpty) json['dcmImgs'] = dcmImgs;
+    /* 19 */ if (therapyGroup != d.therapyGroup) {
+      json['therapyGroup'] = therapyGroup;
+    }
 
     json.remove("title"); // remove since it is a computed value in this case
 

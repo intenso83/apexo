@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/appointments/work_week_layout.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
@@ -11,13 +12,13 @@ import 'package:intl/intl.dart';
 
 /// A five-day clinical calendar for desktop use.
 ///
-/// It is intentionally read/open/create first. Moving and resizing appointments
-/// can be added after the dentist approves the visual density and workflow.
+/// Appointments can be moved across the week and resized in 15-minute steps.
 class WorkWeekCalendarView extends StatefulWidget {
   final List<Appointment> items;
   final DateTime selectedDate;
   final bool showPayments;
   final void Function(Appointment item) onSelect;
+  final void Function(Appointment item) onSetTime;
   final void Function(DateTime date) onAddNew;
 
   const WorkWeekCalendarView({
@@ -26,6 +27,7 @@ class WorkWeekCalendarView extends StatefulWidget {
     required this.selectedDate,
     required this.showPayments,
     required this.onSelect,
+    required this.onSetTime,
     required this.onAddNew,
   });
 
@@ -35,7 +37,7 @@ class WorkWeekCalendarView extends StatefulWidget {
 
 class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
   static const _startHour = 8;
-  static const _endHour = 21;
+  static const _endHour = 22;
   static const _hourHeight = 72.0;
   static const _timeGutterWidth = 66.0;
   static const _dayHeaderHeight = 54.0;
@@ -43,6 +45,15 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
 
   final _scrollController = ScrollController();
   Timer? _clockTimer;
+  Appointment? _movingItem;
+  DateTime? _moveOriginalDate;
+  DateTime? _movePreviewDate;
+  Offset _moveDelta = Offset.zero;
+  double _moveDayWidth = 0;
+  Appointment? _resizingItem;
+  int? _resizeOriginalDuration;
+  int? _resizePreviewDuration;
+  double _resizeDeltaY = 0;
 
   double get _gridHeight => (_endHour - _startHour) * _hourHeight;
 
@@ -64,9 +75,105 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
+  DateTime _displayDate(Appointment item) => identical(item, _movingItem)
+      ? (_movePreviewDate ?? item.date)
+      : item.date;
+
+  int _displayDuration(Appointment item) => identical(item, _resizingItem)
+      ? (_resizePreviewDuration ?? item.duration)
+      : item.duration;
+
+  void _startMoving(Appointment item, double dayWidth) {
+    setState(() {
+      _movingItem = item;
+      _moveOriginalDate = item.date;
+      _movePreviewDate = item.date;
+      _moveDelta = Offset.zero;
+      _moveDayWidth = dayWidth;
+    });
+  }
+
+  void _updateMoving(Offset delta) {
+    if (_movingItem == null || _moveOriginalDate == null) return;
+    setState(() {
+      _moveDelta += delta;
+      _movePreviewDate = moveWorkWeekAppointment(
+        original: _moveOriginalDate!,
+        weekStart: startOfWorkWeek(widget.selectedDate),
+        deltaX: _moveDelta.dx,
+        deltaY: _moveDelta.dy,
+        dayWidth: _moveDayWidth,
+        hourHeight: _hourHeight,
+        durationMinutes: _displayDuration(_movingItem!),
+        startHour: _startHour,
+        endHour: _endHour,
+      );
+    });
+  }
+
+  void _finishMoving() {
+    final item = _movingItem;
+    final preview = _movePreviewDate;
+    final changed = item != null &&
+        preview != null &&
+        preview.millisecondsSinceEpoch != item.date.millisecondsSinceEpoch;
+    setState(() {
+      _movingItem = null;
+      _moveOriginalDate = null;
+      _movePreviewDate = null;
+      _moveDelta = Offset.zero;
+    });
+    if (changed) {
+      item.date = preview;
+      widget.onSetTime(item);
+    }
+  }
+
+  void _startResizing(Appointment item) {
+    setState(() {
+      _resizingItem = item;
+      _resizeOriginalDuration = item.duration;
+      _resizePreviewDuration = item.duration;
+      _resizeDeltaY = 0;
+    });
+  }
+
+  void _updateResizing(double deltaY) {
+    if (_resizingItem == null || _resizeOriginalDuration == null) return;
+    setState(() {
+      _resizeDeltaY += deltaY;
+      _resizePreviewDuration = resizeWorkWeekAppointment(
+        start: _displayDate(_resizingItem!),
+        originalDurationMinutes: _resizeOriginalDuration!,
+        deltaY: _resizeDeltaY,
+        hourHeight: _hourHeight,
+        endHour: _endHour,
+      );
+    });
+  }
+
+  void _finishResizing() {
+    final item = _resizingItem;
+    final preview = _resizePreviewDuration;
+    final changed = item != null && preview != null && preview != item.duration;
+    setState(() {
+      _resizingItem = null;
+      _resizeOriginalDuration = null;
+      _resizePreviewDuration = null;
+      _resizeDeltaY = 0;
+    });
+    if (changed) {
+      item.duration = preview;
+      widget.onSetTime(item);
+    }
+  }
+
   Color _appointmentColor(Appointment appointment) {
     if (appointment.isDone) return Colors.green;
     if (appointment.isMissed) return Colors.red;
+    if (appointment.therapyGroup.isNotEmpty) {
+      return labelToColor(appointment.therapyGroup);
+    }
     if (appointment.operatorsIDs.isEmpty) return Colors.blue;
     final operatorId = appointment.operatorsIDs.first;
     return colorsWithoutYellow[
@@ -74,8 +181,10 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
   }
 
   String _appointmentTime(Appointment appointment) {
+    final start = _displayDate(appointment);
+    final end = start.add(Duration(minutes: _displayDuration(appointment)));
     final format = DateFormat('HH:mm', locale.s.$code);
-    return '${format.format(appointment.date)}–${format.format(appointment.endDate)}';
+    return '${format.format(start)}–${format.format(end)}';
   }
 
   String _daySubtitle(DateTime day) {
@@ -299,18 +408,22 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
 
     for (var dayIndex = 0; dayIndex < days.length; dayIndex++) {
       final dayAppointments = widget.items
-          .where((appointment) => _isSameDay(appointment.date, days[dayIndex]))
+          .where((appointment) =>
+              _isSameDay(_displayDate(appointment), days[dayIndex]))
           .where((appointment) {
-        final start = appointment.date.hour * 60 + appointment.date.minute;
-        return start < rangeEnd && start + appointment.duration > rangeStart;
+        final date = _displayDate(appointment);
+        final start = date.hour * 60 + date.minute;
+        return start < rangeEnd &&
+            start + _displayDuration(appointment) > rangeStart;
       });
 
       final placements = placeWorkWeekOverlaps(dayAppointments.map((item) {
-        final start = item.date.hour * 60 + item.date.minute;
+        final date = _displayDate(item);
+        final start = date.hour * 60 + date.minute;
         return WorkWeekInterval(
           value: item,
           startMinute: max(start, rangeStart),
-          endMinute: min(start + max(15, item.duration), rangeEnd),
+          endMinute: min(start + max(15, _displayDuration(item)), rangeEnd),
         );
       }));
 
@@ -335,65 +448,123 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
           child: Tooltip(
             message:
                 '${item.title}\n${_appointmentTime(item)}\n${item.subtitleLine1}',
-            child: GestureDetector(
-              onTap: () => widget.onSelect(item),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(7, 4, 5, 3),
-                decoration: BoxDecoration(
-                  color: Color.lerp(
-                    theme.resources.solidBackgroundFillColorBase,
-                    color,
-                    0.20,
-                  ),
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border(left: BorderSide(color: color, width: 4)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(7, 4, 5, 6),
+                  decoration: BoxDecoration(
+                    color: Color.lerp(
+                      theme.resources.solidBackgroundFillColorBase,
+                      color,
+                      identical(item, _movingItem) ||
+                              identical(item, _resizingItem)
+                          ? 0.34
+                          : 0.20,
                     ),
-                  ],
-                ),
-                child: ClipRect(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title.trim().isEmpty
-                            ? txt('appointment')
-                            : item.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border(left: BorderSide(color: color, width: 4)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                            alpha: identical(item, _movingItem) ? 0.20 : 0.08),
+                        blurRadius: identical(item, _movingItem) ? 8 : 3,
+                        offset: const Offset(0, 1),
                       ),
-                      if (height >= 38)
-                        Text(
-                          _appointmentTime(item),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 10, color: theme.inactiveColor),
-                        ),
-                      if (height >= 56 && item.subtitleLine1.trim().isNotEmpty)
-                        Text(
-                          item.subtitleLine1,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      if (height >= 74 && widget.showPayments)
-                        Text(
-                          '${item.paid.toStringAsFixed(2)} / ${item.price.toStringAsFixed(2)}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 10),
-                        ),
                     ],
                   ),
+                  child: ClipRect(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title.trim().isEmpty
+                              ? txt('appointment')
+                              : item.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                        if (height >= 38)
+                          Text(
+                            _appointmentTime(item),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 10, color: theme.inactiveColor),
+                          ),
+                        if (height >= 56 &&
+                            item.subtitleLine1.trim().isNotEmpty)
+                          Text(
+                            item.subtitleLine1,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        if (height >= 74 && widget.showPayments)
+                          Text(
+                            '${item.paid.toStringAsFixed(2)} / ${item.price.toStringAsFixed(2)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: min(9, height),
+                  child: MouseRegion(
+                    cursor: identical(item, _movingItem)
+                        ? SystemMouseCursors.grabbing
+                        : SystemMouseCursors.move,
+                    child: Listener(
+                      key: ValueKey('work-week-appointment-${item.id}'),
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: (_) => _startMoving(item, dayWidth),
+                      onPointerMove: (event) => _updateMoving(event.delta),
+                      onPointerUp: (_) => _finishMoving(),
+                      onPointerCancel: (_) => _finishMoving(),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => widget.onSelect(item),
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 8,
+                  right: 4,
+                  bottom: 0,
+                  height: min(9, height),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.resizeUpDown,
+                    child: Listener(
+                      key: ValueKey('work-week-appointment-resize-${item.id}'),
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: (_) => _startResizing(item),
+                      onPointerMove: (event) => _updateResizing(event.delta.dy),
+                      onPointerUp: (_) => _finishResizing(),
+                      onPointerCancel: (_) => _finishResizing(),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ));

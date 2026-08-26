@@ -40,7 +40,7 @@ DateTime dateAtWorkWeekPosition({
   required double y,
   required double hourHeight,
   int startHour = 8,
-  int endHour = 21,
+  int endHour = 22,
   int snapMinutes = 15,
 }) {
   final rawMinutes = startHour * 60 + (y / hourHeight * 60).round();
@@ -48,6 +48,54 @@ DateTime dateAtWorkWeekPosition({
   final latest = endHour * 60 - snapMinutes;
   final minute = snapped.clamp(startHour * 60, latest);
   return DateTime(day.year, day.month, day.day, minute ~/ 60, minute % 60);
+}
+
+/// Returns the snapped preview time while an appointment is dragged across
+/// the Monday-to-Friday grid. The result always fits inside working hours.
+DateTime moveWorkWeekAppointment({
+  required DateTime original,
+  required DateTime weekStart,
+  required double deltaX,
+  required double deltaY,
+  required double dayWidth,
+  required double hourHeight,
+  required int durationMinutes,
+  int startHour = 8,
+  int endHour = 22,
+  int snapMinutes = 15,
+}) {
+  final originalDayIndex = original.weekday - DateTime.monday;
+  final dayDelta = dayWidth <= 0 ? 0 : (deltaX / dayWidth).round();
+  final dayIndex = (originalDayIndex + dayDelta).clamp(0, 4);
+
+  final minuteDelta = hourHeight <= 0
+      ? 0
+      : ((deltaY / hourHeight * 60) / snapMinutes).round() * snapMinutes;
+  final originalMinute = original.hour * 60 + original.minute;
+  final earliest = startHour * 60;
+  final latest = (endHour * 60 - durationMinutes.clamp(snapMinutes, 24 * 60))
+      .clamp(earliest, endHour * 60 - snapMinutes);
+  final minute = (originalMinute + minuteDelta).clamp(earliest, latest);
+  final day = weekStart.add(Duration(days: dayIndex));
+  return DateTime(day.year, day.month, day.day, minute ~/ 60, minute % 60);
+}
+
+/// Returns a quarter-hour duration while the lower edge of an appointment is
+/// resized. The appointment cannot end later than the visible working day.
+int resizeWorkWeekAppointment({
+  required DateTime start,
+  required int originalDurationMinutes,
+  required double deltaY,
+  required double hourHeight,
+  int endHour = 22,
+  int snapMinutes = 15,
+}) {
+  final minuteDelta = hourHeight <= 0
+      ? 0
+      : ((deltaY / hourHeight * 60) / snapMinutes).round() * snapMinutes;
+  final startMinute = start.hour * 60 + start.minute;
+  final maximum = (endHour * 60 - startMinute).clamp(snapMinutes, 24 * 60);
+  return (originalDurationMinutes + minuteDelta).clamp(snapMinutes, maximum);
 }
 
 List<WorkWeekPlacement<T>> placeWorkWeekOverlaps<T>(

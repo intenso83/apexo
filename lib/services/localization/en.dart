@@ -572,6 +572,9 @@ class En {
     "agenda": "Agenda (list)",
     "timeline": "Timeline (time grid)",
     "workWeek": "Work week (Mon–Fri)",
+    "endTime": "End time",
+    "therapyGroup": "Therapy group",
+    "notSpecified": "Not specified",
     "cacheReset": "Cache reset",
     "cacheReset_desc":
         "Using the button below, you can delete locally saved data (except for images), this would solve some issues with synchronization if you're facing any.",

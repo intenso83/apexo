@@ -574,6 +574,9 @@ class Es implements En {
     "agenda": "Agenda (lista)",
     "timeline": "Línea de tiempo (cuadrícula)",
     "workWeek": "Semana laboral (lun–vie)",
+    "endTime": "Hora de finalización",
+    "therapyGroup": "Grupo de tratamiento",
+    "notSpecified": "No especificado",
     "dateFormat_desc":
         "Este formato se usará para mostrar fechas cuando aplique.",
     "cacheReset": "Reiniciar caché",

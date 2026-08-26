@@ -28,6 +28,7 @@ void main() {
         'imgs': ['img1.jpg', 'img2.png'],
         'dcmImgs': ['scan.dcm'],
         'drawings': {'11': 'outline'},
+        'therapyGroup': 'filling',
       });
 
       expect(appt.id, 'abc123');
@@ -48,6 +49,7 @@ void main() {
       expect(appt.imgs, ['img1.jpg', 'img2.png']);
       expect(appt.dcmImgs, ['scan.dcm']);
       expect(appt.drawings, {'11': 'outline'});
+      expect(appt.therapyGroup, 'filling');
     });
 
     test('handles missing optional fields with defaults', () {
@@ -61,6 +63,7 @@ void main() {
       expect(appt.imgs, isEmpty);
       expect(appt.dcmImgs, isEmpty);
       expect(appt.duration, 15);
+      expect(appt.therapyGroup, isEmpty);
     });
 
     test('date is in minutes (millisecondsSinceEpoch / 60000)', () {
@@ -111,7 +114,18 @@ void main() {
       expect(json.containsKey('prescriptions'), isFalse);
       expect(json.containsKey('imgs'), isFalse);
       expect(json.containsKey('dcmImgs'), isFalse);
+      expect(json.containsKey('therapyGroup'), isFalse);
       expect(json['date'], isA<int>());
+    });
+
+    test('therapy group survives a JSON round-trip', () {
+      final original = Appointment.fromJson({
+        'id': 'therapy-colour',
+        'therapyGroup': 'implant',
+      });
+
+      final restored = Appointment.fromJson(original.toJson());
+      expect(restored.therapyGroup, 'implant');
     });
   });
 
