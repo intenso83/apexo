@@ -17,7 +17,8 @@ def normalize(source: Path, destination: Path) -> None:
         image = opened.convert("RGBA")
 
     alpha = image.getchannel("A")
-    if alpha.getextrema() != (0, 255):
+    alpha_min, alpha_max = alpha.getextrema()
+    if alpha_min != 0 or alpha_max < 250:
         raise ValueError(f"{source} does not contain genuine transparent and opaque pixels")
 
     bounds = alpha.getbbox()
