@@ -61,7 +61,6 @@ class _PatientsPageState extends State<_PatientsPage> {
   final ScrollController _scrollController = ScrollController();
   final archiveSelectedFlyout = FlyoutController();
 
-  double calSpacing(double x) => (((3 / 205) * x) - (87 / 41)).clamp(5.0, 15.0);
   double calWidth(double x) => ((2 / 41) * x + (2580 / 41)).clamp(125, 145.0);
 
   @override
@@ -241,7 +240,6 @@ class _PatientsPageState extends State<_PatientsPage> {
       child: LayoutBuilder(builder: (context, constraints) {
         final searchStringLowerCased = _searchController.text.toLowerCase();
         final calculatedWidth = calWidth(constraints.maxWidth);
-        final calculatedSpacing = calSpacing(constraints.maxWidth);
 
         return ListView.builder(
             controller: _scrollController,
@@ -253,8 +251,6 @@ class _PatientsPageState extends State<_PatientsPage> {
               return _buildRow(
                 patient,
                 context,
-                constraints,
-                calculatedSpacing,
                 calculatedWidth,
                 searchStringLowerCased,
               );
@@ -266,8 +262,6 @@ class _PatientsPageState extends State<_PatientsPage> {
   ListTile _buildRow(
     Patient patient,
     BuildContext context,
-    BoxConstraints constraints,
-    double calculatedSpacing,
     double calculatedWidth,
     String searchStringLowerCased,
   ) {
@@ -295,8 +289,6 @@ class _PatientsPageState extends State<_PatientsPage> {
       }),
       title: buildSinglePatientTile(
         patient,
-        constraints,
-        calculatedSpacing,
         calculatedWidth,
         searchStringLowerCased,
       ),
@@ -306,11 +298,7 @@ class _PatientsPageState extends State<_PatientsPage> {
   }
 
   Widget buildSinglePatientTile(
-      Patient patient,
-      BoxConstraints constraints,
-      double calculatedSpacing,
-      double calculatedWidth,
-      String searchStringLowerCased) {
+      Patient patient, double calculatedWidth, String searchStringLowerCased) {
     return GestureDetector(
       onTap: () {
         openPatient(patient);
@@ -319,36 +307,35 @@ class _PatientsPageState extends State<_PatientsPage> {
         spacing: 5,
         children: [
           const Divider(size: 65, direction: Axis.vertical),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ItemTitle(item: patient),
-                  _buildTreatmentLabels(constraints, patient)
-                ],
-              ),
-              _buildBottomLabels(
-                constraints,
-                calculatedSpacing,
-                patient,
-                calculatedWidth,
-                searchStringLowerCased,
-              )
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ItemTitle(item: patient),
+                    Expanded(child: _buildTreatmentLabels(patient)),
+                  ],
+                ),
+                _buildBottomLabels(
+                  patient,
+                  calculatedWidth,
+                  searchStringLowerCased,
+                )
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTreatmentLabels(BoxConstraints constraints, Patient patient) {
+  Widget _buildTreatmentLabels(Patient patient) {
     return GestureDetector(
       onTap: () {
         openPatient(patient, 1);
       },
       child: SizedBox(
-        width: constraints.maxWidth - 255,
         height: 30,
         child: SingleChildScrollView(
           reverse: true,
@@ -367,13 +354,13 @@ class _PatientsPageState extends State<_PatientsPage> {
     );
   }
 
-  Widget _buildBottomLabels(BoxConstraints constraints, double cS,
+  Widget _buildBottomLabels(
       Patient patient, double cW, String searchStringLowerCased) {
     final labelsList = patient.tableLabels;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 5),
-      width: constraints.maxWidth - 52,
+      width: double.infinity,
       height: 48,
       child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,

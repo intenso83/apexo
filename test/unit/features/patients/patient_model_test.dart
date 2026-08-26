@@ -130,6 +130,23 @@ void main() {
       expect(patient.prototypeContacts.last.type, PatientContactType.email);
     });
 
+    test('sex or gender selection round-trips unknown and known values', () {
+      final patient = Patient.fromJson({
+        'id': 'gender-roundtrip',
+        'gender': 1,
+      });
+
+      patient.setPrototypeSexOrGender('unknown');
+      final unknownJson = patient.toJson();
+      expect(patient.prototypeSexOrGender, 'unknown');
+      expect(unknownJson.containsKey('gender'), isFalse);
+      expect(Patient.fromJson(unknownJson).prototypeSexOrGender, 'unknown');
+
+      patient.setPrototypeSexOrGender('male');
+      expect(patient.gender, 1);
+      expect(Patient.fromJson(patient.toJson()).prototypeSexOrGender, 'male');
+    });
+
     test('round-trip preserves approved personal fields and contacts', () {
       final patient = Patient.fromJson({
         'id': 'prototype-roundtrip',

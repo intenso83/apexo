@@ -488,23 +488,28 @@ class _PatientDetailsState extends State<_PatientDetails> {
             child: InfoLabel(
               label: "${txt("gender")}:",
               isHeader: true,
-              child: ComboBox<int>(
+              child: ComboBox<String>(
                 key: WK.fieldPatientGender,
                 isExpanded: true,
                 items: [
-                  ComboBoxItem<int>(
-                    value: 1,
+                  ComboBoxItem<String>(
+                    value: 'unknown',
+                    child: Txt(txt("notSet")),
+                  ),
+                  ComboBoxItem<String>(
+                    value: 'male',
                     child: Txt("♂️ ${txt("male")}"),
                   ),
-                  ComboBoxItem<int>(
-                    value: 0,
+                  ComboBoxItem<String>(
+                    value: 'female',
                     child: Txt("♀️ ${txt("female")}"),
                   )
                 ],
-                value: widget.patient.gender,
+                value: widget.patient.prototypeSexOrGender,
                 onChanged: (value) {
                   setState(() {
-                    widget.patient.gender = value ?? widget.patient.gender;
+                    widget.patient.setPrototypeSexOrGender(
+                        value ?? widget.patient.prototypeSexOrGender);
                   });
                 },
               ),

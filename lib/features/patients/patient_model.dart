@@ -151,6 +151,22 @@ class Patient extends Model {
     return gender == 1 ? 'male' : 'female';
   }
 
+  void setPrototypeSexOrGender(String value) {
+    sexOrGender = value;
+    if (value == 'male') {
+      gender = 1;
+      _legacyGenderWasProvided = true;
+    } else if (value == 'female') {
+      gender = 0;
+      _legacyGenderWasProvided = true;
+    } else {
+      sexOrGender = 'unknown';
+      gender = 0;
+      _legacyGenderWasProvided = false;
+    }
+    nullifyLabels();
+  }
+
   List<PatientContact> get prototypeContacts {
     if (contacts.isNotEmpty) return List.unmodifiable(contacts);
     return [

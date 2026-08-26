@@ -33,6 +33,8 @@ The safety lock refuses hostname aliases, LAN addresses, HTTPS variants, URL pat
 
 The same import was executed a second time. It created 0 new records and recognized all 31 existing records, proving repeat-run idempotency for the pilot.
 
+The first Apexo UI login subsequently initialized 9 application-housekeeping records. The verifier treats those separately: the guarded migration remains exactly 31 records, and no additional patient, appointment, provenance, or migration-batch record was created by viewing the UI.
+
 ## Verification result
 
 - All 5 patients have surname and first name.
@@ -43,7 +45,10 @@ The same import was executed a second time. It created 0 new records and recogni
 - Duplicate PocketBase record IDs: 0.
 - Production authorization flags: false.
 - Phase 3/4 automated migration assertions passed: 54.
-- Focused Flutter patient model and patient-fields widget tests passed: 25.
+- Focused Flutter patient model and patient-fields widget tests passed: 26.
+- The current Flutter web build rendered all 5 patients, each patient's 2 appointment shells, and the approved read-only patient-fields preview.
+- Imported unknown gender values render as `Not set`/`Unknown` in the list, legacy details editor, and fields preview instead of being mislabeled as female.
+- The patient list was visually checked at a 1280-pixel-wide viewport after removing the reproduced row overflow.
 
 Only patient demographics, contacts, and linked appointment shells are in this pilot. Clinical treatments, tooth/surface semantics, medical history, images, and financial values remain excluded until their mappings are separately approved.
 

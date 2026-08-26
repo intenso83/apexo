@@ -701,10 +701,33 @@ function Test-DwPilotImport {
     }
 
     $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
-    $rows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
-    if ($rows.Count -ne 31) { throw 'Pilot verification expected exactly 31 records.' }
-    if (@($rows.id | Sort-Object -Unique).Count -ne $rows.Count) {
+    $allRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    $migrationStores = @(
+        'patients',
+        'appointments',
+        'migration_external_identifiers',
+        'migration_batches'
+    )
+    $rows = @($allRows | Where-Object { [string]$_.store -in $migrationStores })
+    $housekeepingRows = @($allRows | Where-Object { [string]$_.store -notin $migrationStores })
+    $unexpectedHousekeeping = @($housekeepingRows | Where-Object {
+            -not [string]::IsNullOrWhiteSpace([string]$_.store) -and
+            [string]$_.store -ne 'settings_global'
+        })
+    if ($unexpectedHousekeeping.Count -gt 0) {
+        throw 'Pilot verification found an unexpected non-migration store.'
+    }
+    if ($rows.Count -ne 31) { throw 'Pilot verification expected exactly 31 migration records.' }
+    if (@($allRows.id | Sort-Object -Unique).Count -ne $allRows.Count) {
         throw 'Pilot verification found duplicate PocketBase record IDs.'
+    }
+    foreach ($record in $rows) {
+        $migration = Get-DwImportProperty -InputObject $record.data -Name 'migration'
+        if ($null -eq $migration -or
+            (Get-DwImportProperty -InputObject $migration -Name 'batch_id') -ne $marker.staging_batch_id -or
+            (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id) {
+            throw 'Pilot verification found a migration-store record outside the guarded batch.'
+        }
     }
 
     $patients = @($rows | Where-Object store -eq 'patients')
@@ -777,7 +800,9 @@ function Test-DwPilotImport {
         mode = 'isolated_empty_test_server_pilot_verification'
         verified_utc = [DateTime]::UtcNow.ToString('o')
         server_host = '127.0.0.1'
-        total_records = $rows.Count
+        total_records = $allRows.Count
+        migration_records = $rows.Count
+        application_housekeeping_records = $housekeepingRows.Count
         patients = $patients.Count
         appointments = $appointments.Count
         provenance_records = $provenance.Count
