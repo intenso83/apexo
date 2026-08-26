@@ -85,5 +85,6 @@ flutter:
     - assets/fonts/readex.ttf
     - assets/fonts/readex-bold.ttf
     - assets/fonts/DentalIcons.ttf
+    - assets/odontogram/v1/png/
     - assets/ding.wav
     - shorebird.yaml

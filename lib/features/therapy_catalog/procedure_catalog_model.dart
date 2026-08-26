@@ -1,0 +1,73 @@
+import 'package:apexo/core/model.dart';
+
+class ProcedureCatalogItem extends Model {
+  String therapyGroupID = '';
+  String therapyGroupSourceID = '';
+  String sourceCode = '';
+  double basePrice = 0;
+  bool? toothRequired;
+  bool? perToothPrice;
+  int? durationMinutes;
+  bool hidden = false;
+  Map<String, dynamic> migration = {};
+
+  ProcedureCatalogItem.fromJson(super.json) : super.fromJson();
+
+  @override
+  void fromJson(Map<String, dynamic> json) {
+    super.fromJson(json);
+    title = json['name']?.toString() ?? title;
+    therapyGroupID = json['therapyGroupID']?.toString() ?? therapyGroupID;
+    therapyGroupSourceID =
+        json['therapyGroupSourceID']?.toString() ?? therapyGroupSourceID;
+    sourceCode = json['sourceCode']?.toString() ?? sourceCode;
+    basePrice = _asDouble(json['basePrice'], basePrice);
+    toothRequired = _asNullableBool(json['toothRequired']);
+    perToothPrice = _asNullableBool(json['perToothPrice']);
+    durationMinutes = _asNullableInt(json['durationMinutes']);
+    hidden = json['hidden'] == true;
+    migration = Map<String, dynamic>.from(json['migration'] ?? migration);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = super.toJson();
+    json['name'] = title;
+    if (therapyGroupID.isNotEmpty) json['therapyGroupID'] = therapyGroupID;
+    if (therapyGroupSourceID.isNotEmpty) {
+      json['therapyGroupSourceID'] = therapyGroupSourceID;
+    }
+    if (sourceCode.isNotEmpty) json['sourceCode'] = sourceCode;
+    json['basePrice'] = basePrice;
+    if (toothRequired != null) json['toothRequired'] = toothRequired;
+    if (perToothPrice != null) json['perToothPrice'] = perToothPrice;
+    if (durationMinutes != null) json['durationMinutes'] = durationMinutes;
+    if (hidden) json['hidden'] = true;
+    if (migration.isNotEmpty) json['migration'] = migration;
+    return json;
+  }
+
+  @override
+  ProcedureCatalogItem copy(bool blank) =>
+      ProcedureCatalogItem.fromJson(blank ? <String, dynamic>{} : toJson());
+
+  static double _asDouble(dynamic value, double fallback) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  static int? _asNullableInt(dynamic value) {
+    if (value == null || value == '') return null;
+    if (value is num) return value.round();
+    return int.tryParse(value.toString());
+  }
+
+  static bool? _asNullableBool(dynamic value) {
+    if (value == null || value == '') return null;
+    if (value is bool) return value;
+    final normalized = value.toString().trim().toLowerCase();
+    if (['true', '1', 'yes'].contains(normalized)) return true;
+    if (['false', '0', 'no'].contains(normalized)) return false;
+    return null;
+  }
+}

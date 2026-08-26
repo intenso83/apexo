@@ -12,6 +12,8 @@ import 'package:apexo/features/notes/notes_screen.dart';
 import 'package:apexo/features/notes/notes_store.dart';
 import 'package:apexo/features/patients/patients_screen.dart';
 import 'package:apexo/features/stats/screen_stats.dart';
+import 'package:apexo/features/therapy_catalog/therapy_catalog_screen.dart';
+import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/accounts/accounts_screen.dart';
 import 'package:apexo/services/backups.dart';
 import 'package:apexo/features/stats/charts_controller.dart';
@@ -283,6 +285,19 @@ class _Routes {
             screen: AccountsScreen.new,
             accessible: login.isAdmin,
             onSelect: () {},
+          ),
+        if (login.isAdmin)
+          Route(
+            title: txt("therapyCatalogue"),
+            identifier: "therapyCatalogue",
+            navbarTitle: txt("therapyCatalogue"),
+            icon: FluentIcons.product_catalog,
+            screen: TherapyCatalogScreen.new,
+            accessible: login.isAdmin,
+            onSelect: () {
+              therapyGroups.synchronize();
+              procedureCatalog.synchronize();
+            },
           ),
         Route(
           title: txt("deletedItems"),

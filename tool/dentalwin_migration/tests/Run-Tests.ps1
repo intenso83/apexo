@@ -266,6 +266,30 @@ try {
                 event_kind = 'other'
             }) -TargetPatientId 'syntheticpatient' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' | Out-Null
     } -Message 'treatment pilot refuses unsupported event kinds'
+    $catalogGroupData = ConvertTo-DwTherapyGroupData -Group ([pscustomobject]@{
+            stage_key = 'therapy-group:synthetic-1'
+            source_id = '1'
+            name = 'Synthetic restorative'
+            order = '4'
+            hidden = 'false'
+        }) -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -ColorValue 0xFF246BCE
+    Assert-Equal -Expected 'Synthetic restorative' -Actual $catalogGroupData.name -Message 'catalogue pilot preserves the therapy-group name'
+    Assert-Equal -Expected 4 -Actual $catalogGroupData.displayOrder -Message 'catalogue pilot preserves therapy-group ordering'
+    Assert-True -Condition ($catalogGroupData.migration.therapy_catalogue_pilot -eq $true) -Message 'catalogue group marks guarded pilot provenance'
+    $catalogProcedureData = ConvertTo-DwProcedureCatalogData -Procedure ([pscustomobject]@{
+            stage_key = 'procedure:synthetic-1'
+            source_code = 'SYN-P001'
+            name = 'Synthetic filling'
+            therapy_group_source_id = '1'
+            base_price = '80.50'
+            tooth_required_raw = 'true'
+            duration_minutes_raw = ''
+            per_tooth_price_raw = $null
+        }) -TargetGroupId 'syntheticgroup1' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard'
+    Assert-Equal -Expected 'syntheticgroup1' -Actual $catalogProcedureData.therapyGroupID -Message 'catalogue procedure links to its deterministic target group'
+    Assert-Equal -Expected 80.5 -Actual $catalogProcedureData.basePrice -Message 'catalogue pilot parses the source price invariantly'
+    Assert-True -Condition ($catalogProcedureData.toothRequired -eq $true) -Message 'catalogue pilot preserves an explicit tooth-required flag'
+    Assert-True -Condition ($null -eq $catalogProcedureData.PSObject.Properties['durationMinutes']) -Message 'catalogue pilot does not invent missing duration'
     $backupTestRoot = Join-Path $testRoot 'phase4-backup-test'
     [System.IO.Directory]::CreateDirectory($backupTestRoot) | Out-Null
     $backupTestFile = Join-Path $backupTestRoot 'data.db'

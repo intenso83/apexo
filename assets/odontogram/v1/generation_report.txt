@@ -1,0 +1,69 @@
+APEXO ODONTOGRAM MASTER ASSETS V1 - CHART EXTRACTION REPORT
+=============================================================
+
+COMPLETION
+----------
+Total expected tooth assets: 48
+Successfully extracted: 48
+Missing assets: none
+Failed assets: none
+Previous package assets replaced: all 48, including the six formerly locked files
+
+SOURCE TRACEABILITY
+-------------------
+Source filename: Screenshot 2026-08-26 231936.png
+Source dimensions: 1488 x 1043 pixels
+Source SHA-256: DCCAEF7D225129385F8D3F7FB229203189E36664C00BAE6AEB0699A7B0185BF7
+Selected chart columns: first eight
+Selected FDI ranges: 11-18 and 41-48
+
+EXTRACTION METHOD
+-----------------
+- Cropped each tooth from its exact chart cell and view row.
+- Used the chart's dominant mint color (RGB 197, 228, 201) as the background matte.
+- Retained the largest connected tooth component in every cell.
+- Removed the mint matte and neutralized residual green edge spill.
+- Preserved the chart's tooth silhouette, color, shading, and anatomy.
+- Performed no generative redrawing.
+- Normalized every result onto a centered 256 x 256 transparent RGBA canvas.
+
+CONSERVATIVE RETOUCH
+-------------------
+- Applied a light three-pixel median blend to reduce screenshot compression noise.
+- Reduced residual color cast while preserving enamel and root color separation.
+- Added mild local sharpening and contrast for clearer fissures and crown edges.
+- Smoothed only the antialiased transparency transition at tooth boundaries.
+- Limited meaningful silhouette movement to no more than one pixel.
+- Used deterministic image processing; no image-generation model was used.
+
+VIEW-ROW MAPPING
+----------------
+Upper facial: upper full-tooth row
+Upper incisal/occlusal: upper middle row
+Upper palatal: upper crown row
+Lower lingual: first row below the divider
+Lower incisal/occlusal: lower middle row
+Lower facial: lower full-tooth row
+
+FINAL VALIDATION
+----------------
+Exact required filenames: passed
+PNG count: 48
+Canvas dimensions: all 256 x 256 pixels
+Color mode: all RGBA
+Transparency: present in every asset
+Meaningful transparent margin: passed (minimum observed margin: 15 px)
+Exact duplicate image hashes: none
+Manifest-to-filesystem mapping: passed
+Visual contact-sheet inspection: passed
+
+RETRIES AND CORRECTIONS
+-----------------------
+The first extraction pass revealed a thin mint fringe inherited from the source
+matte. A second deterministic edge-cleanup pass neutralized that spill across all
+assets. No tooth anatomy or silhouette was regenerated during the correction.
+
+A separate full-set retouch preview was validated and visually inspected before
+the finishing pass replaced the package assets.
+
+The contact sheet was generated from the actual saved PNG files in this package.

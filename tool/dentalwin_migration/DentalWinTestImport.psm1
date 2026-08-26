@@ -946,6 +946,7 @@ function Invoke-DwTreatmentHistoryPilot {
     $existingRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
     $allowedStores = @(
         '', 'settings_global', 'patients', 'appointments', 'treatment_history',
+        'therapy_groups', 'procedure_catalog',
         'migration_batches', 'migration_external_identifiers'
     )
     foreach ($row in $existingRows) {
@@ -1157,6 +1158,316 @@ function Test-DwTreatmentHistoryPilot {
     return [pscustomobject]$report
 }
 
+function ConvertTo-DwTherapyGroupData {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]$Group,
+        [Parameter(Mandatory = $true)][string]$BatchId,
+        [Parameter(Mandatory = $true)][string]$GuardId,
+        [Parameter(Mandatory = $true)][long]$ColorValue
+    )
+
+    $stageKey = [string](Get-DwImportProperty -InputObject $Group -Name 'stage_key')
+    $name = [string](Get-DwImportProperty -InputObject $Group -Name 'name')
+    if ([string]::IsNullOrWhiteSpace($stageKey) -or [string]::IsNullOrWhiteSpace($name)) {
+        throw 'A staged therapy group is missing its stable key or display name.'
+    }
+    $order = 0
+    [void][int]::TryParse([string](Get-DwImportProperty -InputObject $Group -Name 'order' -Default '0'), [ref]$order)
+    return [ordered]@{
+        title = $name.Trim()
+        name = $name.Trim()
+        displayOrder = $order
+        colorValue = $ColorValue
+        hidden = ((ConvertTo-DwNullableBoolean (Get-DwImportProperty -InputObject $Group -Name 'hidden')) -eq $true)
+        sourceID = [string](Get-DwImportProperty -InputObject $Group -Name 'source_id')
+        migration = [ordered]@{
+            batch_id = $BatchId
+            guard_id = $GuardId
+            source_stage_key = $stageKey
+            source_system = 'DentalWin'
+            pilot = $true
+            therapy_catalogue_pilot = $true
+        }
+    }
+}
+
+function ConvertTo-DwProcedureCatalogData {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]$Procedure,
+        [Parameter(Mandatory = $true)][string]$TargetGroupId,
+        [Parameter(Mandatory = $true)][string]$BatchId,
+        [Parameter(Mandatory = $true)][string]$GuardId
+    )
+
+    $stageKey = [string](Get-DwImportProperty -InputObject $Procedure -Name 'stage_key')
+    $name = [string](Get-DwImportProperty -InputObject $Procedure -Name 'name')
+    if ([string]::IsNullOrWhiteSpace($stageKey) -or [string]::IsNullOrWhiteSpace($name) -or
+        [string]::IsNullOrWhiteSpace($TargetGroupId)) {
+        throw 'A staged procedure is missing its stable key, display name, or target therapy group.'
+    }
+
+    $basePrice = 0.0
+    [void][double]::TryParse(
+        [string](Get-DwImportProperty -InputObject $Procedure -Name 'base_price' -Default '0'),
+        [System.Globalization.NumberStyles]::Any,
+        [System.Globalization.CultureInfo]::InvariantCulture,
+        [ref]$basePrice
+    )
+    $duration = 0
+    $durationValue = Get-DwImportProperty -InputObject $Procedure -Name 'duration_minutes_raw'
+    $hasDuration = [int]::TryParse([string]$durationValue, [ref]$duration) -and $duration -gt 0
+    $toothRequired = ConvertTo-DwNullableBoolean (Get-DwImportProperty -InputObject $Procedure -Name 'tooth_required_raw')
+    $perToothPrice = ConvertTo-DwNullableBoolean (Get-DwImportProperty -InputObject $Procedure -Name 'per_tooth_price_raw')
+
+    $data = [ordered]@{
+        title = $name.Trim()
+        name = $name.Trim()
+        therapyGroupID = $TargetGroupId
+        therapyGroupSourceID = [string](Get-DwImportProperty -InputObject $Procedure -Name 'therapy_group_source_id')
+        sourceCode = [string](Get-DwImportProperty -InputObject $Procedure -Name 'source_code')
+        basePrice = $basePrice
+        hidden = $false
+        migration = [ordered]@{
+            batch_id = $BatchId
+            guard_id = $GuardId
+            source_stage_key = $stageKey
+            source_system = 'DentalWin'
+            pilot = $true
+            therapy_catalogue_pilot = $true
+        }
+    }
+    if ($null -ne $toothRequired) { $data.toothRequired = $toothRequired }
+    if ($null -ne $perToothPrice) { $data.perToothPrice = $perToothPrice }
+    if ($hasDuration) { $data.durationMinutes = $duration }
+    return $data
+}
+
+function Invoke-DwTherapyCataloguePilot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$ServerUrl,
+        [Parameter(Mandatory = $true)][string]$TestServerDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingKeyFile,
+        [Parameter(Mandatory = $true)][string]$Email,
+        [Parameter(Mandatory = $true)][string]$PasswordFile
+    )
+
+    $server = Assert-DwLoopbackTestServerUrl -ServerUrl $ServerUrl
+    $root = (Resolve-Path -LiteralPath $TestServerDirectory).Path
+    $marker = Get-Content -LiteralPath (Join-Path $root '.dentalwin-phase4-test-guard.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $staging = (Resolve-Path -LiteralPath $StagingDirectory).Path
+    $summary = Get-Content -LiteralPath (Join-Path $staging 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($marker.server_url -ne $server -or
+        $marker.staging_directory -ne $staging -or
+        $marker.staging_batch_id -ne $summary.batch_id -or
+        $marker.production_import_authorized -ne $false -or
+        $summary.writes_to_apexo -ne $false) {
+        throw 'Safety lock: the therapy-catalogue pilot does not match the isolated Phase 4 server and staging batch.'
+    }
+
+    $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
+    $existingRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    $allowedStores = @(
+        '', 'settings_global', 'patients', 'appointments', 'treatment_history',
+        'therapy_groups', 'procedure_catalog',
+        'migration_batches', 'migration_external_identifiers'
+    )
+    foreach ($row in $existingRows) {
+        if ([string]$row.store -notin $allowedStores) {
+            throw 'Safety lock: the test server contains a store outside the catalogue-pilot allow-list.'
+        }
+        if ([string]$row.store -notin @('', 'settings_global')) {
+            $migration = Get-DwImportProperty -InputObject $row.data -Name 'migration'
+            if ($null -eq $migration -or
+                (Get-DwImportProperty -InputObject $migration -Name 'batch_id') -ne $summary.batch_id -or
+                (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id) {
+                throw 'Safety lock: the test server contains data outside the guarded pilot batch.'
+            }
+        }
+    }
+
+    $stagingKey = [System.IO.File]::ReadAllText(
+        (Resolve-Path -LiteralPath $StagingKeyFile).Path,
+        [System.Text.Encoding]::UTF8
+    ).Trim()
+    try {
+        $groups = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/therapy_groups.jsonl.enc.json') -Passphrase $stagingKey)
+        $catalog = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/procedure_catalog.jsonl.enc.json') -Passphrase $stagingKey)
+    }
+    finally { $stagingKey = $null }
+
+    $expectedGroups = [int]$summary.staged_counts.therapy_groups
+    $expectedProcedures = [int]$summary.staged_counts.procedure_catalog
+    if ($groups.Count -ne $expectedGroups -or $catalog.Count -ne $expectedProcedures -or
+        $groups.Count -gt 50 -or $catalog.Count -gt 1000) {
+        throw 'Safety lock: staged and reported therapy-catalogue counts do not match safe pilot limits.'
+    }
+    if (@($groups.stage_key | Sort-Object -Unique).Count -ne $groups.Count -or
+        @($catalog.stage_key | Sort-Object -Unique).Count -ne $catalog.Count) {
+        throw 'Safety lock: the therapy catalogue contains duplicate staging keys.'
+    }
+
+    $palette = @(
+        0xFF0F8B8D, 0xFF246BCE, 0xFF7A5AF8, 0xFFE05D5D,
+        0xFF2E9D63, 0xFFE08A1E, 0xFFB34FA2, 0xFF477A8B,
+        0xFF6D7F2B, 0xFF8E6548, 0xFF5B6BC0, 0xFF008F7A,
+        0xFFC05C84, 0xFF55778C
+    )
+    $groupTargets = @{}
+    $createdGroups = 0
+    $alreadyGroups = 0
+    for ($index = 0; $index -lt $groups.Count; $index++) {
+        $group = $groups[$index]
+        $stageKey = [string]$group.stage_key
+        $targetId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'therapy_groups' -StageKey $stageKey
+        $data = ConvertTo-DwTherapyGroupData -Group $group -BatchId $summary.batch_id -GuardId $marker.marker_id -ColorValue $palette[$index % $palette.Count]
+        $data.id = $targetId
+        $sourceId = [string]$group.source_id
+        if ([string]::IsNullOrWhiteSpace($sourceId) -or $groupTargets.ContainsKey($sourceId)) {
+            throw 'Safety lock: a therapy group has a missing or duplicate source identity.'
+        }
+        $groupTargets[$sourceId] = $targetId
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $targetId -Store 'therapy_groups' -Data $data -BatchId $summary.batch_id -StageKey $stageKey
+        if ($result -eq 'created') { $createdGroups++ } else { $alreadyGroups++ }
+    }
+
+    $uncategorized = @($catalog | Where-Object {
+            $sourceGroup = [string]$_.therapy_group_source_id
+            [string]::IsNullOrWhiteSpace($sourceGroup) -or -not $groupTargets.ContainsKey($sourceGroup)
+        })
+    $uncategorizedId = ''
+    if ($uncategorized.Count -gt 0) {
+        $uncategorizedStageKey = 'therapy-group:target-generated-uncategorized-review'
+        $uncategorizedId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'therapy_groups' -StageKey $uncategorizedStageKey
+        $uncategorizedData = [ordered]@{
+            id = $uncategorizedId
+            title = 'Uncategorized legacy review'
+            name = 'Uncategorized legacy review'
+            displayOrder = $groups.Count
+            colorValue = 0xFF777777
+            hidden = $false
+            migration = [ordered]@{
+                batch_id = $summary.batch_id
+                guard_id = $marker.marker_id
+                source_stage_key = $uncategorizedStageKey
+                source_system = 'DentalWin'
+                pilot = $true
+                therapy_catalogue_pilot = $true
+                target_generated_review_bucket = $true
+            }
+        }
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $uncategorizedId -Store 'therapy_groups' -Data $uncategorizedData -BatchId $summary.batch_id -StageKey $uncategorizedStageKey
+        if ($result -eq 'created') { $createdGroups++ } else { $alreadyGroups++ }
+    }
+
+    $createdProcedures = 0
+    $alreadyProcedures = 0
+    foreach ($procedure in $catalog) {
+        $stageKey = [string]$procedure.stage_key
+        $sourceGroup = [string]$procedure.therapy_group_source_id
+        $targetGroupId = if ($groupTargets.ContainsKey($sourceGroup)) { [string]$groupTargets[$sourceGroup] } else { $uncategorizedId }
+        $targetId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'procedure_catalog' -StageKey $stageKey
+        $data = ConvertTo-DwProcedureCatalogData -Procedure $procedure -TargetGroupId $targetGroupId -BatchId $summary.batch_id -GuardId $marker.marker_id
+        $data.id = $targetId
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $targetId -Store 'procedure_catalog' -Data $data -BatchId $summary.batch_id -StageKey $stageKey
+        if ($result -eq 'created') { $createdProcedures++ } else { $alreadyProcedures++ }
+    }
+
+    $report = [ordered]@{
+        mode = 'isolated_therapy_catalogue_pilot'
+        created_utc = [DateTime]::UtcNow.ToString('o')
+        server_host = '127.0.0.1'
+        source_therapy_groups = $groups.Count
+        target_therapy_groups = $groups.Count + $(if ($uncategorized.Count -gt 0) { 1 } else { 0 })
+        procedures = $catalog.Count
+        uncategorized_procedures = $uncategorized.Count
+        created_group_records = $createdGroups
+        already_imported_group_records = $alreadyGroups
+        created_procedure_records = $createdProcedures
+        already_imported_procedure_records = $alreadyProcedures
+        production_import_authorized = $false
+        writes_to_dentalwin = $false
+        contains_patient_values = $false
+    }
+    Write-DwImportJson -Path (Join-Path $root 'reports/therapy-catalogue-pilot-import-summary.json') -Value $report
+    return [pscustomobject]$report
+}
+
+function Test-DwTherapyCataloguePilot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$ServerUrl,
+        [Parameter(Mandatory = $true)][string]$TestServerDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingKeyFile,
+        [Parameter(Mandatory = $true)][string]$Email,
+        [Parameter(Mandatory = $true)][string]$PasswordFile
+    )
+
+    $server = Assert-DwLoopbackTestServerUrl -ServerUrl $ServerUrl
+    $root = (Resolve-Path -LiteralPath $TestServerDirectory).Path
+    $marker = Get-Content -LiteralPath (Join-Path $root '.dentalwin-phase4-test-guard.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($marker.server_url -ne $server -or $marker.production_import_authorized -ne $false) {
+        throw 'Safety lock: catalogue verification is not pointed at the isolated pilot server.'
+    }
+    $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
+    $rows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    $groups = @($rows | Where-Object store -eq 'therapy_groups')
+    $procedures = @($rows | Where-Object store -eq 'procedure_catalog')
+    $staging = (Resolve-Path -LiteralPath $StagingDirectory).Path
+    $summary = Get-Content -LiteralPath (Join-Path $staging 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($procedures.Count -ne [int]$summary.staged_counts.procedure_catalog -or
+        $groups.Count -lt [int]$summary.staged_counts.therapy_groups -or
+        $groups.Count -gt ([int]$summary.staged_counts.therapy_groups + 1)) {
+        throw 'Catalogue verification found a staged/imported count mismatch.'
+    }
+    $groupIds = @{}
+    foreach ($record in $groups) {
+        $groupIds[[string]$record.id] = $true
+        $migration = Get-DwImportProperty -InputObject $record.data -Name 'migration'
+        if ($null -eq $migration -or
+            (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id -or
+            (Get-DwImportProperty -InputObject $migration -Name 'therapy_catalogue_pilot') -ne $true) {
+            throw 'Catalogue verification found a therapy group outside the guarded pilot.'
+        }
+    }
+    $unknownToothRequirement = 0
+    foreach ($record in $procedures) {
+        $data = $record.data
+        if ([string]::IsNullOrWhiteSpace([string](Get-DwImportProperty -InputObject $data -Name 'name')) -or
+            -not $groupIds.ContainsKey([string](Get-DwImportProperty -InputObject $data -Name 'therapyGroupID'))) {
+            throw 'Catalogue verification found a procedure with an empty name or broken group link.'
+        }
+        if ($null -eq (Get-DwImportProperty -InputObject $data -Name 'toothRequired')) { $unknownToothRequirement++ }
+        $migration = Get-DwImportProperty -InputObject $data -Name 'migration'
+        if ($null -eq $migration -or
+            (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id -or
+            (Get-DwImportProperty -InputObject $migration -Name 'therapy_catalogue_pilot') -ne $true) {
+            throw 'Catalogue verification found a procedure outside the guarded pilot.'
+        }
+    }
+    $report = [ordered]@{
+        mode = 'isolated_therapy_catalogue_pilot_verification'
+        verified_utc = [DateTime]::UtcNow.ToString('o')
+        server_host = '127.0.0.1'
+        therapy_groups = $groups.Count
+        procedures = $procedures.Count
+        procedures_with_unknown_tooth_requirement = $unknownToothRequirement
+        duplicate_record_ids = $rows.Count - @($rows.id | Sort-Object -Unique).Count
+        production_import_authorized = $false
+        contains_patient_values = $false
+        verified = $true
+    }
+    if ($report.duplicate_record_ids -ne 0) {
+        throw 'Catalogue verification found duplicate PocketBase record IDs.'
+    }
+    Write-DwImportJson -Path (Join-Path $root 'reports/therapy-catalogue-pilot-verification-summary.json') -Value $report
+    return [pscustomobject]$report
+}
+
 Export-ModuleMember -Function @(
     'Assert-DwLoopbackTestServerUrl',
     'Get-DwDeterministicPocketBaseId',
@@ -1167,5 +1478,9 @@ Export-ModuleMember -Function @(
     'Invoke-DwPilotImport',
     'Test-DwPilotImport',
     'Invoke-DwTreatmentHistoryPilot',
-    'Test-DwTreatmentHistoryPilot'
+    'Test-DwTreatmentHistoryPilot',
+    'ConvertTo-DwTherapyGroupData',
+    'ConvertTo-DwProcedureCatalogData',
+    'Invoke-DwTherapyCataloguePilot',
+    'Test-DwTherapyCataloguePilot'
 )
