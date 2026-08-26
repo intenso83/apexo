@@ -4,11 +4,13 @@ import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/notes/notes_store.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
+import 'package:apexo/features/treatment_history/treatment_history_store.dart';
 
 initializeStores() {
   globalSettings.init();
   patients.init();
   appointments.init();
+  treatmentHistory.init();
 
   appointments.observableMap.observe((events) {
     for (var event in events) {

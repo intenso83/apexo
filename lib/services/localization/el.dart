@@ -273,6 +273,16 @@ class El implements En {
     // treatments
     "treatment": "Θεραπεία",
     "allTreatments": "Όλες οι θεραπείες",
+    "treatmentHistory": "Ιστορικό θεραπειών",
+    "treatmentHistoryPilot": "Πιλοτικό ιστορικό θεραπειών DentalWin",
+    "treatmentHistoryPilotDescription":
+        "Εισαγόμενο ιστορικό μόνο για ανάγνωση και έλεγχο. Το DentalWin και τα δεδομένα παραγωγής παραμένουν αμετάβλητα.",
+    "noTreatmentHistoryFound": "Δεν βρέθηκε εισαγόμενο ιστορικό θεραπειών",
+    "completedTreatment": "Ολοκληρωμένη θεραπεία",
+    "treatmentPlanItem": "Στοιχείο σχεδίου θεραπείας",
+    "dateNotAvailable": "Η ημερομηνία δεν είναι διαθέσιμη",
+    "legacyCustomTreatment": "Παλαιά προσαρμοσμένη θεραπεία",
+    "tooth": "Δόντι",
     "extraction": "Εξαγωγή",
     "filling": "Σφράγισμα",
     "pulpotomy": "Πολφοτομή",

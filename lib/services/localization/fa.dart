@@ -269,6 +269,16 @@ class Fa implements En {
     // treatments
     "treatment": "درمان",
     "allTreatments": "همه درمان‌ها",
+    "treatmentHistory": "سابقه درمان",
+    "treatmentHistoryPilot": "آزمایش سابقه درمان DentalWin",
+    "treatmentHistoryPilotDescription":
+        "سابقه واردشده فقط برای خواندن و بررسی است. داده‌های DentalWin و محیط اصلی تغییری نکرده‌اند.",
+    "noTreatmentHistoryFound": "سابقه درمان واردشده‌ای یافت نشد",
+    "completedTreatment": "درمان تکمیل‌شده",
+    "treatmentPlanItem": "مورد برنامه درمان",
+    "dateNotAvailable": "تاریخ در دسترس نیست",
+    "legacyCustomTreatment": "درمان سفارشی قدیمی",
+    "tooth": "دندان",
     "extraction": "کشیدن",
     "filling": "پرکردن",
     "pulpotomy": "پالپوتومی",

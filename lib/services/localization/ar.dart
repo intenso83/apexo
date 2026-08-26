@@ -267,6 +267,16 @@ class Ar implements En {
     // treatments
     "treatment": "العلاج",
     "allTreatments": "كل العلاجات",
+    "treatmentHistory": "سجل العلاجات",
+    "treatmentHistoryPilot": "تجربة سجل علاجات DentalWin",
+    "treatmentHistoryPilotDescription":
+        "سجل مستورد للقراءة فقط بغرض التحقق. لم تتغير بيانات DentalWin أو بيانات الإنتاج.",
+    "noTreatmentHistoryFound": "لم يتم العثور على سجل علاجات مستورد",
+    "completedTreatment": "علاج مكتمل",
+    "treatmentPlanItem": "بند في خطة العلاج",
+    "dateNotAvailable": "التاريخ غير متاح",
+    "legacyCustomTreatment": "علاج مخصص قديم",
+    "tooth": "السن",
     "extraction": "قلع",
     "filling": "حشوة",
     "pulpotomy": "بضع لب",

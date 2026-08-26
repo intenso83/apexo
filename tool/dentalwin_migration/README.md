@@ -1,6 +1,6 @@
 # DentalWin migration tool
 
-This Windows-only tool implements Phases 2, 3, and the isolated Phase 4 pilot of the approved DentalWin migration blueprint.
+This Windows-only tool implements Phases 2 and 3, the isolated Phase 4 patient/appointment pilot, and the isolated Phase 5 treatment-history pilot of the approved DentalWin migration blueprint.
 
 It can:
 
@@ -13,15 +13,17 @@ It can:
 - create stable provenance keys, review queues, aggregate reports, and checksums;
 - prove repeat-run idempotency with automated tests;
 - initialize and guard a disposable empty PocketBase test server;
-- import and verify a five-patient, two-appointments-per-patient pilot.
+- import and verify a five-patient, two-appointments-per-patient pilot;
+- import and verify historical DentalWin treatments for only those same five pilot patients.
 
 It cannot:
 
 - write to DentalWin;
 - run DentalWin executables;
 - connect to a non-loopback or production Apexo/PocketBase server;
-- import more than the guarded Phase 4 pilot;
-- import treatment, medical-history, image, or finance records during the pilot.
+- import patients outside the guarded five-patient pilot;
+- import medical-history, image, or finance records during the pilot;
+- connect either pilot to a production or non-loopback server.
 
 ## Requirements
 
@@ -50,6 +52,14 @@ The Phase 4 commands are intentionally exposed as PowerShell module functions in
 - a guard marker that fixes the staging identity, server, stores, and pilot limits.
 
 `Invoke-DwPilotImport` writes only five patients, at most two appointments per selected patient, their provenance records, and one batch marker. `Test-DwPilotImport` verifies counts, required fields, Unicode names, appointment links and dates, duplicate IDs, and the absence of production authorization. Row-level reports remain private and ignored by Git.
+
+## Phase 5 treatment-history pilot
+
+Phase 5 is a separate, explicitly guarded expansion of the already-approved Phase 4 pilot. `Invoke-DwTreatmentHistoryPilot` writes read-only treatment-history records only for the same five imported patients. It also writes one provenance record per treatment. It does not create or change DentalWin treatments, Apexo treatment plans, invoices, payments, images, or medical-history records.
+
+`Test-DwTreatmentHistoryPilot` compares the imported rows with the encrypted private staging data, verifies every patient link and migration guard, rejects duplicate IDs, and checks the exact provenance count. Reports are aggregate-only; patient-level values remain in the ignored private directory.
+
+The pilot UI presents these rows on a separate read-only **Treatment history** tab. It deliberately does not translate uncertain legacy work names into editable Apexo treatments. Unmatched names are marked as legacy custom treatments so that no clinical meaning is invented during migration.
 
 ## Run the committed synthetic dry run
 

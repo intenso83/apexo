@@ -280,6 +280,18 @@ class Es implements En {
     // treatments
     "treatment": "Tratamiento",
     "allTreatments": "Todos",
+    "treatmentHistory": "Historial de tratamientos",
+    "treatmentHistoryPilot":
+        "Piloto del historial de tratamientos de DentalWin",
+    "treatmentHistoryPilotDescription":
+        "Historial importado de solo lectura para su verificación. DentalWin y los datos de producción no cambian.",
+    "noTreatmentHistoryFound":
+        "No se encontró historial de tratamientos importado",
+    "completedTreatment": "Tratamiento completado",
+    "treatmentPlanItem": "Elemento del plan de tratamiento",
+    "dateNotAvailable": "Fecha no disponible",
+    "legacyCustomTreatment": "Tratamiento personalizado anterior",
+    "tooth": "Diente",
     "extraction": "Extracción",
     "filling": "Obturación",
     "pulpotomy": "Pulpotomía",

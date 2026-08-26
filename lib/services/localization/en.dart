@@ -271,6 +271,16 @@ class En {
     // treatments
     "treatment": "Treatment",
     "allTreatments": "All Treatments",
+    "treatmentHistory": "Treatment history",
+    "treatmentHistoryPilot": "DentalWin treatment-history pilot",
+    "treatmentHistoryPilotDescription":
+        "Read-only imported history for verification. DentalWin and production data are unchanged.",
+    "noTreatmentHistoryFound": "No imported treatment history found",
+    "completedTreatment": "Completed treatment",
+    "treatmentPlanItem": "Treatment-plan item",
+    "dateNotAvailable": "Date not available",
+    "legacyCustomTreatment": "Legacy custom treatment",
+    "tooth": "Tooth",
     "extraction": "Extraction",
     "filling": "Filling",
     "pulpotomy": "Pulpotomy",

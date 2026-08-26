@@ -340,8 +340,14 @@ function Get-DwAllRemoteRows {
         [Parameter(Mandatory = $true)]$Headers
     )
 
-    $page = Invoke-RestMethod -Uri "$ServerUrl/api/collections/data/records?perPage=200" -Headers $Headers -TimeoutSec 15
-    return @($page.items)
+    $rows = [System.Collections.ArrayList]::new()
+    $pageNumber = 1
+    do {
+        $page = Invoke-RestMethod -Uri "$ServerUrl/api/collections/data/records?perPage=200&page=$pageNumber" -Headers $Headers -TimeoutSec 15
+        foreach ($item in @($page.items)) { [void]$rows.Add($item) }
+        $pageNumber++
+    } while ($pageNumber -le [int]$page.totalPages)
+    return @($rows)
 }
 
 function Add-DwPilotRecord {
@@ -702,14 +708,24 @@ function Test-DwPilotImport {
 
     $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
     $allRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
-    $migrationStores = @(
-        'patients',
-        'appointments',
-        'migration_external_identifiers',
-        'migration_batches'
+    $provenanceRows = @($allRows | Where-Object store -eq 'migration_external_identifiers')
+    $baseProvenance = @($provenanceRows | Where-Object {
+            [string](Get-DwImportProperty -InputObject $_.data -Name 'target_store') -in @('patients', 'appointments')
+        })
+    $phase5Provenance = @($provenanceRows | Where-Object {
+            [string](Get-DwImportProperty -InputObject $_.data -Name 'target_store') -eq 'treatment_history'
+        })
+    $rows = @(
+        @($allRows | Where-Object { [string]$_.store -in @('patients', 'appointments', 'migration_batches') }) +
+        $baseProvenance
     )
-    $rows = @($allRows | Where-Object { [string]$_.store -in $migrationStores })
-    $housekeepingRows = @($allRows | Where-Object { [string]$_.store -notin $migrationStores })
+    $phase5Rows = @(
+        @($allRows | Where-Object store -eq 'treatment_history') +
+        $phase5Provenance
+    )
+    $knownIds = @{}
+    foreach ($row in @($rows + $phase5Rows)) { $knownIds[[string]$row.id] = $true }
+    $housekeepingRows = @($allRows | Where-Object { -not $knownIds.ContainsKey([string]$_.id) })
     $unexpectedHousekeeping = @($housekeepingRows | Where-Object {
             -not [string]::IsNullOrWhiteSpace([string]$_.store) -and
             [string]$_.store -ne 'settings_global'
@@ -721,7 +737,7 @@ function Test-DwPilotImport {
     if (@($allRows.id | Sort-Object -Unique).Count -ne $allRows.Count) {
         throw 'Pilot verification found duplicate PocketBase record IDs.'
     }
-    foreach ($record in $rows) {
+    foreach ($record in @($rows + $phase5Rows)) {
         $migration = Get-DwImportProperty -InputObject $record.data -Name 'migration'
         if ($null -eq $migration -or
             (Get-DwImportProperty -InputObject $migration -Name 'batch_id') -ne $marker.staging_batch_id -or
@@ -732,7 +748,7 @@ function Test-DwPilotImport {
 
     $patients = @($rows | Where-Object store -eq 'patients')
     $appointments = @($rows | Where-Object store -eq 'appointments')
-    $provenance = @($rows | Where-Object store -eq 'migration_external_identifiers')
+    $provenance = @($baseProvenance)
     $batches = @($rows | Where-Object store -eq 'migration_batches')
     if ($patients.Count -ne 5 -or $appointments.Count -ne 10 -or
         $provenance.Count -ne 15 -or $batches.Count -ne 1) {
@@ -820,12 +836,336 @@ function Test-DwPilotImport {
     return [pscustomobject]$report
 }
 
+function ConvertTo-DwTreatmentHistoryData {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]$Event,
+        [Parameter(Mandatory = $true)][string]$TargetPatientId,
+        [Parameter(Mandatory = $true)][string]$BatchId,
+        [Parameter(Mandatory = $true)][string]$GuardId,
+        [string]$TherapyGroup = ''
+    )
+
+    $stageKey = [string](Get-DwImportProperty -InputObject $Event -Name 'stage_key')
+    if ([string]::IsNullOrWhiteSpace($stageKey) -or
+        [string]::IsNullOrWhiteSpace($TargetPatientId)) {
+        throw 'Treatment-history conversion requires a source stage key and target patient.'
+    }
+    $name = [string](Get-DwImportProperty -InputObject $Event -Name 'original_work_name')
+    if ([string]::IsNullOrWhiteSpace($name)) { $name = 'Unlabelled DentalWin treatment' }
+    $kind = [string](Get-DwImportProperty -InputObject $Event -Name 'event_kind' -Default 'clinical_event')
+    if ($kind -notin @('clinical_event', 'treatment_plan_item')) {
+        throw 'Treatment-history conversion found an unsupported event kind.'
+    }
+    $data = [ordered]@{
+        patientID = $TargetPatientId
+        title = $name
+        treatmentName = $name
+        eventKind = $kind
+        dateRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'date_raw')
+        toothRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'tooth_raw')
+        toothFdi = [string](Get-DwImportProperty -InputObject $Event -Name 'tooth_fdi')
+        notes = [string](Get-DwImportProperty -InputObject $Event -Name 'notes')
+        statusRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'status_raw')
+        chargeRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'charge_raw')
+        creditRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'credit_raw')
+        totalRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'total_raw')
+        sourceCatalogCode = [string](Get-DwImportProperty -InputObject $Event -Name 'source_catalog_code')
+        catalogLinkMethod = [string](Get-DwImportProperty -InputObject $Event -Name 'catalog_link_method' -Default 'legacy_custom')
+        therapyGroup = $TherapyGroup
+        migration = [ordered]@{
+            batch_id = $BatchId
+            guard_id = $GuardId
+            source_stage_key = $stageKey
+            source_system = 'DentalWin'
+            source_link_method = 'patient_stage_key'
+            pilot = $true
+            treatment_history_pilot = $true
+        }
+    }
+    $dateMinutes = ConvertTo-DwMinuteEpoch (Get-DwImportProperty -InputObject $Event -Name 'date_raw')
+    if ($null -ne $dateMinutes) { $data.date = $dateMinutes }
+    return $data
+}
+
+function Get-DwTreatmentPilotCatalogContext {
+    param(
+        [Parameter(Mandatory = $true)]$Groups,
+        [Parameter(Mandatory = $true)]$Catalog
+    )
+    $groupsById = @{}
+    foreach ($group in @($Groups)) {
+        $groupsById[[string]$group.source_id] = [string]$group.name
+    }
+    $catalogByCode = @{}
+    foreach ($item in @($Catalog)) {
+        $code = [string]$item.source_code
+        if (-not [string]::IsNullOrWhiteSpace($code)) { $catalogByCode[$code] = $item }
+    }
+    return [pscustomobject]@{ GroupsById = $groupsById; CatalogByCode = $catalogByCode }
+}
+
+function Get-DwTreatmentPilotGroupName {
+    param(
+        [Parameter(Mandatory = $true)]$Event,
+        [Parameter(Mandatory = $true)]$Context
+    )
+    $code = [string](Get-DwImportProperty -InputObject $Event -Name 'source_catalog_code')
+    if ([string]::IsNullOrWhiteSpace($code) -or -not $Context.CatalogByCode.ContainsKey($code)) { return '' }
+    $item = $Context.CatalogByCode[$code]
+    $groupId = [string]$item.therapy_group_source_id
+    if (-not $Context.GroupsById.ContainsKey($groupId)) { return '' }
+    return [string]$Context.GroupsById[$groupId]
+}
+
+function Invoke-DwTreatmentHistoryPilot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$ServerUrl,
+        [Parameter(Mandatory = $true)][string]$TestServerDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingKeyFile,
+        [Parameter(Mandatory = $true)][string]$Email,
+        [Parameter(Mandatory = $true)][string]$PasswordFile
+    )
+
+    $server = Assert-DwLoopbackTestServerUrl -ServerUrl $ServerUrl
+    $root = (Resolve-Path -LiteralPath $TestServerDirectory).Path
+    $marker = Get-Content -LiteralPath (Join-Path $root '.dentalwin-phase4-test-guard.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $staging = (Resolve-Path -LiteralPath $StagingDirectory).Path
+    $summary = Get-Content -LiteralPath (Join-Path $staging 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($marker.server_url -ne $server -or
+        $marker.staging_directory -ne $staging -or
+        $marker.staging_batch_id -ne $summary.batch_id -or
+        $marker.production_import_authorized -ne $false -or
+        $summary.writes_to_apexo -ne $false) {
+        throw 'Safety lock: the treatment-history pilot does not match the isolated Phase 4 server and staging batch.'
+    }
+
+    $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
+    $existingRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    $allowedStores = @(
+        '', 'settings_global', 'patients', 'appointments', 'treatment_history',
+        'migration_batches', 'migration_external_identifiers'
+    )
+    foreach ($row in $existingRows) {
+        if ([string]$row.store -notin $allowedStores) {
+            throw 'Safety lock: the test server contains a store outside the treatment-pilot allow-list.'
+        }
+        if ([string]$row.store -notin @('', 'settings_global')) {
+            $migration = Get-DwImportProperty -InputObject $row.data -Name 'migration'
+            if ($null -eq $migration -or
+                (Get-DwImportProperty -InputObject $migration -Name 'batch_id') -ne $summary.batch_id -or
+                (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id) {
+                throw 'Safety lock: the test server contains migration data outside the guarded pilot batch.'
+            }
+        }
+    }
+
+    $patientRows = @($existingRows | Where-Object store -eq 'patients')
+    if ($patientRows.Count -ne [int]$marker.pilot_patient_limit) {
+        throw 'Treatment-history pilot requires the verified five-patient pilot.'
+    }
+    $patientTargets = @{}
+    foreach ($row in $patientRows) {
+        $migration = Get-DwImportProperty -InputObject $row.data -Name 'migration'
+        $sourceStageKey = [string](Get-DwImportProperty -InputObject $migration -Name 'source_stage_key')
+        if (-not $sourceStageKey.StartsWith('patient:')) {
+            throw 'A pilot patient is missing its DentalWin stage identity.'
+        }
+        $patientTargets[$sourceStageKey] = [string]$row.id
+    }
+
+    $stagingKey = [System.IO.File]::ReadAllText(
+        (Resolve-Path -LiteralPath $StagingKeyFile).Path,
+        [System.Text.Encoding]::UTF8
+    ).Trim()
+    try {
+        $events = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/clinical_events_and_plan_items.jsonl.enc.json') -Passphrase $stagingKey)
+        $groups = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/therapy_groups.jsonl.enc.json') -Passphrase $stagingKey)
+        $catalog = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/procedure_catalog.jsonl.enc.json') -Passphrase $stagingKey)
+    }
+    finally {
+        $stagingKey = $null
+    }
+
+    $selected = @($events | Where-Object { $patientTargets.ContainsKey([string]$_.patient_stage_key) })
+    if ($selected.Count -eq 0) { throw 'The selected pilot patients have no staged treatment history.' }
+    if ($selected.Count -gt 2500) { throw 'Safety lock: treatment-history pilot exceeds the 2500-record total limit.' }
+    foreach ($group in @($selected | Group-Object patient_stage_key)) {
+        if ($group.Count -gt 500) { throw 'Safety lock: a pilot patient exceeds the 500-treatment limit.' }
+    }
+
+    $catalogContext = Get-DwTreatmentPilotCatalogContext -Groups $groups -Catalog $catalog
+    $created = 0
+    $already = 0
+    $createdProvenance = 0
+    $alreadyProvenance = 0
+    foreach ($event in $selected) {
+        $stageKey = [string]$event.stage_key
+        $targetPatientId = [string]$patientTargets[[string]$event.patient_stage_key]
+        $therapyGroup = Get-DwTreatmentPilotGroupName -Event $event -Context $catalogContext
+        $data = ConvertTo-DwTreatmentHistoryData -Event $event -TargetPatientId $targetPatientId -BatchId $summary.batch_id -GuardId $marker.marker_id -TherapyGroup $therapyGroup
+        $targetId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'treatment_history' -StageKey $stageKey
+        $data.id = $targetId
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $targetId -Store 'treatment_history' -Data $data -BatchId $summary.batch_id -StageKey $stageKey
+        if ($result -eq 'created') { $created++ } else { $already++ }
+
+        $provenanceStageKey = "external:treatment-history:$stageKey"
+        $provenanceId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'migration_external_identifiers' -StageKey $provenanceStageKey
+        $provenanceData = [ordered]@{
+            title = 'DentalWin treatment-history provenance'
+            source_system = 'DentalWin'
+            source_database_fingerprint = $summary.source_fingerprint
+            source_table = 'WorksPelati'
+            source_record_key = $stageKey.Substring('clinical-work:'.Length)
+            target_store = 'treatment_history'
+            target_record_id = $targetId
+            migration = [ordered]@{
+                batch_id = $summary.batch_id
+                guard_id = $marker.marker_id
+                source_stage_key = $provenanceStageKey
+                pilot = $true
+                treatment_history_pilot = $true
+            }
+        }
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $provenanceId -Store 'migration_external_identifiers' -Data $provenanceData -BatchId $summary.batch_id -StageKey $provenanceStageKey
+        if ($result -eq 'created') { $createdProvenance++ } else { $alreadyProvenance++ }
+    }
+
+    $report = [ordered]@{
+        mode = 'isolated_treatment_history_pilot'
+        created_utc = [DateTime]::UtcNow.ToString('o')
+        server_host = '127.0.0.1'
+        pilot_patients = $patientRows.Count
+        expected_treatment_records = $selected.Count
+        created_treatment_records = $created
+        already_imported_treatment_records = $already
+        created_provenance_records = $createdProvenance
+        already_imported_provenance_records = $alreadyProvenance
+        production_import_authorized = $false
+        writes_to_dentalwin = $false
+        contains_patient_values = $false
+    }
+    Write-DwImportJson -Path (Join-Path $root 'reports/treatment-history-pilot-import-summary.json') -Value $report
+    return [pscustomobject]$report
+}
+
+function Test-DwTreatmentHistoryPilot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$ServerUrl,
+        [Parameter(Mandatory = $true)][string]$TestServerDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingKeyFile,
+        [Parameter(Mandatory = $true)][string]$Email,
+        [Parameter(Mandatory = $true)][string]$PasswordFile
+    )
+
+    $server = Assert-DwLoopbackTestServerUrl -ServerUrl $ServerUrl
+    $root = (Resolve-Path -LiteralPath $TestServerDirectory).Path
+    $marker = Get-Content -LiteralPath (Join-Path $root '.dentalwin-phase4-test-guard.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($marker.server_url -ne $server -or $marker.production_import_authorized -ne $false) {
+        throw 'Safety lock: treatment-history verification is not pointed at the isolated pilot server.'
+    }
+    $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
+    $rows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    if (@($rows.id | Sort-Object -Unique).Count -ne $rows.Count) {
+        throw 'Treatment-history verification found duplicate PocketBase record IDs.'
+    }
+    $patients = @($rows | Where-Object store -eq 'patients')
+    $treatments = @($rows | Where-Object store -eq 'treatment_history')
+    $patientIds = @{}
+    $patientStageKeys = @{}
+    foreach ($patient in $patients) {
+        $patientIds[[string]$patient.id] = $true
+        $migration = Get-DwImportProperty -InputObject $patient.data -Name 'migration'
+        $patientStageKeys[[string](Get-DwImportProperty -InputObject $migration -Name 'source_stage_key')] = $true
+    }
+
+    $staging = (Resolve-Path -LiteralPath $StagingDirectory).Path
+    $stagingKey = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $StagingKeyFile).Path, [System.Text.Encoding]::UTF8).Trim()
+    try {
+        $events = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/clinical_events_and_plan_items.jsonl.enc.json') -Passphrase $stagingKey)
+    }
+    finally { $stagingKey = $null }
+    $expected = @($events | Where-Object { $patientStageKeys.ContainsKey([string]$_.patient_stage_key) })
+    if ($expected.Count -eq 0 -or $treatments.Count -ne $expected.Count) {
+        throw 'Treatment-history verification found a staged/imported count mismatch.'
+    }
+
+    $completed = 0
+    $planned = 0
+    $withDate = 0
+    $withTooth = 0
+    $legacyCustom = 0
+    foreach ($record in $treatments) {
+        $data = $record.data
+        if (-not $patientIds.ContainsKey([string](Get-DwImportProperty -InputObject $data -Name 'patientID'))) {
+            throw 'Treatment-history verification found a broken patient link.'
+        }
+        if ([string]::IsNullOrWhiteSpace([string](Get-DwImportProperty -InputObject $data -Name 'treatmentName'))) {
+            throw 'Treatment-history verification found an empty treatment name.'
+        }
+        $kind = [string](Get-DwImportProperty -InputObject $data -Name 'eventKind')
+        if ($kind -eq 'clinical_event') { $completed++ }
+        elseif ($kind -eq 'treatment_plan_item') { $planned++ }
+        else { throw 'Treatment-history verification found an invalid event kind.' }
+        $dateMinutes = [long](Get-DwImportProperty -InputObject $data -Name 'date' -Default 0)
+        if ($dateMinutes -gt 0) { $withDate++ }
+        $tooth = [string](Get-DwImportProperty -InputObject $data -Name 'toothFdi')
+        if (-not [string]::IsNullOrWhiteSpace($tooth)) {
+            if ($tooth -notmatch '^(1[1-8]|2[1-8]|3[1-8]|4[1-8]|5[1-5]|6[1-5]|7[1-5]|8[1-5])$') {
+                throw 'Treatment-history verification found an invalid normalized FDI tooth.'
+            }
+            $withTooth++
+        }
+        if ([string](Get-DwImportProperty -InputObject $data -Name 'catalogLinkMethod') -eq 'legacy_custom') { $legacyCustom++ }
+        $migration = Get-DwImportProperty -InputObject $data -Name 'migration'
+        if ($null -eq $migration -or
+            (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id -or
+            (Get-DwImportProperty -InputObject $migration -Name 'treatment_history_pilot') -ne $true) {
+            throw 'Treatment-history verification found a record outside the guarded pilot.'
+        }
+    }
+
+    $treatmentProvenance = @($rows | Where-Object {
+            $_.store -eq 'migration_external_identifiers' -and
+            [string](Get-DwImportProperty -InputObject $_.data -Name 'target_store') -eq 'treatment_history'
+        })
+    if ($treatmentProvenance.Count -ne $treatments.Count) {
+        throw 'Treatment-history verification found missing provenance records.'
+    }
+    $report = [ordered]@{
+        mode = 'isolated_treatment_history_pilot_verification'
+        verified_utc = [DateTime]::UtcNow.ToString('o')
+        server_host = '127.0.0.1'
+        pilot_patients = $patients.Count
+        treatment_records = $treatments.Count
+        completed_treatments = $completed
+        treatment_plan_items = $planned
+        treatments_with_parseable_date = $withDate
+        treatments_with_normalized_tooth = $withTooth
+        legacy_custom_treatments = $legacyCustom
+        provenance_records = $treatmentProvenance.Count
+        duplicate_record_ids = 0
+        production_import_authorized = $false
+        contains_patient_values = $false
+        verified = $true
+    }
+    Write-DwImportJson -Path (Join-Path $root 'reports/treatment-history-pilot-verification-summary.json') -Value $report
+    return [pscustomobject]$report
+}
+
 Export-ModuleMember -Function @(
     'Assert-DwLoopbackTestServerUrl',
     'Get-DwDeterministicPocketBaseId',
     'New-DwEmptyTestServerBackup',
     'Test-DwEmptyBackupManifest',
     'New-DwTestServerGuard',
+    'ConvertTo-DwTreatmentHistoryData',
     'Invoke-DwPilotImport',
-    'Test-DwPilotImport'
+    'Test-DwPilotImport',
+    'Invoke-DwTreatmentHistoryPilot',
+    'Test-DwTreatmentHistoryPilot'
 )
