@@ -249,6 +249,20 @@ void main() {
       expect(labels, isNotEmpty);
     });
 
+    test('tableLabels keeps an imported unknown sex distinct from female', () {
+      final patient = Patient.fromJson({
+        'id': 'unknown-sex',
+        'surname': 'Example',
+        'first_name': 'Patient',
+        'sex_or_gender': 'unknown',
+      });
+
+      final label = patient.tableLabels
+          .firstWhere((item) => item.searchableString == 'unknown');
+      expect(label.value, 2.0);
+      expect(label.content, isNot(contains('female')));
+    });
+
     test('formatDuration returns human-readable string', () {
       final from = DateTime(2024, 1, 15);
       final to = DateTime(2026, 4, 20);

@@ -91,4 +91,4 @@ The migration code, mapping rules, tests, and aggregate documentation are versio
 
 ## Next approval gate
 
-Phase 4 is **not approved**. No test or production Apexo import may begin until the owner separately approves an isolated empty test-server import and the protected review decisions required for that test are defined.
+The owner subsequently approved the isolated empty-server Phase 4 pilot. Its bounded result is documented in [DENTALWIN_PHASE4_PILOT_VERIFICATION.md](DENTALWIN_PHASE4_PILOT_VERIFICATION.md). That approval does not extend to a larger or production import.

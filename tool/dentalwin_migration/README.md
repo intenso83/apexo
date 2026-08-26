@@ -1,6 +1,6 @@
 # DentalWin migration tool
 
-This Windows-only tool implements Phases 2 and 3 of the approved DentalWin migration blueprint.
+This Windows-only tool implements Phases 2, 3, and the isolated Phase 4 pilot of the approved DentalWin migration blueprint.
 
 It can:
 
@@ -11,14 +11,17 @@ It can:
 - run a full private read-only dry run against the copied DentalWin databases;
 - create password-protected raw and normalized staging files;
 - create stable provenance keys, review queues, aggregate reports, and checksums;
-- prove repeat-run idempotency with automated tests.
+- prove repeat-run idempotency with automated tests;
+- initialize and guard a disposable empty PocketBase test server;
+- import and verify a five-patient, two-appointments-per-patient pilot.
 
 It cannot:
 
 - write to DentalWin;
 - run DentalWin executables;
-- connect to or write to Apexo/PocketBase;
-- import a staged batch into Apexo/PocketBase.
+- connect to a non-loopback or production Apexo/PocketBase server;
+- import more than the guarded Phase 4 pilot;
+- import treatment, medical-history, image, or finance records during the pilot.
 
 ## Requirements
 
@@ -26,7 +29,7 @@ It cannot:
 - PowerShell 7 (`pwsh`);
 - Microsoft Access Database Engine with `Microsoft.ACE.OLEDB.16.0` or `12.0`.
 
-## Run the automated Phase 3 tests
+## Run the automated migration tests
 
 From the Apexo repository root:
 
@@ -34,7 +37,19 @@ From the Apexo repository root:
 pwsh -NoProfile -File tool/dentalwin_migration/tests/Run-Tests.ps1
 ```
 
-The test suite creates two temporary synthetic Access databases and fake patient-shaped records. It contains no real patient information. It also tests the private extraction path, encryption, key separation, tamper rejection, source hashes, and the no-Apexo-write boundary.
+The test suite creates two temporary synthetic Access databases and fake patient-shaped records. It contains no real patient information. It also tests the private extraction path, encryption, key separation, tamper rejection, source hashes, the Phase 3 no-Apexo-write boundary, loopback URL locks, and deterministic Phase 4 IDs.
+
+## Phase 4 isolated pilot
+
+The Phase 4 commands are intentionally exposed as PowerShell module functions instead of a general-purpose production importer. They require:
+
+- an explicit `http://127.0.0.1:<port>` URL;
+- a healthy empty server initialized with Apexo's exact schema;
+- a verified offline empty-server backup;
+- a verified private staging batch and separate keys;
+- a guard marker that fixes the staging identity, server, stores, and pilot limits.
+
+`Invoke-DwPilotImport` writes only five patients, at most two appointments per selected patient, their provenance records, and one batch marker. `Test-DwPilotImport` verifies counts, required fields, Unicode names, appointment links and dates, duplicate IDs, and the absence of production authorization. Row-level reports remain private and ignored by Git.
 
 ## Run the committed synthetic dry run
 

@@ -6,8 +6,10 @@ $ErrorActionPreference = 'Stop'
 
 $toolRoot = Split-Path -Parent $PSScriptRoot
 $modulePath = Join-Path $toolRoot 'DentalWinMigration.psm1'
+$phase4ModulePath = Join-Path $toolRoot 'DentalWinTestImport.psm1'
 $entryPath = Join-Path $toolRoot 'Invoke-DentalWinMigration.ps1'
 $fixturePath = Join-Path $toolRoot 'fixtures/synthetic_source.json'
+Import-Module $phase4ModulePath -Force
 Import-Module $modulePath -Force
 
 $script:Passed = 0
@@ -225,7 +227,43 @@ try {
     Assert-Equal -Expected $calendarHashBefore -Actual (Get-DwFileHashHex -Path $calendarPath) -Message 'calendar Access database hash is unchanged after private dry run'
     Assert-Throws -Action { Invoke-DwPrivateDryRun -SourceDirectory $sourceDirectory -OutputDirectory (Join-Path $sourceDirectory 'forbidden-private-output') -KeyFile $keyPath | Out-Null } -Message 'private dry run refuses to write inside the source folder'
 
-    Write-Host "Phase 3 tests passed: $script:Passed assertions."
+    Write-Host 'Running Phase 4 isolated-import safety tests...'
+    Assert-Equal -Expected 'http://127.0.0.1:8093' -Actual (Assert-DwLoopbackTestServerUrl -ServerUrl 'http://127.0.0.1:8093') -Message 'explicit loopback test-server URL is accepted'
+    Assert-Throws -Action { Assert-DwLoopbackTestServerUrl -ServerUrl 'http://localhost:8093' | Out-Null } -Message 'hostname alias is refused by the isolated-import lock'
+    Assert-Throws -Action { Assert-DwLoopbackTestServerUrl -ServerUrl 'http://192.168.1.10:8093' | Out-Null } -Message 'LAN server is refused by the isolated-import lock'
+    Assert-Throws -Action { Assert-DwLoopbackTestServerUrl -ServerUrl 'https://127.0.0.1:8093' | Out-Null } -Message 'unexpected loopback URL scheme is refused'
+    Assert-Throws -Action { Assert-DwLoopbackTestServerUrl -ServerUrl 'http://127.0.0.1:8093/admin' | Out-Null } -Message 'loopback URL with a path is refused'
+    $deterministicA = Get-DwDeterministicPocketBaseId -BatchId 'synthetic-batch' -Store 'patients' -StageKey 'patient:1'
+    $deterministicB = Get-DwDeterministicPocketBaseId -BatchId 'synthetic-batch' -Store 'patients' -StageKey 'patient:1'
+    $deterministicC = Get-DwDeterministicPocketBaseId -BatchId 'synthetic-batch' -Store 'patients' -StageKey 'patient:2'
+    Assert-True -Condition ($deterministicA.Length -eq 15 -and $deterministicA -eq $deterministicB -and $deterministicA -ne $deterministicC) -Message 'pilot PocketBase IDs are stable, unique, and valid length'
+    $backupTestRoot = Join-Path $testRoot 'phase4-backup-test'
+    [System.IO.Directory]::CreateDirectory($backupTestRoot) | Out-Null
+    $backupTestFile = Join-Path $backupTestRoot 'data.db'
+    [System.IO.File]::WriteAllText($backupTestFile, 'synthetic empty schema')
+    $backupTestHash = (Get-FileHash -LiteralPath $backupTestFile -Algorithm SHA256).Hash.ToLowerInvariant()
+    $backupTestManifest = [ordered]@{
+        format = 'apexo-dentalwin-test-backup-v1'
+        source_server = 'http://127.0.0.1:8093'
+        state = 'empty-schema-only'
+        file_count = 1
+        files = @([ordered]@{
+                relative_path = 'data.db'
+                size_bytes = (Get-Item -LiteralPath $backupTestFile).Length
+                sha256 = $backupTestHash
+            })
+        verified = $true
+    }
+    [System.IO.File]::WriteAllText(
+        (Join-Path $backupTestRoot 'backup-manifest.json'),
+        (ConvertTo-Json -InputObject $backupTestManifest -Depth 10)
+    )
+    $backupTestResult = Test-DwEmptyBackupManifest -BackupDirectory $backupTestRoot -ExpectedServerUrl 'http://127.0.0.1:8093'
+    Assert-True -Condition $backupTestResult.Verified -Message 'empty-server backup manifest and file checksum are verified'
+    [System.IO.File]::AppendAllText($backupTestFile, 'tampered')
+    Assert-Throws -Action { Test-DwEmptyBackupManifest -BackupDirectory $backupTestRoot -ExpectedServerUrl 'http://127.0.0.1:8093' | Out-Null } -Message 'tampered empty-server backup is refused'
+
+    Write-Host "DentalWin migration tests passed: $script:Passed assertions."
 }
 finally {
     [GC]::Collect()

@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $script:DwStageFormatVersion = '1.0.0'
-$script:DwMappingVersion = '2026-08-26.phase3'
+$script:DwMappingVersion = '2026-08-26.phase4'
 $script:DwEncryptionIterations = 210000
 $script:DwCriticalTables = @(
     'Customers',
@@ -897,10 +897,23 @@ function Invoke-DwSyntheticDryRun {
             source_patient_guid = $guid
             surname = [string](Get-DwProperty -InputObject $row -Name 'NAME' -Default '')
             first_name = [string](Get-DwProperty -InputObject $row -Name 'LAST' -Default '')
+            patronymic = [string](Get-DwProperty -InputObject $row -Name 'politis' -Default '')
+            birth_date_raw = Get-DwProperty -InputObject $row -Name 'HMGENN'
+            occupation = [string](Get-DwProperty -InputObject $row -Name 'EPPAGGELMA' -Default '')
+            address_line = [string](Get-DwProperty -InputObject $row -Name 'PEDIO2' -Default '')
+            city = [string](Get-DwProperty -InputObject $row -Name 'PEDIO3' -Default '')
+            area = [string](Get-DwProperty -InputObject $row -Name 'PEDIO4' -Default '')
+            postal_code = [string](Get-DwProperty -InputObject $row -Name 'PEDIO5' -Default '')
+            registration_date_raw = Get-DwProperty -InputObject $row -Name 'imerominia'
+            active_status_raw = Get-DwProperty -InputObject $row -Name 'PEDIO10'
             legacy_registration_number = [string](Get-DwProperty -InputObject $row -Name 'ar_mitroou' -Default '')
             legacy_folder_number = [string](Get-DwProperty -InputObject $row -Name 'aa_number' -Default '')
+            legacy_sequence_number = [string](Get-DwProperty -InputObject $row -Name 'LST' -Default '')
             afm = [string](Get-DwProperty -InputObject $row -Name 'afm' -Default '')
             amka = [string](Get-DwProperty -InputObject $row -Name 'amka' -Default '')
+            doy = [string](Get-DwProperty -InputObject $row -Name 'doy' -Default '')
+            insurance = [string](Get-DwProperty -InputObject $row -Name 'ASFALIA' -Default '')
+            referral_source = [string](Get-DwProperty -InputObject $row -Name 'SISTISAS' -Default '')
         }
         [void]$patients.Add($patient)
         if (-not [string]::IsNullOrWhiteSpace($id)) { $patientsById[$id] = $stageKey }

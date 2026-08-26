@@ -328,14 +328,22 @@ class Patient extends Model {
     ));
 
     // gender
-    final genderSymbol =
-        gender == 1 ? "👨 ${txt('male')}" : "👩 ${txt('female')}";
+    final importedGender = prototypeSexOrGender;
+    final genderSymbol = importedGender == 'unknown'
+        ? txt('notSet')
+        : importedGender == 'male'
+            ? "👨 ${txt('male')}"
+            : "👩 ${txt('female')}";
     _.add(PatientTableLabel(
       content: genderSymbol,
       icon: FluentIcons.info,
       title: txt("gender"),
-      value: gender.toDouble(),
-      searchableString: gender == 1 ? "male" : "female",
+      value: importedGender == 'unknown'
+          ? 2.0
+          : importedGender == 'male'
+              ? 1.0
+              : 0.0,
+      searchableString: importedGender,
       sortable: true,
       tab: 0,
     ));
