@@ -1,0 +1,52 @@
+APEXO ODONTOGRAM MASTER ASSETS V1 - GENERATION REPORT
+======================================================
+
+COMPLETION
+----------
+Total expected tooth assets: 48
+Successfully created or preserved: 48
+Missing assets: none
+Failed assets: none
+
+FINAL VALIDATION
+----------------
+Exact required filenames: passed
+PNG count: 48
+Canvas dimensions: all 1254 x 1254 pixels
+Color mode: all RGBA
+Transparency: present in every asset
+Meaningful transparent margin: passed (minimum observed margin: 58 px)
+Exact duplicate image hashes: none
+Approved reference preservation: passed for all six locked masters
+
+FILES THAT REQUIRED RETRIES OR CORRECTIONS
+------------------------------------------
+- tooth_12_facial.png: transparent-background extraction retry
+- tooth_12_palatal.png: transparent-background extraction retry
+- tooth_14_occlusal.png: two-cusp anatomy correction and background extraction
+- tooth_14_palatal.png: two-cusp anatomy correction and background extraction
+- tooth_15_facial.png: transparent-background extraction retry
+- tooth_15_palatal.png: transparent-background extraction retry
+- tooth_17_facial.png: transparent-background extraction retry
+- tooth_17_occlusal.png: transparent-background extraction retry
+- tooth_17_palatal.png: transparent-background extraction retry
+- tooth_18_facial.png: root-morphology correction and background extraction
+- tooth_43_facial.png: transparent-background extraction retry
+- tooth_44_occlusal.png: transparent-background extraction retry
+- tooth_44_lingual.png: transparent-background extraction retry
+- tooth_45_lingual.png: transparent-background extraction retried
+- tooth_46_occlusal.png: five-cusp anatomy correction and background extraction
+- tooth_47_facial.png: first background-removal candidate exhausted retries; regenerated successfully
+- tooth_47_lingual.png: transparent-background extraction retried
+- tooth_48_facial.png: root-morphology correction and background extraction
+
+LOCKED APPROVED MASTERS - SHA-256 CONFIRMATION
+----------------------------------------------
+tooth_11_facial.png   B7DF41AE5B4595E913155E517BB0F6E261DE72423B7C8E5DDB62865181A01E76
+tooth_11_incisal.png  6545579E191D1C9DEBC0C0F24E93FCB75321A68F67BDA93B3ACFFCEFD9D07415
+tooth_11_palatal.png  F4441F3CF65AEE0BDB0EF4456D50E1DD94E9A04C319BC1387D92EE247F14CB20
+tooth_16_facial.png   22C1151DBFD7321376ED01C9AD8D2E1A6EB42C792B15729DED1459BF355380F5
+tooth_16_occlusal.png ED2383EB17A6EF493DB2E103B6CBBC697FE7EF11B3450208B67BB7A94C73FD6B
+tooth_16_palatal.png  88414AFAB111706736F8238DB6D1F0B9BA862C2DC3837EBF683A4AE497A07818
+
+The contact sheet was generated from the actual saved PNG files in this package.
