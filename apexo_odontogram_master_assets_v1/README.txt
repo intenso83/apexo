@@ -24,6 +24,13 @@ The chart's mint background, labels, and divider were excluded. Residual mint ed
 spill was neutralized without changing tooth silhouettes. Each extracted tooth was
 then centered on a compact 256 x 256 transparent RGBA canvas.
 
+CONSERVATIVE RETOUCH
+-------------------
+A restrained, non-generative finishing pass was applied to every asset. It uses
+gentle compression-noise reduction, neutral color balancing, mild contrast and
+clarity enhancement, and sub-pixel alpha-edge smoothing. Tooth anatomy, view,
+proportions, and meaningful silhouettes remain unchanged.
+
 NAMING CONVENTION
 -----------------
 tooth_<FDI tooth number>_<view>.png
@@ -65,6 +72,7 @@ TECHNICAL NOTES
 - Other views use the chart's crown-view illustrations.
 - Assets are centered with transparent padding suitable for Flutter overlays.
 - The compact output size reflects the actual detail available in the screenshot.
+- The retouch is deterministic and introduces no generated dental structures.
 
 TREATMENT AND CONDITION OVERLAYS
 --------------------------------

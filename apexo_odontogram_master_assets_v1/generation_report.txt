@@ -27,6 +27,15 @@ EXTRACTION METHOD
 - Performed no generative redrawing.
 - Normalized every result onto a centered 256 x 256 transparent RGBA canvas.
 
+CONSERVATIVE RETOUCH
+-------------------
+- Applied a light three-pixel median blend to reduce screenshot compression noise.
+- Reduced residual color cast while preserving enamel and root color separation.
+- Added mild local sharpening and contrast for clearer fissures and crown edges.
+- Smoothed only the antialiased transparency transition at tooth boundaries.
+- Limited meaningful silhouette movement to no more than one pixel.
+- Used deterministic image processing; no image-generation model was used.
+
 VIEW-ROW MAPPING
 ----------------
 Upper facial: upper full-tooth row
@@ -53,5 +62,8 @@ RETRIES AND CORRECTIONS
 The first extraction pass revealed a thin mint fringe inherited from the source
 matte. A second deterministic edge-cleanup pass neutralized that spill across all
 assets. No tooth anatomy or silhouette was regenerated during the correction.
+
+A separate full-set retouch preview was validated and visually inspected before
+the finishing pass replaced the package assets.
 
 The contact sheet was generated from the actual saved PNG files in this package.
