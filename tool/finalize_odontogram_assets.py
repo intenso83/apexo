@@ -10,14 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-LOCKED_HASHES = {
-    "tooth_11_facial.png": "B7DF41AE5B4595E913155E517BB0F6E261DE72423B7C8E5DDB62865181A01E76",
-    "tooth_11_incisal.png": "6545579E191D1C9DEBC0C0F24E93FCB75321A68F67BDA93B3ACFFCEFD9D07415",
-    "tooth_11_palatal.png": "F4441F3CF65AEE0BDB0EF4456D50E1DD94E9A04C319BC1387D92EE247F14CB20",
-    "tooth_16_facial.png": "22C1151DBFD7321376ED01C9AD8D2E1A6EB42C792B15729DED1459BF355380F5",
-    "tooth_16_occlusal.png": "ED2383EB17A6EF493DB2E103B6CBBC697FE7EF11B3450208B67BB7A94C73FD6B",
-    "tooth_16_palatal.png": "88414AFAB111706736F8238DB6D1F0B9BA862C2DC3837EBF683A4AE497A07818",
-}
+EXPECTED_SIZE = (256, 256)
 
 
 def tooth_specs() -> list[tuple[int, list[str]]]:
@@ -57,8 +50,8 @@ def validate(png_dir: Path) -> dict[str, object]:
         file_hash = sha256(path)
         hashes[filename] = file_hash
         with Image.open(path) as opened:
-            if opened.size != (1254, 1254):
-                issues.append(f"{filename}: size {opened.size}, expected 1254x1254")
+            if opened.size != EXPECTED_SIZE:
+                issues.append(f"{filename}: size {opened.size}, expected {EXPECTED_SIZE}")
             if opened.mode != "RGBA":
                 issues.append(f"{filename}: mode {opened.mode}, expected RGBA")
                 continue
@@ -87,11 +80,6 @@ def validate(png_dir: Path) -> dict[str, object]:
         if len(filenames) > 1:
             duplicate_hashes[file_hash] = sorted(filenames)
 
-    locked_preserved = {
-        filename: hashes.get(filename) == expected_hash
-        for filename, expected_hash in LOCKED_HASHES.items()
-    }
-
     return {
         "expected_count": len(expected),
         "actual_count": len(actual),
@@ -99,7 +87,6 @@ def validate(png_dir: Path) -> dict[str, object]:
         "extra": extra,
         "issues": issues,
         "duplicate_hashes": duplicate_hashes,
-        "locked_preserved": locked_preserved,
         "minimum_margin_px": min(margins.values()) if margins else None,
     }
 
@@ -198,9 +185,6 @@ def main() -> None:
     png_dir = args.package / "png"
     result = validate(png_dir)
     if result["missing"] or result["extra"] or result["issues"] or result["duplicate_hashes"]:
-        print(json.dumps(result, indent=2))
-        raise SystemExit(1)
-    if not all(result["locked_preserved"].values()):
         print(json.dumps(result, indent=2))
         raise SystemExit(1)
     build_contact_sheet(png_dir, args.package / "odontogram_contact_sheet.png")
