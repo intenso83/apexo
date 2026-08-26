@@ -283,6 +283,24 @@ class El implements En {
     "dateNotAvailable": "Η ημερομηνία δεν είναι διαθέσιμη",
     "legacyCustomTreatment": "Παλαιά προσαρμοσμένη θεραπεία",
     "tooth": "Δόντι",
+    "financialOverview": "Οικονομική επισκόπηση",
+    "financialOverviewPilotTitle": "Πιλοτική οικονομική επισκόπηση",
+    "financialOverviewPilotDescription":
+        "Τα τρέχοντα οικονομικά στοιχεία του Apexo και οι παλαιές τιμές του DentalWin εμφανίζονται χωριστά. Οι παλαιές τιμές είναι μόνο για ανάγνωση και δεν αποτελούν ακόμη επίσημο υπόλοιπο.",
+    "currentApexoFinancials": "Τρέχοντα οικονομικά στοιχεία Apexo",
+    "legacyDentalWinFinancialSnapshot":
+        "Παλαιό οικονομικό στιγμιότυπο DentalWin",
+    "recordedCharges": "Καταγεγραμμένες χρεώσεις",
+    "recordedCredits": "Καταγεγραμμένες πιστώσεις",
+    "recordedSourceTotal": "Καταγεγραμμένο σύνολο πηγής",
+    "noFinancialHistoryFound": "Δεν βρέθηκε εισαγόμενο οικονομικό ιστορικό",
+    "financialValuesNotAuthoritative":
+        "Οι παλαιές τιμές δεν αποτελούν ενεργό υπόλοιπο",
+    "financialReconciliationStillPending":
+        "Οι τιμές συμφωνούν μαθηματικά, αλλά η σημασία των πεδίων της πηγής χρειάζεται ακόμη επιβεβαίωση.",
+    "financialSourceTotalsDoNotReconcile":
+        "Το σύνολο της πηγής διαφέρει από τις χρεώσεις μείον τις πιστώσεις κατά",
+    "financialYearBreakdown": "Παλαιές τιμές ανά έτος",
     "extraction": "Εξαγωγή",
     "filling": "Σφράγισμα",
     "pulpotomy": "Πολφοτομή",

@@ -281,6 +281,23 @@ class En {
     "dateNotAvailable": "Date not available",
     "legacyCustomTreatment": "Legacy custom treatment",
     "tooth": "Tooth",
+    "financialOverview": "Financial overview",
+    "financialOverviewPilotTitle": "Financial overview pilot",
+    "financialOverviewPilotDescription":
+        "Current Apexo money and legacy DentalWin values are shown separately. The legacy values are read-only and are not yet an authoritative balance.",
+    "currentApexoFinancials": "Current Apexo financials",
+    "legacyDentalWinFinancialSnapshot": "Legacy DentalWin financial snapshot",
+    "recordedCharges": "Recorded charges",
+    "recordedCredits": "Recorded credits",
+    "recordedSourceTotal": "Recorded source total",
+    "noFinancialHistoryFound": "No imported financial history found",
+    "financialValuesNotAuthoritative":
+        "Legacy values are not an active balance",
+    "financialReconciliationStillPending":
+        "The values match mathematically, but source semantics still require verification.",
+    "financialSourceTotalsDoNotReconcile":
+        "The source total differs from charges minus credits by",
+    "financialYearBreakdown": "Legacy values by year",
     "extraction": "Extraction",
     "filling": "Filling",
     "pulpotomy": "Pulpotomy",

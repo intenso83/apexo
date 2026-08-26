@@ -279,6 +279,22 @@ class Fa implements En {
     "dateNotAvailable": "تاریخ در دسترس نیست",
     "legacyCustomTreatment": "درمان سفارشی قدیمی",
     "tooth": "دندان",
+    "financialOverview": "نمای کلی مالی",
+    "financialOverviewPilotTitle": "آزمایش نمای کلی مالی",
+    "financialOverviewPilotDescription":
+        "مبالغ فعلی Apexo و مقادیر قدیمی DentalWin جداگانه نمایش داده می‌شوند. مقادیر قدیمی فقط خواندنی هستند و هنوز مانده معتبر محسوب نمی‌شوند.",
+    "currentApexoFinancials": "اطلاعات مالی فعلی Apexo",
+    "legacyDentalWinFinancialSnapshot": "نمای مالی قدیمی DentalWin",
+    "recordedCharges": "هزینه‌های ثبت‌شده",
+    "recordedCredits": "اعتبارهای ثبت‌شده",
+    "recordedSourceTotal": "جمع ثبت‌شده منبع",
+    "noFinancialHistoryFound": "سابقه مالی واردشده‌ای یافت نشد",
+    "financialValuesNotAuthoritative": "مقادیر قدیمی مانده فعال نیستند",
+    "financialReconciliationStillPending":
+        "مقادیر از نظر ریاضی برابرند، اما معنای فیلدهای منبع هنوز باید تأیید شود.",
+    "financialSourceTotalsDoNotReconcile":
+        "جمع منبع با هزینه‌ها منهای اعتبارها به این میزان تفاوت دارد",
+    "financialYearBreakdown": "مقادیر قدیمی بر اساس سال",
     "extraction": "کشیدن",
     "filling": "پرکردن",
     "pulpotomy": "پالپوتومی",

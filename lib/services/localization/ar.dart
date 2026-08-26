@@ -277,6 +277,22 @@ class Ar implements En {
     "dateNotAvailable": "التاريخ غير متاح",
     "legacyCustomTreatment": "علاج مخصص قديم",
     "tooth": "السن",
+    "financialOverview": "نظرة مالية عامة",
+    "financialOverviewPilotTitle": "تجربة النظرة المالية العامة",
+    "financialOverviewPilotDescription":
+        "تُعرض مبالغ Apexo الحالية وقيم DentalWin القديمة بشكل منفصل. القيم القديمة للقراءة فقط وليست رصيدًا معتمدًا بعد.",
+    "currentApexoFinancials": "البيانات المالية الحالية في Apexo",
+    "legacyDentalWinFinancialSnapshot": "ملخص مالي قديم من DentalWin",
+    "recordedCharges": "الرسوم المسجلة",
+    "recordedCredits": "الائتمانات المسجلة",
+    "recordedSourceTotal": "إجمالي المصدر المسجل",
+    "noFinancialHistoryFound": "لم يتم العثور على سجل مالي مستورد",
+    "financialValuesNotAuthoritative": "القيم القديمة ليست رصيدًا نشطًا",
+    "financialReconciliationStillPending":
+        "تتطابق القيم حسابيًا، لكن دلالات المصدر ما زالت بحاجة إلى التحقق.",
+    "financialSourceTotalsDoNotReconcile":
+        "يختلف إجمالي المصدر عن الرسوم ناقص الائتمانات بمقدار",
+    "financialYearBreakdown": "القيم القديمة حسب السنة",
     "extraction": "قلع",
     "filling": "حشوة",
     "pulpotomy": "بضع لب",

@@ -74,7 +74,7 @@ The following counts were measured from the supplied copy on 2026-08-26. They ar
 | Stored file-path references | `CustomerImages` | 1,491 | 1,354 referenced basenames are present in the copied folder; remaining references need reconciliation. |
 | Patient memos | `CustomerMemos` | 321 | All rows match a patient GUID. |
 | Recalls | `RECALLS` | 78 | All rows match a patient GUID. |
-| Financial movements | `kinisi` | 1,257 | 1,122 match a patient by `ID2 -> Customers.id`; 135 require further interpretation or review. |
+| Financial movements | `kinisi` | 1,257 | 1,122 have a numeric `ID2` collision with `Customers.id`, but the finance pilot proved that this is not a validated patient link. All rows require movement-type and source-role reconciliation. |
 | Work payments | `WorkPliromes` | 2 | Both match a patient GUID. |
 
 The supplied folder also contains many ordinary images and documents. File counts alone are not treated as patient links; database metadata and reconciliation determine ownership.
@@ -421,9 +421,9 @@ Rules:
 
 1. Preserve all original monetary fields and currency assumptions as source metadata.
 2. Do not create both a work-derived payment and a `WorkPliromes` payment if they represent the same event.
-3. Do not treat `kinisi` as authoritative until debit/credit signs, categories, taxes, cancellations, invoices, and patient links are reconciled.
-4. The 1,122 `kinisi` rows matching `ID2 -> Customers.id` are candidates, not yet approved ledger entries.
-5. The remaining 135 movements enter review and remain preserved.
+3. Do not treat `kinisi` as authoritative until debit/credit signs, income/expense categories, taxes, cancellations, invoices, and patient links are reconciled.
+4. A numeric `kinisi.ID2 -> Customers.id` equality must **not** create a patient link. The finance pilot found clinic-expense rows whose `ID2` merely collided with pilot patient IDs.
+5. All 1,257 movements therefore remain preserved in finance staging and review; none are approved patient-ledger entries from `ID2` alone.
 6. Imported clinical work may be visible before imported finance is approved.
 7. The target ledger keeps immutable entries and corrections/reversals rather than rewriting historical money.
 8. Per-patient and global source totals must be compared with staged and target totals.

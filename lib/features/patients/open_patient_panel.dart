@@ -28,6 +28,7 @@ import 'package:apexo/common_widgets/appointment_card.dart';
 import 'package:apexo/common_widgets/qrlink.dart';
 import 'package:apexo/common_widgets/tag_input.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
+import 'package:apexo/features/financial_overview/financial_overview.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/patients/patient_fields_prototype.dart';
 import 'package:apexo/features/patients/patients_store.dart';
@@ -175,6 +176,13 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
         body: TreatmentHistoryTimeline(patientID: editingCopy.id),
         onlyIfSaved: true,
       ),
+      if (login.perm(Perm.revenue).read)
+        PanelTab(
+          title: txt("financialOverview"),
+          icon: FluentIcons.money,
+          body: PatientFinancialOverview(patientID: editingCopy.id),
+          onlyIfSaved: true,
+        ),
       PanelTab(
         title: txt("patientPage"),
         icon: FluentIcons.q_r_code,

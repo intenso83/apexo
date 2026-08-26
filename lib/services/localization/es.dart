@@ -292,6 +292,24 @@ class Es implements En {
     "dateNotAvailable": "Fecha no disponible",
     "legacyCustomTreatment": "Tratamiento personalizado anterior",
     "tooth": "Diente",
+    "financialOverview": "Resumen financiero",
+    "financialOverviewPilotTitle": "Piloto del resumen financiero",
+    "financialOverviewPilotDescription":
+        "Los importes actuales de Apexo y los valores heredados de DentalWin se muestran por separado. Los valores heredados son de solo lectura y aún no constituyen un saldo oficial.",
+    "currentApexoFinancials": "Finanzas actuales de Apexo",
+    "legacyDentalWinFinancialSnapshot":
+        "Resumen financiero heredado de DentalWin",
+    "recordedCharges": "Cargos registrados",
+    "recordedCredits": "Créditos registrados",
+    "recordedSourceTotal": "Total registrado en origen",
+    "noFinancialHistoryFound": "No se encontró historial financiero importado",
+    "financialValuesNotAuthoritative":
+        "Los valores heredados no son un saldo activo",
+    "financialReconciliationStillPending":
+        "Los valores coinciden matemáticamente, pero la semántica del origen aún requiere verificación.",
+    "financialSourceTotalsDoNotReconcile":
+        "El total de origen difiere de los cargos menos los créditos en",
+    "financialYearBreakdown": "Valores heredados por año",
     "extraction": "Extracción",
     "filling": "Obturación",
     "pulpotomy": "Pulpotomía",
