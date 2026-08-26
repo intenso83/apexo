@@ -31,6 +31,24 @@ final languagePickersOptions = locale.list
         value: locale.list.indexOf(e).toString(), child: Txt(e.$name)))
     .toList();
 
+const supportedCurrencyCodes = <String>[
+  'EUR',
+  'USD',
+  'GBP',
+  'CHF',
+  'CAD',
+  'AUD',
+  'JPY',
+  'IQD',
+  'AED',
+  'SAR',
+  'TRY',
+];
+
+final currencyPickerOptions = supportedCurrencyCodes
+    .map((code) => ComboBoxItem(value: code, child: Text(code)))
+    .toList();
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -46,8 +64,10 @@ class SettingsScreen extends StatelessWidget {
               identifier: "currency",
               description: txt("currency_desc"),
               icon: FluentIcons.all_currency,
-              inputType: InputType.text,
+              inputType: InputType.dropDown,
               scope: Scope.app,
+              options: currencyPickerOptions,
+              initiallyExpanded: true,
               initValue: globalSettings.get("currency_______").value,
               apply: (newVal) => globalSettings.set(
                   Setting.fromJson({"id": "currency_______", "value": newVal})),
@@ -342,6 +362,7 @@ class SettingsItem extends StatefulWidget {
   final Widget? footer;
   final String initValue;
   final Function(String newVal) apply;
+  final bool initiallyExpanded;
 
   const SettingsItem({
     super.key,
@@ -353,6 +374,7 @@ class SettingsItem extends StatefulWidget {
     required this.scope,
     required this.initValue,
     required this.apply,
+    this.initiallyExpanded = false,
     this.options = const [],
     this.footer,
   });
@@ -429,7 +451,7 @@ class SettingsItemState extends State<SettingsItem> {
                 );
               }),
         ),
-        initiallyExpanded: false,
+        initiallyExpanded: widget.initiallyExpanded,
         trailing: AppliesToIndicator(scope: widget.scope),
       ),
     );

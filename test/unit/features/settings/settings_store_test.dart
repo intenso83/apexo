@@ -16,7 +16,7 @@ void main() {
     });
 
     test('missing settings resolve to their documented defaults', () {
-      expect(settings.currency, 'USD');
+      expect(settings.currency, 'EUR');
       expect(settings.phone, '1234567890');
       expect(settings.prescriptionFooter, isEmpty);
       expect(settings.startDayOfWeek, 'monday');
@@ -62,13 +62,13 @@ void main() {
         () async {
       settings.set(Setting.fromJson({
         'id': 'currency_______',
-        'value': 'EUR',
+        'value': 'USD',
       }));
-      expect(settings.currency, 'EUR');
+      expect(settings.currency, 'USD');
 
       settings.observableMap.clear();
       await Future<void>.delayed(Duration.zero);
-      expect(settings.currency, 'USD');
+      expect(settings.currency, 'EUR');
     });
   });
 

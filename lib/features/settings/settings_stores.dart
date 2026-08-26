@@ -65,7 +65,7 @@ class GlobalSettings extends Store<Setting> {
       set(Setting.fromJson({"id": "dicom_auto_imp_", "value": v ? "1" : "0"}));
 
   Map<String, String> defaults = {
-    "currency_______": "USD",
+    "currency_______": "EUR",
     "phone__________": "1234567890",
     "prescriptionFot": "",
     "start_day_of_wk": "monday",

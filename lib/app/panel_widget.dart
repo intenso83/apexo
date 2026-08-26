@@ -187,7 +187,7 @@ class _PanelScreenState extends State<PanelScreen> {
         }
       },
       child: Container(
-        color: FluentTheme.of(context).scaffoldBackgroundColor,
+        decoration: _panelWorkspaceDecoration(FluentTheme.of(context)),
         padding: EdgeInsets.all(
             widget.panel.tabs[widget.panel.selectedTab()].padding.toDouble()),
         constraints: BoxConstraints(
@@ -196,6 +196,22 @@ class _PanelScreenState extends State<PanelScreen> {
                     ? widget.layoutHeight - 161
                     : widget.layoutHeight - 206),
         child: widget.panel.tabs[widget.panel.selectedTab()].body,
+      ),
+    );
+  }
+
+  BoxDecoration _panelWorkspaceDecoration(FluentThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return BoxDecoration(color: theme.scaffoldBackgroundColor);
+    }
+    return const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFF8FCFD),
+          Color(0xFFEDF7F8),
+        ],
       ),
     );
   }
