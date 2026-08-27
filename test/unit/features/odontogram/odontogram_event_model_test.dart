@@ -1,4 +1,5 @@
 import 'package:apexo/features/odontogram/odontogram_event_model.dart';
+import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -42,5 +43,79 @@ void main() {
       'surfaces': ['wholeTooth', 'facial'],
     });
     expect(event.validationErrors(), contains('surfaces'));
+  });
+
+  test('a new tooth treatment may intentionally omit surface mapping', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'tooth',
+      'toothFdi': 16,
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Filling',
+    });
+    expect(event.validationErrors(), isEmpty);
+    expect(event.hasSpecifiedSurfaces, isFalse);
+    expect(event.referencesTooth(16), isTrue);
+    expect(event.drawsOnTooth(16), isFalse);
+  });
+
+  test('bridge remains one event with explicit unit roles', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'bridge',
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Three-unit bridge',
+      'bridgeUnits': [
+        {'toothFdi': 14, 'role': 'abutment'},
+        {'toothFdi': 15, 'role': 'pontic'},
+        {'toothFdi': 16, 'role': 'implantAbutment'},
+      ],
+    });
+    expect(event.validationErrors(), isEmpty);
+    expect(event.referencesTooth(15), isTrue);
+    expect(event.drawsOnTooth(15), isTrue);
+    expect(OdontogramEvent.fromJson(event.toJson()).toJson(), event.toJson());
+  });
+
+  test('bridge may stay unmapped and therefore draws nothing', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'bridge',
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Historic bridge',
+    });
+    expect(event.validationErrors(), isEmpty);
+    expect(event.drawsOnTooth(14), isFalse);
+  });
+
+  test('partial bridge mapping is rejected instead of being guessed', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'bridge',
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Bridge',
+      'bridgeUnits': [
+        {'toothFdi': 14, 'role': 'abutment'},
+      ],
+    });
+    expect(event.validationErrors(), contains('bridgeUnits'));
+  });
+
+  test('removable prosthesis stores arch and optional components', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'removableProsthesis',
+      'arch': 'upper',
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Upper partial denture',
+      'removableComponents': [
+        {'toothFdi': 14, 'role': 'clasp'},
+        {'toothFdi': 15, 'role': 'replacedTooth'},
+      ],
+    });
+    expect(event.validationErrors(), isEmpty);
+    expect(event.arch, DentalArch.upper);
+    expect(event.drawsOnTooth(14), isTrue);
+    expect(event.drawsOnTooth(34), isFalse);
   });
 }

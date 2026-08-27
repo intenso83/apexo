@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 
-Status: **Foundation implemented, isolated DentalWin catalogue imported, and focused verification passed**
+Status: **Foundation implemented, including explicit surface, bridge, and removable-prosthesis targets**
 
 This package creates the safe foundation for Apexo's future clinical odontogram. It intentionally does not replace the existing Dental Notes selector yet. Both remain available while the new model is tested and expanded.
 
@@ -13,8 +13,11 @@ This package creates the safe foundation for Apexo's future clinical odontogram.
 - Facial, occlusal/incisal, and oral views for every tooth.
 - Runtime mirroring for left quadrants, so the source artwork is reused consistently.
 - Exact surface selection for mesial, distal, facial, oral, occlusal/incisal, or whole tooth.
+- An explicit **No surface specified** choice. The treatment remains in history but is not drawn on a tooth.
 - A patient-level odontogram event timeline with condition/treatment kind and status.
-- An admin therapy catalogue with editable groups, colours, order, hidden state, prices, durations, and tooth requirements.
+- Connected bridge records with abutment, pontic, and implant-abutment units.
+- Arch-level removable-prosthesis records with optional replaced-tooth, clasp, rest, attachment, and implant-support components.
+- An admin therapy catalogue with editable groups, colours, order, hidden state, prices, durations, target type, and optional surface presets.
 - A guarded DentalWin catalogue importer for the isolated local test server.
 
 ## Asset contract
@@ -46,14 +49,29 @@ Odontogram records are appendable clinical events, not just the current colour o
 - recorded time, optional appointment link, notes, and optional superseded-event link;
 - migration provenance when the event came from another system.
 
-Whole-tooth selection cannot be combined with individual surfaces. Imported historic records may leave surfaces empty when DentalWin did not provide reliable surface information. The importer must never guess a surface.
+Whole-tooth selection cannot be combined with individual surfaces. A new treatment may also deliberately have no surface selected. It is still stored and shown in the treatment timeline, but it produces no tooth overlay. Imported historic records may likewise leave surfaces empty when DentalWin did not provide reliable surface information. The importer must never guess a surface.
+
+### Treatment targets
+
+The clinical target is stored separately from the procedure name:
+
+| Target | Stored structure | Drawing rule |
+|---|---|---|
+| Patient-level | No tooth or arch mapping | History only |
+| Tooth | One FDI tooth and zero or more surfaces | Draw only when at least one surface or whole-tooth target is selected |
+| Bridge | One connected record with optional units: abutment, pontic, or implant abutment | Empty mapping is history only; a mapped bridge requires at least two unique teeth, support, and pontic units |
+| Removable prosthesis | Upper/lower/both arch and optional tooth components | Draw only mapped replaced teeth, clasps, rests, attachments, or implant supports |
+
+An empty bridge or removable mapping is valid because older records may identify the treatment without identifying clinically reliable teeth. A partially specified or internally inconsistent mapping is rejected instead of being guessed.
 
 ## Therapy catalogue
 
 The catalogue separates reusable definitions from patient clinical events:
 
 - `therapy_groups` stores group name, colour, order, hidden state, and source provenance.
-- `procedure_catalog` stores procedure name, group, price, duration, tooth requirement, hidden state, source code, and provenance.
+- `procedure_catalog` stores procedure name, group, price, duration, target type, surface-selection behaviour, optional surface preset, hidden state, source code, and provenance.
+- A preset such as O, MO, or MOD is only a default. The clinician can change it or choose **No surface specified** for the patient event.
+- Surface codes are stored as structured data and are not embedded in the procedure name.
 - Patient events retain snapshots, so renaming a catalogue item later does not rewrite history.
 - Hiding is used instead of deletion so existing clinical links remain valid.
 
@@ -86,7 +104,8 @@ The extra target group is `Uncategorized legacy review`. It makes unmatched sour
 
 ## Verification
 
-- Focused Flutter odontogram/catalogue tests: 10 passed.
+- Focused Flutter odontogram/catalogue/widget tests: 19 passed, including no-surface recording and both prosthetic target editors.
+- Localization completeness and audit checks: 36 passed across all five supported languages.
 - Complete Flutter unit suite in serial mode: 1,680 passed.
 - Asset checks: all 48 PNGs match the manifest, dimensions, transparency, and mirroring rules.
 - PowerShell migration tests: 69 assertions passed.
@@ -101,7 +120,8 @@ The local debug server still emits Apexo's pre-existing DICOM WebAssembly cross-
 ## Deliberate limitations of this foundation
 
 - Adult permanent dentition only; primary teeth are a later version.
-- Surface selection is stored and validated, but fillings, crowns, implants, root canals, missing teeth, and other visual overlays are the next visual layer.
+- Surface, bridge-unit, arch, and removable-component selections are stored and validated, but their clinical visual overlays are the next layer.
+- Bridge connectors and removable-prosthesis symbols are not drawn yet; the current screen previews and validates their mappings.
 - Historical DentalWin treatment entries are not automatically converted into exact surface events unless their meaning can be mapped without guessing.
 - This beta does not yet calculate billing or balances from odontogram events.
 - It does not remove or rewrite the existing Dental Notes data.

@@ -1,4 +1,5 @@
 import 'package:apexo/core/model.dart';
+import 'package:apexo/features/odontogram/treatment_target.dart';
 
 class ProcedureCatalogItem extends Model {
   String therapyGroupID = '';
@@ -8,6 +9,9 @@ class ProcedureCatalogItem extends Model {
   bool? toothRequired;
   bool? perToothPrice;
   int? durationMinutes;
+  TreatmentTargetScope? targetScope;
+  SurfaceSelectionMode surfaceSelectionMode = SurfaceSelectionMode.optional;
+  List<String> defaultSurfaces = [];
   bool hidden = false;
   Map<String, dynamic> migration = {};
 
@@ -25,6 +29,18 @@ class ProcedureCatalogItem extends Model {
     toothRequired = _asNullableBool(json['toothRequired']);
     perToothPrice = _asNullableBool(json['perToothPrice']);
     durationMinutes = _asNullableInt(json['durationMinutes']);
+    targetScope = nullableEnumByName(
+      TreatmentTargetScope.values,
+      json['targetScope'],
+    );
+    surfaceSelectionMode = enumByName(
+      SurfaceSelectionMode.values,
+      json['surfaceSelectionMode'],
+      surfaceSelectionMode,
+    );
+    defaultSurfaces = List<String>.from(
+      json['defaultSurfaces'] ?? const <String>[],
+    );
     hidden = json['hidden'] == true;
     migration = Map<String, dynamic>.from(json['migration'] ?? migration);
   }
@@ -42,6 +58,11 @@ class ProcedureCatalogItem extends Model {
     if (toothRequired != null) json['toothRequired'] = toothRequired;
     if (perToothPrice != null) json['perToothPrice'] = perToothPrice;
     if (durationMinutes != null) json['durationMinutes'] = durationMinutes;
+    if (targetScope != null) json['targetScope'] = targetScope!.name;
+    json['surfaceSelectionMode'] = surfaceSelectionMode.name;
+    if (defaultSurfaces.isNotEmpty) {
+      json['defaultSurfaces'] = defaultSurfaces;
+    }
     if (hidden) json['hidden'] = true;
     if (migration.isNotEmpty) json['migration'] = migration;
     return json;
@@ -50,6 +71,39 @@ class ProcedureCatalogItem extends Model {
   @override
   ProcedureCatalogItem copy(bool blank) =>
       ProcedureCatalogItem.fromJson(blank ? <String, dynamic>{} : toJson());
+
+  TreatmentTargetScope get effectiveTargetScope {
+    if (targetScope != null) return targetScope!;
+    if (toothRequired == false) return TreatmentTargetScope.patient;
+    return TreatmentTargetScope.tooth;
+  }
+
+  List<String> validationErrors() {
+    final errors = <String>[];
+    const validSurfaces = {
+      'mesial',
+      'distal',
+      'facial',
+      'oral',
+      'occlusalIncisal',
+      'wholeTooth',
+    };
+    if (defaultSurfaces.any((surface) => !validSurfaces.contains(surface))) {
+      errors.add('defaultSurfaces');
+    }
+    if (defaultSurfaces.contains('wholeTooth') && defaultSurfaces.length > 1) {
+      errors.add('defaultSurfaces');
+    }
+    if (surfaceSelectionMode == SurfaceSelectionMode.notApplicable &&
+        defaultSurfaces.isNotEmpty) {
+      errors.add('defaultSurfaces');
+    }
+    if (effectiveTargetScope != TreatmentTargetScope.tooth &&
+        defaultSurfaces.isNotEmpty) {
+      errors.add('defaultSurfaces');
+    }
+    return errors;
+  }
 
   static double _asDouble(dynamic value, double fallback) {
     if (value is num) return value.toDouble();

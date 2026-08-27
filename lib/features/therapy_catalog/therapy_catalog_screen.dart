@@ -1,5 +1,7 @@
 import 'package:apexo/common_widgets/button_styles.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
+import 'package:apexo/features/odontogram/odontogram_assets.dart';
+import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -274,6 +276,13 @@ class _ProcedurePane extends StatelessWidget {
                                   Text(
                                     '${txt('toothRequired')}: ${_flag(item.toothRequired)}',
                                   ),
+                                  Text(
+                                    '${txt('treatmentTargetType')}: ${_targetLabel(item)}',
+                                  ),
+                                  if (item.defaultSurfaces.isNotEmpty)
+                                    Text(
+                                      '${txt('catalogueSurfacePreset')}: ${item.defaultSurfaces.map(_surfaceLabel).join(', ')}',
+                                    ),
                                 ],
                               ),
                               trailing: login.isAdmin
@@ -300,6 +309,23 @@ class _ProcedurePane extends StatelessWidget {
       : value
           ? txt('yes')
           : txt('no');
+
+  String _targetLabel(ProcedureCatalogItem item) {
+    if (item.targetScope == null) return txt('catalogueTargetAutomatic');
+    return txt('targetScope_${item.targetScope!.name}');
+  }
+
+  String _surfaceLabel(String stored) {
+    return switch (stored) {
+      'mesial' => txt('surfaceMesial'),
+      'distal' => txt('surfaceDistal'),
+      'facial' => txt('surfaceFacial'),
+      'oral' => txt('surfaceOral'),
+      'occlusalIncisal' => txt('surfaceOcclusalIncisal'),
+      'wholeTooth' => txt('surfaceWholeTooth'),
+      _ => stored,
+    };
+  }
 }
 
 BoxDecoration _paneDecoration(BuildContext context) => BoxDecoration(
@@ -309,6 +335,18 @@ BoxDecoration _paneDecoration(BuildContext context) => BoxDecoration(
         color: FluentTheme.of(context).resources.cardStrokeColorDefault,
       ),
     );
+
+String _catalogueSurfaceLabel(DentalSurface surface) {
+  final key = switch (surface) {
+    DentalSurface.mesial => 'surfaceMesial',
+    DentalSurface.distal => 'surfaceDistal',
+    DentalSurface.facial => 'surfaceFacial',
+    DentalSurface.oral => 'surfaceOral',
+    DentalSurface.occlusalIncisal => 'surfaceOcclusalIncisal',
+    DentalSurface.wholeTooth => 'surfaceWholeTooth',
+  };
+  return txt(key);
+}
 
 Future<void> _showGroupDialog(
   BuildContext context, [
@@ -394,6 +432,14 @@ Future<void> _showProcedureDialog(
     text: existing?.durationMinutes?.toString() ?? '',
   );
   bool? toothRequired = existing?.toothRequired;
+  TreatmentTargetScope? targetScope = existing?.targetScope;
+  var surfaceSelectionMode =
+      existing?.surfaceSelectionMode ?? SurfaceSelectionMode.optional;
+  final defaultSurfaces = <DentalSurface>{
+    ...DentalSurface.values.where(
+      (surface) => existing?.defaultSurfaces.contains(surface.name) ?? false,
+    ),
+  };
   var hidden = existing?.hidden ?? false;
   await showDialog<void>(
     context: context,
@@ -403,58 +449,165 @@ Future<void> _showProcedureDialog(
           existing == null ? txt('addProcedure') : txt('editProcedure'),
         ),
         content: SizedBox(
-          width: 380,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              InfoLabel(
-                label: txt('procedureName'),
-                child: TextBox(controller: name, autofocus: true),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: InfoLabel(
-                      label: txt('price'),
-                      child: TextBox(controller: price),
+          width: 460,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InfoLabel(
+                  label: txt('procedureName'),
+                  child: TextBox(controller: name, autofocus: true),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InfoLabel(
+                        label: txt('price'),
+                        child: TextBox(controller: price),
+                      ),
                     ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InfoLabel(
+                        label: '${txt('duration')} (min)',
+                        child: TextBox(controller: duration),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                InfoLabel(
+                  label: txt('toothRequired'),
+                  child: ComboBox<bool?>(
+                    value: toothRequired,
+                    isExpanded: true,
+                    items: [
+                      ComboBoxItem(
+                        value: null,
+                        child: Text(txt('unknownFromSource')),
+                      ),
+                      ComboBoxItem(value: true, child: Text(txt('yes'))),
+                      ComboBoxItem(value: false, child: Text(txt('no'))),
+                    ],
+                    onChanged: (value) => setDialogState(() {
+                      toothRequired = value;
+                      if (targetScope == null && value == false) {
+                        surfaceSelectionMode =
+                            SurfaceSelectionMode.notApplicable;
+                        defaultSurfaces.clear();
+                      }
+                    }),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: InfoLabel(
-                      label: '${txt('duration')} (min)',
-                      child: TextBox(controller: duration),
-                    ),
+                ),
+                const SizedBox(height: 10),
+                InfoLabel(
+                  label: txt('treatmentTargetType'),
+                  child: ComboBox<TreatmentTargetScope?>(
+                    value: targetScope,
+                    isExpanded: true,
+                    items: [
+                      ComboBoxItem<TreatmentTargetScope?>(
+                        value: null,
+                        child: Text(txt('catalogueTargetAutomatic')),
+                      ),
+                      ...TreatmentTargetScope.values.map(
+                        (scope) => ComboBoxItem<TreatmentTargetScope?>(
+                          value: scope,
+                          child: Text(txt('targetScope_${scope.name}')),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setDialogState(() {
+                      targetScope = value;
+                      if (value != null &&
+                          value != TreatmentTargetScope.tooth) {
+                        surfaceSelectionMode =
+                            SurfaceSelectionMode.notApplicable;
+                        defaultSurfaces.clear();
+                      }
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                InfoLabel(
+                  label: txt('surfaceSelectionBehaviour'),
+                  child: ComboBox<SurfaceSelectionMode>(
+                    value: surfaceSelectionMode,
+                    isExpanded: true,
+                    items: SurfaceSelectionMode.values
+                        .map(
+                          (mode) => ComboBoxItem(
+                            value: mode,
+                            child: Text(txt('surfaceMode_${mode.name}')),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => setDialogState(() {
+                      surfaceSelectionMode =
+                          value ?? SurfaceSelectionMode.optional;
+                      if (surfaceSelectionMode ==
+                          SurfaceSelectionMode.notApplicable) {
+                        defaultSurfaces.clear();
+                      }
+                    }),
+                  ),
+                ),
+                if (surfaceSelectionMode == SurfaceSelectionMode.optional &&
+                    (targetScope == null ||
+                        targetScope == TreatmentTargetScope.tooth) &&
+                    !(targetScope == null && toothRequired == false)) ...[
+                  const SizedBox(height: 10),
+                  Text(txt('catalogueSurfacePreset')),
+                  const SizedBox(height: 7),
+                  Wrap(
+                    spacing: 7,
+                    runSpacing: 7,
+                    children: [
+                      ToggleButton(
+                        checked: defaultSurfaces.isEmpty,
+                        onChanged: (_) => setDialogState(defaultSurfaces.clear),
+                        child: Text(txt('surfaceUnspecified')),
+                      ),
+                      ...DentalSurface.values.map(
+                        (surface) => ToggleButton(
+                          checked: defaultSurfaces.contains(surface),
+                          onChanged: (selected) => setDialogState(() {
+                            if (surface == DentalSurface.wholeTooth &&
+                                selected) {
+                              defaultSurfaces
+                                ..clear()
+                                ..add(surface);
+                            } else {
+                              defaultSurfaces.remove(DentalSurface.wholeTooth);
+                              if (selected) {
+                                defaultSurfaces.add(surface);
+                              } else {
+                                defaultSurfaces.remove(surface);
+                              }
+                            }
+                          }),
+                          child: Text(_catalogueSurfaceLabel(surface)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    txt('catalogueSurfacePresetDescription'),
+                    style: FluentTheme.of(context).typography.caption,
                   ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              InfoLabel(
-                label: txt('toothRequired'),
-                child: ComboBox<bool?>(
-                  value: toothRequired,
-                  isExpanded: true,
-                  items: [
-                    ComboBoxItem(
-                      value: null,
-                      child: Text(txt('unknownFromSource')),
-                    ),
-                    ComboBoxItem(value: true, child: Text(txt('yes'))),
-                    ComboBoxItem(value: false, child: Text(txt('no'))),
-                  ],
+                const SizedBox(height: 8),
+                Checkbox(
+                  checked: hidden,
+                  content: Text(txt('hidden')),
                   onChanged: (value) =>
-                      setDialogState(() => toothRequired = value),
+                      setDialogState(() => hidden = value ?? false),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Checkbox(
-                checked: hidden,
-                content: Text(txt('hidden')),
-                onChanged: (value) =>
-                    setDialogState(() => hidden = value ?? false),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         actions: [
@@ -475,6 +628,10 @@ Future<void> _showProcedureDialog(
                   0;
               item.durationMinutes = int.tryParse(duration.text.trim());
               item.toothRequired = toothRequired;
+              item.targetScope = targetScope;
+              item.surfaceSelectionMode = surfaceSelectionMode;
+              item.defaultSurfaces =
+                  defaultSurfaces.map((surface) => surface.name).toList();
               item.hidden = hidden;
               procedureCatalog.set(item);
               Navigator.pop(dialogContext);
