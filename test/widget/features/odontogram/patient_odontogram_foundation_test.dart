@@ -5,6 +5,7 @@ import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/therapy_catalog/therapy_group_model.dart';
 import 'package:apexo/services/launch.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/pump_app.dart';
@@ -117,6 +118,15 @@ void main() {
 
     expect(find.text('Bridge units'), findsOneWidget);
     expect(find.byKey(const Key('add-bridge-unit')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('odontogram-tooth-14')));
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.tap(find.byKey(const Key('odontogram-tooth-16')));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tooth 14 · Abutment'), findsOneWidget);
+    expect(find.text('Tooth 15 · Pontic'), findsOneWidget);
+    expect(find.text('Tooth 16 · Abutment'), findsOneWidget);
     expect(
       tester
           .widget<FilledButton>(

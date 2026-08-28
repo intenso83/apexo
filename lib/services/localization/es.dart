@@ -351,9 +351,8 @@ class Es implements En {
     "procedureHandlingNeedsReview": "Sugerencia automática — revisar",
     "procedureHandlingSuggested":
         "Sugerencia automática de los datos importados",
-    "automaticHandling": "Flujo automático",
-    "automaticHandlingDescription":
-        "Se eligió desde la configuración del tratamiento en el catálogo.",
+    "procedureHandlingConfigured":
+        "Configurado por el tratamiento seleccionado",
     "wholeToothSelectedAutomatically":
         "Se seleccionó todo el diente automáticamente; no hace falta elegir una superficie.",
     "patientLevelTreatment": "Tratamiento a nivel del paciente",
@@ -375,6 +374,8 @@ class Es implements En {
         "Puede guardar el puente sin unidades. Quedará en el historial y no se dibujará.",
     "bridgeUnitMappingDescription":
         "Añada cada pilar, póntico o unidad sobre implante como un solo puente conectado.",
+    "bridgeShiftSelectHint":
+        "Atajo: elija el primer diente y después haga Shift-clic en el último para marcar el rango conectado.",
     "bridgeUnitRole": "Función de la unidad",
     "bridgeRole_abutment": "Pilar",
     "bridgeRole_pontic": "Póntico",

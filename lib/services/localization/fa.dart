@@ -338,8 +338,7 @@ class Fa implements En {
         "ثبت در تاریخچه می‌ماند و روی دندان رسم نمی‌شود.",
     "procedureHandlingNeedsReview": "پیشنهاد خودکار — نیازمند بررسی",
     "procedureHandlingSuggested": "پیشنهاد خودکار از داده‌های واردشده",
-    "automaticHandling": "گردش کار خودکار",
-    "automaticHandlingDescription": "از تنظیم درمان در کاتالوگ انتخاب شده است.",
+    "procedureHandlingConfigured": "بر اساس درمان انتخاب‌شده تنظیم شده است",
     "wholeToothSelectedAutomatically":
         "کل دندان خودکار انتخاب شده است؛ نیازی به انتخاب سطح نیست.",
     "patientLevelTreatment": "درمان در سطح بیمار",
@@ -361,6 +360,8 @@ class Fa implements En {
         "پل را می‌توان بدون واحد ذخیره کرد. در سابقه می‌ماند و نمایش داده نمی‌شود.",
     "bridgeUnitMappingDescription":
         "هر پایه، پونتیک یا واحد متکی بر ایمپلنت را به‌عنوان یک پل پیوسته اضافه کنید.",
+    "bridgeShiftSelectHint":
+        "میان‌بر: دندان اول را انتخاب کنید، سپس با Shift روی دندان آخر کلیک کنید تا محدودهٔ متصل مشخص شود.",
     "bridgeUnitRole": "نقش واحد",
     "bridgeRole_abutment": "پایه",
     "bridgeRole_pontic": "پونتیک",

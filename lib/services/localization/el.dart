@@ -343,9 +343,7 @@ class El implements En {
         "Η καταχώριση μένει στο ιστορικό χωρίς να σχεδιάζεται σε δόντι.",
     "procedureHandlingNeedsReview": "Αυτόματη πρόταση — χρειάζεται έλεγχο",
     "procedureHandlingSuggested": "Αυτόματη πρόταση από τα εισαγόμενα δεδομένα",
-    "automaticHandling": "Αυτόματη ροή",
-    "automaticHandlingDescription":
-        "Επιλέχθηκε από τη ρύθμιση της συγκεκριμένης θεραπείας στον κατάλογο.",
+    "procedureHandlingConfigured": "Ρυθμισμένο από την επιλεγμένη θεραπεία",
     "wholeToothSelectedAutomatically":
         "Επιλέχθηκε αυτόματα ολόκληρο το δόντι· δεν χρειάζεται επιπλέον επιλογή επιφάνειας.",
     "patientLevelTreatment": "Γενική θεραπεία ασθενή",
@@ -367,6 +365,8 @@ class El implements En {
         "Μπορείτε να αποθηκεύσετε τη γέφυρα χωρίς μονάδες. Θα παραμείνει στο ιστορικό χωρίς να σχεδιαστεί.",
     "bridgeUnitMappingDescription":
         "Προσθέστε κάθε στήριγμα, ενδιάμεσο ή επιεμφυτευματική μονάδα ως μία ενιαία γέφυρα.",
+    "bridgeShiftSelectHint":
+        "Συντόμευση: επιλέξτε το πρώτο δόντι και μετά Shift-κλικ στο τελευταίο για τη συνδεδεμένη περιοχή.",
     "bridgeUnitRole": "Ρόλος μονάδας",
     "bridgeRole_abutment": "Στήριγμα",
     "bridgeRole_pontic": "Ενδιάμεσο",

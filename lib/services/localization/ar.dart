@@ -334,8 +334,7 @@ class Ar implements En {
         "يبقى الإدخال في السجل دون رسمه على سن.",
     "procedureHandlingNeedsReview": "اقتراح تلقائي — يرجى المراجعة",
     "procedureHandlingSuggested": "اقتراح تلقائي من البيانات المستوردة",
-    "automaticHandling": "سير العمل التلقائي",
-    "automaticHandlingDescription": "تم اختياره من إعداد العلاج في الكتالوج.",
+    "procedureHandlingConfigured": "مضبوط حسب العلاج المحدد",
     "wholeToothSelectedAutomatically":
         "تم اختيار السن بالكامل تلقائيًا؛ لا حاجة لاختيار سطح.",
     "patientLevelTreatment": "علاج على مستوى المريض",
@@ -357,6 +356,8 @@ class Ar implements En {
         "يمكن حفظ الجسر من دون وحدات. سيبقى في السجل ولن يُرسم.",
     "bridgeUnitMappingDescription":
         "أضف كل دعامة أو وحدة معلقة أو مدعومة بزرعة كجسر واحد متصل.",
+    "bridgeShiftSelectHint":
+        "اختصار: اختر السن الأول ثم اضغط Shift مع النقر على السن الأخير لتحديد النطاق المتصل.",
     "bridgeUnitRole": "دور الوحدة",
     "bridgeRole_abutment": "دعامة",
     "bridgeRole_pontic": "وحدة معلقة",

@@ -341,9 +341,7 @@ class En {
         "The entry is kept in history without drawing on a tooth.",
     "procedureHandlingNeedsReview": "Automatic suggestion — please review",
     "procedureHandlingSuggested": "Automatic suggestion from imported data",
-    "automaticHandling": "Automatic workflow",
-    "automaticHandlingDescription":
-        "This was chosen from the selected therapy's catalogue setting.",
+    "procedureHandlingConfigured": "Configured by the selected therapy",
     "wholeToothSelectedAutomatically":
         "The whole tooth is selected automatically; no surface click is needed.",
     "patientLevelTreatment": "Patient-level treatment",
@@ -365,6 +363,8 @@ class En {
         "You may save the bridge without choosing units. It will stay in history and nothing will be drawn.",
     "bridgeUnitMappingDescription":
         "Add each abutment, pontic, or implant-supported unit as one connected bridge.",
+    "bridgeShiftSelectHint":
+        "Shortcut: click the first tooth, then Shift-click the last tooth to map the connected range.",
     "bridgeUnitRole": "Unit role",
     "bridgeRole_abutment": "Abutment",
     "bridgeRole_pontic": "Pontic",

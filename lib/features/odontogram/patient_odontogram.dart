@@ -8,6 +8,7 @@ import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/services/perm.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 
 import 'odontogram_assets.dart';
 import 'odontogram_event_model.dart';
@@ -30,6 +31,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   int selectedFdi = 11;
   final selectedSurfaces = <DentalSurface>{};
   TreatmentTargetScope selectedTargetScope = TreatmentTargetScope.tooth;
+  int? bridgeRangeAnchorFdi;
   final bridgeUnits = <BridgeUnit>[];
   BridgeUnitRole selectedBridgeRole = BridgeUnitRole.abutment;
   DentalArch selectedArch = DentalArch.upper;
@@ -85,19 +87,9 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             const SizedBox(height: 12),
             _OdontogramChart(
               selectedFdi: selectedFdi,
+              bridgeUnits: bridgeUnits,
               events: events,
-              onSelected: (fdi) => setState(() {
-                selectedFdi = fdi;
-                if (selectedTargetScope == TreatmentTargetScope.tooth) {
-                  selectedSurfaces.clear();
-                  final procedure = procedureCatalog.get(selectedProcedureID);
-                  if (procedure != null &&
-                      procedureCatalog.handlingDecision(procedure).mode ==
-                          ProcedureHandlingMode.wholeTooth) {
-                    selectedSurfaces.add(DentalSurface.wholeTooth);
-                  }
-                }
-              }),
+              onSelected: _selectTooth,
             ),
             const SizedBox(height: 12),
             LayoutBuilder(
@@ -192,18 +184,12 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           ],
           const SizedBox(height: 9),
           if (selectedProcedure != null)
-            InfoBar(
+            _ProcedureHandlingBadge(
               key: const Key('automatic-procedure-handling'),
-              title: Text(
-                '${txt('automaticHandling')}: '
-                '${txt('procedureHandling_${procedureCatalog.handlingDecision(selectedProcedure).mode.name}')}',
-              ),
-              content: Text(txt('automaticHandlingDescription')),
-              severity: procedureCatalog
-                      .handlingDecision(selectedProcedure)
-                      .needsReview
-                  ? InfoBarSeverity.warning
-                  : InfoBarSeverity.info,
+              mode: procedureCatalog.handlingDecision(selectedProcedure).mode,
+              needsReview: procedureCatalog
+                  .handlingDecision(selectedProcedure)
+                  .needsReview,
             ),
           const SizedBox(height: 10),
           _buildTargetEditor(
@@ -371,9 +357,8 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
         InfoBar(
           title: Text(txt('bridgeUnitMapping')),
           content: Text(
-            bridgeUnits.isEmpty
-                ? txt('bridgeWithoutUnitsDescription')
-                : txt('bridgeUnitMappingDescription'),
+            '${bridgeUnits.isEmpty ? txt('bridgeWithoutUnitsDescription') : txt('bridgeUnitMappingDescription')}\n'
+            '${txt('bridgeShiftSelectHint')}',
           ),
           severity: InfoBarSeverity.info,
         ),
@@ -572,14 +557,82 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   void _selectProcedure(String procedureID) {
     setState(() {
       selectedProcedureID = procedureID;
+      bridgeUnits.clear();
+      removableComponents.clear();
       _applyProcedureDefaults(procedureCatalog.get(procedureID));
     });
+  }
+
+  void _selectTooth(int fdi, bool extendSelection) {
+    setState(() {
+      final procedure = procedureCatalog.get(selectedProcedureID);
+      final handlingMode = procedure == null
+          ? null
+          : procedureCatalog.handlingDecision(procedure).mode;
+
+      if (handlingMode == ProcedureHandlingMode.bridge) {
+        final anchor = bridgeRangeAnchorFdi ?? selectedFdi;
+        if (extendSelection) {
+          final range = _fdiRange(anchor, fdi);
+          if (range != null) {
+            bridgeUnits
+              ..clear()
+              ..addAll(
+                range.indexed.map(
+                  (entry) => BridgeUnit(
+                    toothFdi: entry.$2,
+                    role: _suggestedBridgeRole(entry.$1, range.length),
+                  ),
+                ),
+              );
+          }
+        } else {
+          bridgeRangeAnchorFdi = fdi;
+        }
+      } else {
+        bridgeRangeAnchorFdi = null;
+      }
+
+      selectedFdi = fdi;
+      if (selectedTargetScope == TreatmentTargetScope.tooth) {
+        selectedSurfaces.clear();
+        if (handlingMode == ProcedureHandlingMode.wholeTooth) {
+          selectedSurfaces.add(DentalSurface.wholeTooth);
+        }
+      }
+    });
+  }
+
+  List<int>? _fdiRange(int start, int end) {
+    for (final jaw in [
+      OdontogramAssets.upperFdi,
+      OdontogramAssets.lowerFdi,
+    ]) {
+      final startIndex = jaw.indexOf(start);
+      final endIndex = jaw.indexOf(end);
+      if (startIndex < 0 || endIndex < 0) continue;
+      final first = startIndex < endIndex ? startIndex : endIndex;
+      final last = startIndex < endIndex ? endIndex : startIndex;
+      return jaw.sublist(first, last + 1);
+    }
+    return null;
+  }
+
+  BridgeUnitRole _suggestedBridgeRole(int index, int length) {
+    if (length == 2) {
+      return index == 0 ? BridgeUnitRole.abutment : BridgeUnitRole.pontic;
+    }
+    return index == 0 || index == length - 1
+        ? BridgeUnitRole.abutment
+        : BridgeUnitRole.pontic;
   }
 
   void _applyProcedureDefaults(ProcedureCatalogItem? procedure) {
     if (procedure == null) return;
     final handlingMode = procedureCatalog.handlingDecision(procedure).mode;
     selectedTargetScope = handlingMode.targetScope;
+    bridgeRangeAnchorFdi =
+        handlingMode == ProcedureHandlingMode.bridge ? selectedFdi : null;
     selectedSurfaces
       ..clear()
       ..addAll(
@@ -681,6 +734,63 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   }
 }
 
+class _ProcedureHandlingBadge extends StatelessWidget {
+  const _ProcedureHandlingBadge({
+    super.key,
+    required this.mode,
+    required this.needsReview,
+  });
+
+  final ProcedureHandlingMode mode;
+  final bool needsReview;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _handlingModeColor(mode);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(_handlingModeIcon(mode), color: color, size: 19),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  txt('procedureHandling_${mode.name}'),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  needsReview
+                      ? txt('procedureHandlingNeedsReview')
+                      : txt('procedureHandlingConfigured'),
+                  style: FluentTheme.of(context).typography.caption,
+                ),
+              ],
+            ),
+          ),
+          if (needsReview)
+            Icon(FluentIcons.warning, color: Colors.orange.dark, size: 18),
+        ],
+      ),
+    );
+  }
+}
+
 class _MappingRow extends StatelessWidget {
   const _MappingRow({required this.title, required this.onRemove});
 
@@ -735,13 +845,15 @@ class _SelectedToothValue extends StatelessWidget {
 class _OdontogramChart extends StatelessWidget {
   const _OdontogramChart({
     required this.selectedFdi,
+    required this.bridgeUnits,
     required this.events,
     required this.onSelected,
   });
 
   final int selectedFdi;
+  final List<BridgeUnit> bridgeUnits;
   final List<OdontogramEvent> events;
-  final ValueChanged<int> onSelected;
+  final void Function(int fdi, bool extendSelection) onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -756,6 +868,7 @@ class _OdontogramChart extends StatelessWidget {
             _JawRow(
               fdiNumbers: OdontogramAssets.upperFdi,
               selectedFdi: selectedFdi,
+              bridgeUnits: bridgeUnits,
               events: events,
               onSelected: onSelected,
             ),
@@ -765,6 +878,7 @@ class _OdontogramChart extends StatelessWidget {
             _JawRow(
               fdiNumbers: OdontogramAssets.lowerFdi,
               selectedFdi: selectedFdi,
+              bridgeUnits: bridgeUnits,
               events: events,
               onSelected: onSelected,
             ),
@@ -779,14 +893,16 @@ class _JawRow extends StatelessWidget {
   const _JawRow({
     required this.fdiNumbers,
     required this.selectedFdi,
+    required this.bridgeUnits,
     required this.events,
     required this.onSelected,
   });
 
   final List<int> fdiNumbers;
   final int selectedFdi;
+  final List<BridgeUnit> bridgeUnits;
   final List<OdontogramEvent> events;
-  final ValueChanged<int> onSelected;
+  final void Function(int fdi, bool extendSelection) onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -798,9 +914,16 @@ class _JawRow extends StatelessWidget {
         return _ToothColumn(
           fdi: fdi,
           selected: fdi == selectedFdi,
+          bridgeRole: bridgeUnits
+              .where((unit) => unit.toothFdi == fdi)
+              .firstOrNull
+              ?.role,
           eventCount: toothEvents.length,
           latestStatus: latest?.status,
-          onPressed: () => onSelected(fdi),
+          onPressed: () => onSelected(
+            fdi,
+            HardwareKeyboard.instance.isShiftPressed,
+          ),
         );
       }).toList(),
     );
@@ -811,6 +934,7 @@ class _ToothColumn extends StatelessWidget {
   const _ToothColumn({
     required this.fdi,
     required this.selected,
+    required this.bridgeRole,
     required this.eventCount,
     required this.latestStatus,
     required this.onPressed,
@@ -818,6 +942,7 @@ class _ToothColumn extends StatelessWidget {
 
   final int fdi;
   final bool selected;
+  final BridgeUnitRole? bridgeRole;
   final int eventCount;
   final OdontogramEventStatus? latestStatus;
   final VoidCallback onPressed;
@@ -825,11 +950,14 @@ class _ToothColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = FluentTheme.of(context).accentColor;
+    final bridgeColor =
+        bridgeRole == null ? null : _bridgeRoleColor(bridgeRole!);
     return Semantics(
       label: '${txt('tooth')} $fdi',
       button: true,
       selected: selected,
       child: GestureDetector(
+        key: Key('odontogram-tooth-$fdi'),
         onTap: onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
@@ -837,20 +965,31 @@ class _ToothColumn extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 1),
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: selected ? accent.withValues(alpha: 0.10) : null,
+            color: bridgeColor?.withValues(alpha: 0.12) ??
+                (selected ? accent.withValues(alpha: 0.10) : null),
             borderRadius: BorderRadius.circular(7),
             border: Border.all(
-              color: selected ? accent : Colors.transparent,
+              color: selected ? accent : bridgeColor ?? Colors.transparent,
               width: 2,
             ),
           ),
           child: Column(
             children: [
-              Text(
-                '$fdi',
-                style: TextStyle(
-                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$fdi',
+                    style: TextStyle(
+                      fontWeight:
+                          selected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  if (bridgeRole != null) ...[
+                    const SizedBox(width: 3),
+                    Icon(FluentIcons.link, size: 10, color: bridgeColor),
+                  ],
+                ],
               ),
               for (final view in OdontogramView.values)
                 _ToothAssetImage(fdi: fdi, view: view),
@@ -1031,3 +1170,25 @@ Color _statusColor(OdontogramEventStatus status) {
     OdontogramEventStatus.cancelled => Colors.grey,
   };
 }
+
+IconData _handlingModeIcon(ProcedureHandlingMode mode) => switch (mode) {
+      ProcedureHandlingMode.surfaceBased => FluentIcons.color,
+      ProcedureHandlingMode.wholeTooth => FluentIcons.medical,
+      ProcedureHandlingMode.bridge => FluentIcons.link,
+      ProcedureHandlingMode.removableProsthesis => FluentIcons.product_catalog,
+      ProcedureHandlingMode.patientLevel => FluentIcons.contact,
+    };
+
+Color _handlingModeColor(ProcedureHandlingMode mode) => switch (mode) {
+      ProcedureHandlingMode.surfaceBased => Colors.blue,
+      ProcedureHandlingMode.wholeTooth => Colors.teal,
+      ProcedureHandlingMode.bridge => Colors.purple,
+      ProcedureHandlingMode.removableProsthesis => Colors.orange,
+      ProcedureHandlingMode.patientLevel => Colors.grey,
+    };
+
+Color _bridgeRoleColor(BridgeUnitRole role) => switch (role) {
+      BridgeUnitRole.abutment => Colors.blue,
+      BridgeUnitRole.pontic => Colors.purple,
+      BridgeUnitRole.implantAbutment => Colors.teal,
+    };
