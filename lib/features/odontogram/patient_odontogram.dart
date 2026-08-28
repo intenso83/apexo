@@ -13,6 +13,8 @@ import 'package:flutter/services.dart';
 import 'odontogram_assets.dart';
 import 'odontogram_event_model.dart';
 import 'odontogram_event_store.dart';
+import 'odontogram_overlay_model.dart';
+import 'odontogram_overlay_painter.dart';
 import 'treatment_target.dart';
 
 class PatientOdontogram extends StatefulWidget {
@@ -718,6 +720,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
       'procedureNameSnapshot': procedure.title,
       'therapyGroupID': group.id,
       'therapyGroupNameSnapshot': group.title,
+      'overlayKind': procedureCatalog.overlayFor(procedure).name,
       'priceSnapshot': procedure.basePrice,
       'eventKind': OdontogramEventKind.treatment.name,
       'status': selectedStatus.name,
@@ -909,8 +912,11 @@ class _JawRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: fdiNumbers.map((fdi) {
-        final toothEvents = events.where((event) => event.drawsOnTooth(fdi));
+        final toothEvents = events
+            .where((event) => event.drawsOnTooth(fdi))
+            .toList(growable: false);
         final latest = toothEvents.firstOrNull;
+        final overlays = odontogramOverlayMarkersForTooth(toothEvents, fdi);
         return _ToothColumn(
           fdi: fdi,
           selected: fdi == selectedFdi,
@@ -920,6 +926,7 @@ class _JawRow extends StatelessWidget {
               ?.role,
           eventCount: toothEvents.length,
           latestStatus: latest?.status,
+          overlays: overlays,
           onPressed: () => onSelected(
             fdi,
             HardwareKeyboard.instance.isShiftPressed,
@@ -937,6 +944,7 @@ class _ToothColumn extends StatelessWidget {
     required this.bridgeRole,
     required this.eventCount,
     required this.latestStatus,
+    required this.overlays,
     required this.onPressed,
   });
 
@@ -945,6 +953,7 @@ class _ToothColumn extends StatelessWidget {
   final BridgeUnitRole? bridgeRole;
   final int eventCount;
   final OdontogramEventStatus? latestStatus;
+  final List<OdontogramOverlayMarker> overlays;
   final VoidCallback onPressed;
 
   @override
@@ -992,7 +1001,11 @@ class _ToothColumn extends StatelessWidget {
                 ],
               ),
               for (final view in OdontogramView.values)
-                _ToothAssetImage(fdi: fdi, view: view),
+                _ToothAssetImage(
+                  fdi: fdi,
+                  view: view,
+                  overlays: overlays,
+                ),
               SizedBox(
                 height: 18,
                 child: eventCount == 0
@@ -1023,15 +1036,20 @@ class _ToothColumn extends StatelessWidget {
 }
 
 class _ToothAssetImage extends StatelessWidget {
-  const _ToothAssetImage({required this.fdi, required this.view});
+  const _ToothAssetImage({
+    required this.fdi,
+    required this.view,
+    required this.overlays,
+  });
 
   final int fdi;
   final OdontogramView view;
+  final List<OdontogramOverlayMarker> overlays;
 
   @override
   Widget build(BuildContext context) {
     final asset = OdontogramAssets.resolve(fdi, view);
-    final image = Image.asset(
+    Widget image = Image.asset(
       asset.assetPath,
       width: 48,
       height: 48,
@@ -1039,11 +1057,78 @@ class _ToothAssetImage extends StatelessWidget {
       filterQuality: FilterQuality.medium,
       gaplessPlayback: true,
     );
-    if (!asset.flipHorizontally) return image;
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.diagonal3Values(-1, 1, 1),
-      child: image,
+    if (asset.flipHorizontally) {
+      image = Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.diagonal3Values(-1, 1, 1),
+        child: image,
+      );
+    }
+    final completedExtraction = overlays.any(
+      (marker) =>
+          marker.kind == OdontogramOverlayKind.extraction &&
+          (marker.status == OdontogramEventStatus.completed ||
+              marker.status == OdontogramEventStatus.existing),
+    );
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(opacity: completedExtraction ? 0.18 : 1, child: image),
+          for (final marker in overlays)
+            IgnorePointer(
+              child: CustomPaint(
+                key: Key(
+                  'odontogram-overlay-${marker.kind.name}-$fdi-${view.name}',
+                ),
+                painter: OdontogramTreatmentOverlayPainter(
+                  marker: marker,
+                  asset: asset,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventOverlayBadge extends StatelessWidget {
+  const _EventOverlayBadge({required this.kind, required this.status});
+
+  final OdontogramOverlayKind kind;
+  final OdontogramEventStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = odontogramStatusOverlayColor(status);
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.30)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_odontogramOverlayIcon(kind), size: 12, color: color),
+            const SizedBox(width: 5),
+            Text(
+              txt('odontogramOverlay_${kind.name}'),
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1095,6 +1180,14 @@ class _EventTimeline extends StatelessWidget {
                       '${event.therapyGroupNameSnapshot} · ${txt('odontogramStatus_${event.status.name}')} · ${DF.allNumbers(event.recordedAt)}',
                       style: FluentTheme.of(context).typography.caption,
                     ),
+                    if (event.effectiveOverlayKind !=
+                        OdontogramOverlayKind.none) ...[
+                      const SizedBox(height: 4),
+                      _EventOverlayBadge(
+                        kind: event.effectiveOverlayKind,
+                        status: event.status,
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Text(
                       _targetDescription(event),
@@ -1191,4 +1284,14 @@ Color _bridgeRoleColor(BridgeUnitRole role) => switch (role) {
       BridgeUnitRole.abutment => Colors.blue,
       BridgeUnitRole.pontic => Colors.purple,
       BridgeUnitRole.implantAbutment => Colors.teal,
+    };
+
+IconData _odontogramOverlayIcon(OdontogramOverlayKind kind) => switch (kind) {
+      OdontogramOverlayKind.none => FluentIcons.clear,
+      OdontogramOverlayKind.filling => FluentIcons.color,
+      OdontogramOverlayKind.crown => FluentIcons.crown,
+      OdontogramOverlayKind.rootCanal => FluentIcons.branch_fork2,
+      OdontogramOverlayKind.extraction => FluentIcons.chrome_close,
+      OdontogramOverlayKind.implant => FluentIcons.medical,
+      OdontogramOverlayKind.bridge => FluentIcons.link,
     };

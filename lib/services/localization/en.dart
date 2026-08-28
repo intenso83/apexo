@@ -321,6 +321,17 @@ class En {
     "targetScope_bridge": "Bridge",
     "targetScope_removableProsthesis": "Removable prosthesis",
     "procedureHandlingMode": "How Apexo handles this therapy",
+    "odontogramOverlaySetting": "Odontogram symbol",
+    "odontogramOverlayAutomatic": "Automatic recognition",
+    "odontogramOverlayDescription":
+        "Choose the symbol drawn on the tooth. Automatic recognition uses the therapy name and workflow; choose No symbol to keep the entry only in history.",
+    "odontogramOverlay_none": "No symbol",
+    "odontogramOverlay_filling": "Filling",
+    "odontogramOverlay_crown": "Crown",
+    "odontogramOverlay_rootCanal": "Root canal",
+    "odontogramOverlay_extraction": "Extraction / missing tooth",
+    "odontogramOverlay_implant": "Implant",
+    "odontogramOverlay_bridge": "Bridge",
     "procedureHandlingChoose": "Choose one workflow",
     "procedureHandlingRequired":
         "Choose how this therapy should behave during daily entry.",

@@ -1,4 +1,5 @@
 import 'package:apexo/core/model.dart';
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 
 class ProcedureCatalogItem extends Model {
@@ -10,6 +11,7 @@ class ProcedureCatalogItem extends Model {
   bool? perToothPrice;
   int? durationMinutes;
   ProcedureHandlingMode? handlingMode;
+  OdontogramOverlayKind? odontogramOverlay;
   TreatmentTargetScope? targetScope;
   SurfaceSelectionMode surfaceSelectionMode = SurfaceSelectionMode.optional;
   List<String> defaultSurfaces = [];
@@ -33,6 +35,10 @@ class ProcedureCatalogItem extends Model {
     handlingMode = nullableEnumByName(
       ProcedureHandlingMode.values,
       json['handlingMode'],
+    );
+    odontogramOverlay = nullableEnumByName(
+      OdontogramOverlayKind.values,
+      json['odontogramOverlay'],
     );
     targetScope = nullableEnumByName(
       TreatmentTargetScope.values,
@@ -64,6 +70,9 @@ class ProcedureCatalogItem extends Model {
     if (perToothPrice != null) json['perToothPrice'] = perToothPrice;
     if (durationMinutes != null) json['durationMinutes'] = durationMinutes;
     if (handlingMode != null) json['handlingMode'] = handlingMode!.name;
+    if (odontogramOverlay != null) {
+      json['odontogramOverlay'] = odontogramOverlay!.name;
+    }
     if (targetScope != null) json['targetScope'] = targetScope!.name;
     json['surfaceSelectionMode'] = surfaceSelectionMode.name;
     if (defaultSurfaces.isNotEmpty) {

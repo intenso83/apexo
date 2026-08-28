@@ -330,6 +330,17 @@ class Es implements En {
     "targetScope_bridge": "Puente",
     "targetScope_removableProsthesis": "Prótesis removible",
     "procedureHandlingMode": "Cómo maneja Apexo este tratamiento",
+    "odontogramOverlaySetting": "Símbolo del odontograma",
+    "odontogramOverlayAutomatic": "Reconocimiento automático",
+    "odontogramOverlayDescription":
+        "Elija el símbolo que se dibuja sobre el diente. El reconocimiento automático usa el nombre y el flujo del tratamiento; elija Sin símbolo para conservarlo solo en el historial.",
+    "odontogramOverlay_none": "Sin símbolo",
+    "odontogramOverlay_filling": "Empaste",
+    "odontogramOverlay_crown": "Corona",
+    "odontogramOverlay_rootCanal": "Endodoncia",
+    "odontogramOverlay_extraction": "Extracción / diente ausente",
+    "odontogramOverlay_implant": "Implante",
+    "odontogramOverlay_bridge": "Puente",
     "procedureHandlingChoose": "Elija un flujo de trabajo",
     "procedureHandlingRequired":
         "Elija cómo debe comportarse este tratamiento durante el registro diario.",

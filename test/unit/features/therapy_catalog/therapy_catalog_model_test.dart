@@ -2,6 +2,7 @@ import 'package:apexo/features/therapy_catalog/procedure_catalog_model.dart';
 import 'package:apexo/features/therapy_catalog/procedure_handling_classifier.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/therapy_catalog/therapy_group_model.dart';
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,6 +68,60 @@ void main() {
     expect(
       ProcedureCatalogItem.fromJson(item.toJson()).handlingMode,
       ProcedureHandlingMode.wholeTooth,
+    );
+  });
+
+  test('procedure preserves an explicit odontogram symbol override', () {
+    final item = ProcedureCatalogItem.fromJson({
+      'name': 'Special restoration',
+      'odontogramOverlay': 'crown',
+    });
+    expect(item.odontogramOverlay, OdontogramOverlayKind.crown);
+    expect(
+      ProcedureCatalogItem.fromJson(item.toJson()).odontogramOverlay,
+      OdontogramOverlayKind.crown,
+    );
+
+    item.odontogramOverlay = OdontogramOverlayKind.none;
+    expect(item.toJson()['odontogramOverlay'], 'none');
+  });
+
+  test('overlay classifier distinguishes common clinical symbols', () {
+    expect(
+      inferOdontogramOverlay(
+        procedureName: 'Ενδοδοντική θεραπεία γομφίου',
+        groupName: 'Ενδοδοντία',
+      ),
+      OdontogramOverlayKind.rootCanal,
+    );
+    expect(
+      inferOdontogramOverlay(
+        procedureName: 'Συγκόλληση στεφάνης',
+        groupName: 'Ενδοδοντία',
+      ),
+      OdontogramOverlayKind.crown,
+    );
+    expect(
+      inferOdontogramOverlay(
+        procedureName: 'Εξαγωγή',
+        groupName: 'Χειρουργική',
+      ),
+      OdontogramOverlayKind.extraction,
+    );
+    expect(
+      inferOdontogramOverlay(
+        procedureName: 'Τοποθέτηση εμφυτεύματος',
+        groupName: 'Εμφυτεύματα',
+      ),
+      OdontogramOverlayKind.implant,
+    );
+    expect(
+      inferOdontogramOverlay(
+        procedureName: 'Unrecognized bridge item',
+        groupName: 'Miscellaneous',
+        targetScope: TreatmentTargetScope.bridge,
+      ),
+      OdontogramOverlayKind.bridge,
     );
   });
 

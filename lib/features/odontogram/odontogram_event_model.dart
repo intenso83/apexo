@@ -1,5 +1,6 @@
 import 'package:apexo/core/model.dart';
 
+import 'odontogram_overlay_model.dart';
 import 'treatment_target.dart';
 
 enum OdontogramEventKind { condition, treatment }
@@ -24,6 +25,7 @@ class OdontogramEvent extends Model {
   String procedureNameSnapshot = '';
   String therapyGroupID = '';
   String therapyGroupNameSnapshot = '';
+  OdontogramOverlayKind? overlayKind;
   double? priceSnapshot;
   OdontogramEventKind eventKind = OdontogramEventKind.treatment;
   OdontogramEventStatus status = OdontogramEventStatus.planned;
@@ -37,6 +39,13 @@ class OdontogramEvent extends Model {
 
   bool get hasSpecifiedSurfaces => surfaces.isNotEmpty;
   bool get isLegacyWholeTooth => migration.isNotEmpty && surfaces.isEmpty;
+  OdontogramOverlayKind get effectiveOverlayKind =>
+      overlayKind ??
+      inferOdontogramOverlay(
+        procedureName: procedureNameSnapshot,
+        groupName: therapyGroupNameSnapshot,
+        targetScope: targetScope,
+      );
 
   bool referencesTooth(int fdi) {
     return switch (targetScope) {
@@ -88,6 +97,10 @@ class OdontogramEvent extends Model {
     therapyGroupID = json['therapyGroupID']?.toString() ?? therapyGroupID;
     therapyGroupNameSnapshot = json['therapyGroupNameSnapshot']?.toString() ??
         therapyGroupNameSnapshot;
+    overlayKind = nullableEnumByName(
+      OdontogramOverlayKind.values,
+      json['overlayKind'],
+    );
     priceSnapshot = _asNullableDouble(json['priceSnapshot']);
     eventKind = enumByName(
       OdontogramEventKind.values,
@@ -134,6 +147,7 @@ class OdontogramEvent extends Model {
     if (therapyGroupNameSnapshot.isNotEmpty) {
       json['therapyGroupNameSnapshot'] = therapyGroupNameSnapshot;
     }
+    if (overlayKind != null) json['overlayKind'] = overlayKind!.name;
     if (priceSnapshot != null) json['priceSnapshot'] = priceSnapshot;
     json['eventKind'] = eventKind.name;
     json['status'] = status.name;

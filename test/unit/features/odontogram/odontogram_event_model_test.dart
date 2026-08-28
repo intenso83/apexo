@@ -1,4 +1,5 @@
 import 'package:apexo/features/odontogram/odontogram_event_model.dart';
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +14,7 @@ void main() {
       'procedureNameSnapshot': 'Composite filling',
       'therapyGroupID': 'group1234567890',
       'therapyGroupNameSnapshot': 'Restorative',
+      'overlayKind': 'filling',
       'priceSnapshot': 80,
       'eventKind': 'treatment',
       'status': 'completed',
@@ -20,6 +22,22 @@ void main() {
     });
     expect(event.validationErrors(), isEmpty);
     expect(OdontogramEvent.fromJson(event.toJson()).toJson(), event.toJson());
+    expect(event.effectiveOverlayKind, OdontogramOverlayKind.filling);
+  });
+
+  test('legacy event infers its overlay without rewriting the source record',
+      () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'toothFdi': 16,
+      'surfaces': ['wholeTooth'],
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Ενδοδοντική θεραπεία γομφίου',
+      'therapyGroupNameSnapshot': 'Ενδοδοντία',
+    });
+    expect(event.overlayKind, isNull);
+    expect(event.effectiveOverlayKind, OdontogramOverlayKind.rootCanal);
+    expect(event.toJson(), isNot(contains('overlayKind')));
   });
 
   test('legacy event may honestly leave the surface unspecified', () {

@@ -1,6 +1,7 @@
 import 'package:apexo/core/save_local.dart';
 import 'package:apexo/core/save_remote.dart';
 import 'package:apexo/core/store.dart';
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:apexo/features/login/login_controller.dart';
 import 'package:apexo/features/network_actions/network_actions_controller.dart';
@@ -101,6 +102,15 @@ class ProcedureCatalog extends Store<ProcedureCatalogItem> {
       );
     }
     return classified;
+  }
+
+  OdontogramOverlayKind overlayFor(ProcedureCatalogItem item) {
+    return item.odontogramOverlay ??
+        inferOdontogramOverlay(
+          procedureName: item.title,
+          groupName: therapyGroups.get(item.therapyGroupID)?.title ?? '',
+          targetScope: handlingDecision(item).mode.targetScope,
+        );
   }
 
   @override

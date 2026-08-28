@@ -323,6 +323,17 @@ class El implements En {
     "targetScope_bridge": "Γέφυρα",
     "targetScope_removableProsthesis": "Κινητή προσθετική εργασία",
     "procedureHandlingMode": "Πώς χειρίζεται το Apexo αυτή τη θεραπεία",
+    "odontogramOverlaySetting": "Σύμβολο οδοντογράμματος",
+    "odontogramOverlayAutomatic": "Αυτόματη αναγνώριση",
+    "odontogramOverlayDescription":
+        "Επιλέξτε το σύμβολο που θα εμφανίζεται στο δόντι. Η αυτόματη αναγνώριση χρησιμοποιεί το όνομα και τη ροή της θεραπείας· επιλέξτε Χωρίς σύμβολο για καταχώριση μόνο στο ιστορικό.",
+    "odontogramOverlay_none": "Χωρίς σύμβολο",
+    "odontogramOverlay_filling": "Έμφραξη",
+    "odontogramOverlay_crown": "Στεφάνη",
+    "odontogramOverlay_rootCanal": "Ενδοδοντική θεραπεία",
+    "odontogramOverlay_extraction": "Εξαγωγή / ελλείπον δόντι",
+    "odontogramOverlay_implant": "Εμφύτευμα",
+    "odontogramOverlay_bridge": "Γέφυρα",
     "procedureHandlingChoose": "Επιλέξτε μία ροή εργασίας",
     "procedureHandlingRequired":
         "Επιλέξτε πώς θα συμπεριφέρεται αυτή η θεραπεία στην καθημερινή καταχώριση.",

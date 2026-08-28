@@ -1,6 +1,7 @@
 import 'package:apexo/common_widgets/button_styles.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/odontogram/odontogram_assets.dart';
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
@@ -279,6 +280,9 @@ class _ProcedurePane extends StatelessWidget {
                                   Text(
                                     '${txt('procedureHandlingMode')}: ${_handlingLabel(item)}',
                                   ),
+                                  Text(
+                                    '${txt('odontogramOverlaySetting')}: ${_overlayLabel(item)}',
+                                  ),
                                   if (procedureCatalog
                                       .handlingDecision(item)
                                       .needsReview)
@@ -327,6 +331,15 @@ class _ProcedurePane extends StatelessWidget {
   String _handlingLabel(ProcedureCatalogItem item) => txt(
         'procedureHandling_${procedureCatalog.handlingDecision(item).mode.name}',
       );
+
+  String _overlayLabel(ProcedureCatalogItem item) {
+    final resolved = txt(
+      'odontogramOverlay_${procedureCatalog.overlayFor(item).name}',
+    );
+    return item.odontogramOverlay == null
+        ? '$resolved · ${txt('odontogramOverlayAutomatic')}'
+        : resolved;
+  }
 
   String _surfaceLabel(String stored) {
     return switch (stored) {
@@ -447,6 +460,7 @@ Future<void> _showProcedureDialog(
   ProcedureHandlingMode? handlingMode = existing == null
       ? null
       : procedureCatalog.handlingDecision(existing).mode;
+  OdontogramOverlayKind? odontogramOverlay = existing?.odontogramOverlay;
   final defaultSurfaces = <DentalSurface>{
     ...DentalSurface.values.where(
       (surface) => existing?.defaultSurfaces.contains(surface.name) ?? false,
@@ -526,6 +540,37 @@ Future<void> _showProcedureDialog(
                     style: TextStyle(color: Colors.orange.dark),
                   ),
                 ],
+                const SizedBox(height: 10),
+                InfoLabel(
+                  label: txt('odontogramOverlaySetting'),
+                  child: ComboBox<String>(
+                    key: const Key('procedure-odontogram-overlay'),
+                    value: odontogramOverlay?.name ?? '_automatic',
+                    isExpanded: true,
+                    items: [
+                      ComboBoxItem(
+                        value: '_automatic',
+                        child: Text(txt('odontogramOverlayAutomatic')),
+                      ),
+                      ...OdontogramOverlayKind.values.map(
+                        (kind) => ComboBoxItem(
+                          value: kind.name,
+                          child: Text(txt('odontogramOverlay_${kind.name}')),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setDialogState(() {
+                      odontogramOverlay = value == null || value == '_automatic'
+                          ? null
+                          : OdontogramOverlayKind.values.byName(value);
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  txt('odontogramOverlayDescription'),
+                  style: FluentTheme.of(context).typography.caption,
+                ),
                 if (handlingMode == ProcedureHandlingMode.surfaceBased) ...[
                   const SizedBox(height: 10),
                   Text(txt('catalogueSurfacePreset')),
@@ -595,6 +640,7 @@ Future<void> _showProcedureDialog(
               item.defaultSurfaces =
                   defaultSurfaces.map((surface) => surface.name).toList();
               item.applyHandlingMode(handlingMode!);
+              item.odontogramOverlay = odontogramOverlay;
               item.hidden = hidden;
               procedureCatalog.set(item);
               Navigator.pop(dialogContext);

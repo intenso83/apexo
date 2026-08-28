@@ -1,3 +1,4 @@
+import 'package:apexo/features/odontogram/odontogram_event_model.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/odontogram/patient_odontogram.dart';
 import 'package:apexo/features/therapy_catalog/procedure_catalog_model.dart';
@@ -176,6 +177,7 @@ void main() {
       'targetScope': 'tooth',
       'surfaceSelectionMode': 'automaticWholeTooth',
       'defaultSurfaces': ['wholeTooth'],
+      'odontogramOverlay': 'rootCanal',
     });
     therapyGroups.set(group);
     procedureCatalog.set(procedure);
@@ -208,8 +210,109 @@ void main() {
     final event = odontogramEvents.forPatient('patient1234567').single;
     expect(event.toothFdi, 11);
     expect(event.surfaces, ['wholeTooth']);
+    expect(event.overlayKind?.name, 'rootCanal');
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(
+        const Key('odontogram-overlay-rootCanal-11-facial'),
+      ),
+      findsOneWidget,
+    );
 
     await tester.pump(const Duration(milliseconds: 150));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('renders the whole-tooth and bridge overlay pilot',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    final group = TherapyGroup.fromJson({
+      'id': 'group1234567890',
+      'name': 'Overlay pilot',
+    });
+    final procedure = ProcedureCatalogItem.fromJson({
+      'id': 'procedure123456',
+      'name': 'Crown',
+      'therapyGroupID': group.id,
+      'handlingMode': 'wholeTooth',
+    });
+    therapyGroups.set(group);
+    procedureCatalog.set(procedure);
+
+    void addToothEvent(int fdi, String overlay, String status) {
+      odontogramEvents.set(OdontogramEvent.fromJson({
+        'patientID': 'patient1234567',
+        'toothFdi': fdi,
+        'surfaces': ['wholeTooth'],
+        'procedureID': 'procedure-$overlay-$fdi',
+        'procedureNameSnapshot': overlay,
+        'therapyGroupNameSnapshot': 'Overlay pilot',
+        'overlayKind': overlay,
+        'status': status,
+      }));
+    }
+
+    addToothEvent(11, 'crown', 'completed');
+    addToothEvent(13, 'rootCanal', 'existing');
+    addToothEvent(14, 'extraction', 'planned');
+    addToothEvent(16, 'implant', 'completed');
+    odontogramEvents.set(OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'bridge',
+      'procedureID': 'procedure-bridge',
+      'procedureNameSnapshot': 'Bridge',
+      'therapyGroupNameSnapshot': 'Overlay pilot',
+      'overlayKind': 'bridge',
+      'status': 'planned',
+      'bridgeUnits': [
+        {'toothFdi': 24, 'role': 'abutment'},
+        {'toothFdi': 25, 'role': 'pontic'},
+        {'toothFdi': 26, 'role': 'abutment'},
+      ],
+    }));
+
+    tester.view.physicalSize = const Size(1400, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1200,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    for (final expectation in const [
+      ('crown', 11),
+      ('rootCanal', 13),
+      ('extraction', 14),
+      ('implant', 16),
+      ('bridge', 24),
+      ('bridge', 25),
+      ('bridge', 26),
+    ]) {
+      expect(
+        find.byKey(
+          Key(
+            'odontogram-overlay-${expectation.$1}-${expectation.$2}-facial',
+          ),
+        ),
+        findsOneWidget,
+      );
+    }
+
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
