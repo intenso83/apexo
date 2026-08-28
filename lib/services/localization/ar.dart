@@ -315,6 +315,29 @@ class Ar implements En {
     "targetScope_tooth": "السن / الأسطح",
     "targetScope_bridge": "جسر",
     "targetScope_removableProsthesis": "تعويض متحرك",
+    "procedureHandlingMode": "كيفية تعامل Apexo مع هذا العلاج",
+    "procedureHandlingChoose": "اختر سير عمل واحدًا",
+    "procedureHandlingRequired": "اختر كيفية تسجيل هذا العلاج يوميًا.",
+    "procedureHandling_surfaceBased": "حشوة / اختيار الأسطح",
+    "procedureHandling_wholeTooth": "السن بالكامل",
+    "procedureHandling_bridge": "جسر",
+    "procedureHandling_removableProsthesis": "تعويض متحرك",
+    "procedureHandling_patientLevel": "عمل عام / على مستوى المريض",
+    "procedureHandlingDescription_surfaceBased":
+        "بعد اختيار السن، يعرض Apexo أسطح السن للاختيار.",
+    "procedureHandlingDescription_wholeTooth":
+        "للتيجان وعلاج الجذور والخلع والأعمال المشابهة. يتم اختيار السن بالكامل تلقائيًا.",
+    "procedureHandlingDescription_bridge": "يفتح Apexo مخطط وحدات الجسر.",
+    "procedureHandlingDescription_removableProsthesis":
+        "يفتح Apexo مخطط القوس ومكونات التعويض المتحرك.",
+    "procedureHandlingDescription_patientLevel":
+        "يبقى الإدخال في السجل دون رسمه على سن.",
+    "procedureHandlingNeedsReview": "اقتراح تلقائي — يرجى المراجعة",
+    "procedureHandlingSuggested": "اقتراح تلقائي من البيانات المستوردة",
+    "automaticHandling": "سير العمل التلقائي",
+    "automaticHandlingDescription": "تم اختياره من إعداد العلاج في الكتالوج.",
+    "wholeToothSelectedAutomatically":
+        "تم اختيار السن بالكامل تلقائيًا؛ لا حاجة لاختيار سطح.",
     "patientLevelTreatment": "علاج على مستوى المريض",
     "patientLevelTreatmentDescription":
         "يبقى هذا الإدخال في سجل العلاج ولا يُرسم على أي سن.",
@@ -327,6 +350,7 @@ class Ar implements En {
     "surfaceSelectionBehaviour": "اختيار السطح",
     "surfaceMode_notApplicable": "غير مطبق",
     "surfaceMode_optional": "اختياري",
+    "surfaceMode_automaticWholeTooth": "السن بالكامل تلقائيًا",
     "selectedTooth": "السن المحدد",
     "bridgeUnitMapping": "وحدات الجسر",
     "bridgeWithoutUnitsDescription":

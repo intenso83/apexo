@@ -9,6 +9,7 @@ class ProcedureCatalogItem extends Model {
   bool? toothRequired;
   bool? perToothPrice;
   int? durationMinutes;
+  ProcedureHandlingMode? handlingMode;
   TreatmentTargetScope? targetScope;
   SurfaceSelectionMode surfaceSelectionMode = SurfaceSelectionMode.optional;
   List<String> defaultSurfaces = [];
@@ -29,6 +30,10 @@ class ProcedureCatalogItem extends Model {
     toothRequired = _asNullableBool(json['toothRequired']);
     perToothPrice = _asNullableBool(json['perToothPrice']);
     durationMinutes = _asNullableInt(json['durationMinutes']);
+    handlingMode = nullableEnumByName(
+      ProcedureHandlingMode.values,
+      json['handlingMode'],
+    );
     targetScope = nullableEnumByName(
       TreatmentTargetScope.values,
       json['targetScope'],
@@ -58,6 +63,7 @@ class ProcedureCatalogItem extends Model {
     if (toothRequired != null) json['toothRequired'] = toothRequired;
     if (perToothPrice != null) json['perToothPrice'] = perToothPrice;
     if (durationMinutes != null) json['durationMinutes'] = durationMinutes;
+    if (handlingMode != null) json['handlingMode'] = handlingMode!.name;
     if (targetScope != null) json['targetScope'] = targetScope!.name;
     json['surfaceSelectionMode'] = surfaceSelectionMode.name;
     if (defaultSurfaces.isNotEmpty) {
@@ -73,9 +79,52 @@ class ProcedureCatalogItem extends Model {
       ProcedureCatalogItem.fromJson(blank ? <String, dynamic>{} : toJson());
 
   TreatmentTargetScope get effectiveTargetScope {
+    if (handlingMode != null) return handlingMode!.targetScope;
     if (targetScope != null) return targetScope!;
     if (toothRequired == false) return TreatmentTargetScope.patient;
     return TreatmentTargetScope.tooth;
+  }
+
+  /// Converts a catalogue choice into the legacy target fields as well. This
+  /// keeps older clients/readers compatible while the new handling mode is the
+  /// single source of truth for the current UI.
+  void applyHandlingMode(ProcedureHandlingMode mode) {
+    handlingMode = mode;
+    targetScope = mode.targetScope;
+    surfaceSelectionMode = mode.surfaceSelectionMode;
+    if (mode == ProcedureHandlingMode.surfaceBased) {
+      defaultSurfaces.remove('wholeTooth');
+    } else {
+      defaultSurfaces = [...mode.automaticSurfaces];
+    }
+    toothRequired = mode.targetScope != TreatmentTargetScope.patient;
+  }
+
+  /// Backward-compatible interpretation for records created before the single
+  /// five-way setting existed. Catalogue-level inference is applied later when
+  /// no explicit/legacy target information is present.
+  ProcedureHandlingMode? get legacyHandlingMode {
+    if (handlingMode != null) return handlingMode;
+    if (targetScope == TreatmentTargetScope.bridge) {
+      return ProcedureHandlingMode.bridge;
+    }
+    if (targetScope == TreatmentTargetScope.removableProsthesis) {
+      return ProcedureHandlingMode.removableProsthesis;
+    }
+    if (targetScope == TreatmentTargetScope.patient) {
+      return ProcedureHandlingMode.patientLevel;
+    }
+    if (targetScope == TreatmentTargetScope.tooth) {
+      if (surfaceSelectionMode == SurfaceSelectionMode.automaticWholeTooth ||
+          defaultSurfaces.contains('wholeTooth')) {
+        return ProcedureHandlingMode.wholeTooth;
+      }
+      if (surfaceSelectionMode == SurfaceSelectionMode.notApplicable) {
+        return ProcedureHandlingMode.wholeTooth;
+      }
+      return ProcedureHandlingMode.surfaceBased;
+    }
+    return null;
   }
 
   List<String> validationErrors() {
@@ -96,6 +145,11 @@ class ProcedureCatalogItem extends Model {
     }
     if (surfaceSelectionMode == SurfaceSelectionMode.notApplicable &&
         defaultSurfaces.isNotEmpty) {
+      errors.add('defaultSurfaces');
+    }
+    if (surfaceSelectionMode == SurfaceSelectionMode.automaticWholeTooth &&
+        (defaultSurfaces.length != 1 ||
+            defaultSurfaces.single != 'wholeTooth')) {
       errors.add('defaultSurfaces');
     }
     if (effectiveTargetScope != TreatmentTargetScope.tooth &&

@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 
-Status: **Foundation implemented, including explicit surface, bridge, and removable-prosthesis targets**
+Status: **Foundation implemented, including procedure-driven surface, whole-tooth, bridge, removable-prosthesis, and patient-level workflows**
 
 This package creates the safe foundation for Apexo's future clinical odontogram. It intentionally does not replace the existing Dental Notes selector yet. Both remain available while the new model is tested and expanded.
 
@@ -12,12 +12,13 @@ This package creates the safe foundation for Apexo's future clinical odontogram.
 - All 32 adult FDI teeth rendered from 48 supplied right-side master images.
 - Facial, occlusal/incisal, and oral views for every tooth.
 - Runtime mirroring for left quadrants, so the source artwork is reused consistently.
-- Exact surface selection for mesial, distal, facial, oral, occlusal/incisal, or whole tooth.
+- Exact surface selection for mesial, distal, facial, oral, or occlusal/incisal work.
+- Automatic whole-tooth selection for crowns, endodontics, extractions, implants, and similar work—without an extra surface click.
 - An explicit **No surface specified** choice. The treatment remains in history but is not drawn on a tooth.
 - A patient-level odontogram event timeline with condition/treatment kind and status.
 - Connected bridge records with abutment, pontic, and implant-abutment units.
 - Arch-level removable-prosthesis records with optional replaced-tooth, clasp, rest, attachment, and implant-support components.
-- An admin therapy catalogue with editable groups, colours, order, hidden state, prices, durations, target type, and optional surface presets.
+- An admin therapy catalogue with editable groups, colours, order, hidden state, prices, durations, a required five-way handling mode, and optional filling-surface presets.
 - A guarded DentalWin catalogue importer for the isolated local test server.
 
 ## Asset contract
@@ -69,13 +70,27 @@ An empty bridge or removable mapping is valid because older records may identify
 The catalogue separates reusable definitions from patient clinical events:
 
 - `therapy_groups` stores group name, colour, order, hidden state, and source provenance.
-- `procedure_catalog` stores procedure name, group, price, duration, target type, surface-selection behaviour, optional surface preset, hidden state, source code, and provenance.
+- `procedure_catalog` stores procedure name, group, price, duration, a required handling mode, optional filling-surface preset, legacy compatibility fields, hidden state, source code, and provenance.
+- Every procedure chooses one of five handling modes: **Filling / choose surfaces**, **Whole tooth**, **Bridge**, **Removable prosthesis**, or **General / patient-level work**.
+- Handling belongs to the individual procedure, not its group. A single Fixed Prosthetics group can therefore contain a crown that selects one whole tooth and a bridge that opens the connected-unit mapper.
+- Selecting a procedure in the patient odontogram immediately opens its configured workflow. The former everyday target-type dropdown is no longer required.
 - A preset such as O, MO, or MOD is only a default. The clinician can change it or choose **No surface specified** for the patient event.
 - Surface codes are stored as structured data and are not embedded in the procedure name.
 - Patient events retain snapshots, so renaming a catalogue item later does not rewrite history.
 - Hiding is used instead of deletion so existing clinical links remain valid.
 
 The administrator screen is available from the main navigation as **Therapy catalogue**. It supports search and adding or editing groups and procedures.
+
+### Compatibility classification for the existing DentalWin catalogue
+
+The existing import predates the required handling-mode field. Apexo therefore applies a conservative compatibility classifier at runtime until each item is explicitly confirmed:
+
+- bridge, removable-prosthesis, filling/restoration, crown/endodontic/extraction/implant, and general-work keywords map to the corresponding workflow;
+- an existing explicit user setting or legacy target always wins over the classifier;
+- ambiguous items use the safe patient-level/history-only workflow and display **Automatic suggestion — please review** in the catalogue;
+- opening and saving an old procedure writes the chosen mode explicitly, so future group renames do not change its behavior.
+
+The classifier does not infer exact tooth surfaces and does not rewrite imported DentalWin clinical history.
 
 ## Guarded DentalWin catalogue result
 
@@ -104,7 +119,7 @@ The extra target group is `Uncategorized legacy review`. It makes unmatched sour
 
 ## Verification
 
-- Focused Flutter odontogram/catalogue/widget tests: 19 passed, including no-surface recording and both prosthetic target editors.
+- Focused Flutter odontogram/catalogue/widget tests include five-way model persistence, DentalWin compatibility classification, no-surface recording, automatic whole-tooth recording, and both prosthetic target editors.
 - Localization completeness and audit checks: 36 passed across all five supported languages.
 - Complete Flutter unit suite in serial mode: 1,680 passed.
 - Asset checks: all 48 PNGs match the manifest, dimensions, transparency, and mirroring rules.

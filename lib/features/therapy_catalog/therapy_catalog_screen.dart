@@ -277,8 +277,22 @@ class _ProcedurePane extends StatelessWidget {
                                     '${txt('toothRequired')}: ${_flag(item.toothRequired)}',
                                   ),
                                   Text(
-                                    '${txt('treatmentTargetType')}: ${_targetLabel(item)}',
+                                    '${txt('procedureHandlingMode')}: ${_handlingLabel(item)}',
                                   ),
+                                  if (procedureCatalog
+                                      .handlingDecision(item)
+                                      .needsReview)
+                                    Text(
+                                      txt('procedureHandlingNeedsReview'),
+                                      style: TextStyle(
+                                        color: Colors.orange.dark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    )
+                                  else if (procedureCatalog
+                                      .handlingDecision(item)
+                                      .inferred)
+                                    Text(txt('procedureHandlingSuggested')),
                                   if (item.defaultSurfaces.isNotEmpty)
                                     Text(
                                       '${txt('catalogueSurfacePreset')}: ${item.defaultSurfaces.map(_surfaceLabel).join(', ')}',
@@ -310,10 +324,9 @@ class _ProcedurePane extends StatelessWidget {
           ? txt('yes')
           : txt('no');
 
-  String _targetLabel(ProcedureCatalogItem item) {
-    if (item.targetScope == null) return txt('catalogueTargetAutomatic');
-    return txt('targetScope_${item.targetScope!.name}');
-  }
+  String _handlingLabel(ProcedureCatalogItem item) => txt(
+        'procedureHandling_${procedureCatalog.handlingDecision(item).mode.name}',
+      );
 
   String _surfaceLabel(String stored) {
     return switch (stored) {
@@ -431,10 +444,9 @@ Future<void> _showProcedureDialog(
   final duration = TextEditingController(
     text: existing?.durationMinutes?.toString() ?? '',
   );
-  bool? toothRequired = existing?.toothRequired;
-  TreatmentTargetScope? targetScope = existing?.targetScope;
-  var surfaceSelectionMode =
-      existing?.surfaceSelectionMode ?? SurfaceSelectionMode.optional;
+  ProcedureHandlingMode? handlingMode = existing == null
+      ? null
+      : procedureCatalog.handlingDecision(existing).mode;
   final defaultSurfaces = <DentalSurface>{
     ...DentalSurface.values.where(
       (surface) => existing?.defaultSurfaces.contains(surface.name) ?? false,
@@ -479,85 +491,42 @@ Future<void> _showProcedureDialog(
                 ),
                 const SizedBox(height: 10),
                 InfoLabel(
-                  label: txt('toothRequired'),
-                  child: ComboBox<bool?>(
-                    value: toothRequired,
+                  label: '${txt('procedureHandlingMode')} *',
+                  child: ComboBox<ProcedureHandlingMode>(
+                    key: const Key('procedure-handling-mode'),
+                    value: handlingMode,
                     isExpanded: true,
-                    items: [
-                      ComboBoxItem(
-                        value: null,
-                        child: Text(txt('unknownFromSource')),
-                      ),
-                      ComboBoxItem(value: true, child: Text(txt('yes'))),
-                      ComboBoxItem(value: false, child: Text(txt('no'))),
-                    ],
-                    onChanged: (value) => setDialogState(() {
-                      toothRequired = value;
-                      if (targetScope == null && value == false) {
-                        surfaceSelectionMode =
-                            SurfaceSelectionMode.notApplicable;
-                        defaultSurfaces.clear();
-                      }
-                    }),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                InfoLabel(
-                  label: txt('treatmentTargetType'),
-                  child: ComboBox<TreatmentTargetScope?>(
-                    value: targetScope,
-                    isExpanded: true,
-                    items: [
-                      ComboBoxItem<TreatmentTargetScope?>(
-                        value: null,
-                        child: Text(txt('catalogueTargetAutomatic')),
-                      ),
-                      ...TreatmentTargetScope.values.map(
-                        (scope) => ComboBoxItem<TreatmentTargetScope?>(
-                          value: scope,
-                          child: Text(txt('targetScope_${scope.name}')),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) => setDialogState(() {
-                      targetScope = value;
-                      if (value != null &&
-                          value != TreatmentTargetScope.tooth) {
-                        surfaceSelectionMode =
-                            SurfaceSelectionMode.notApplicable;
-                        defaultSurfaces.clear();
-                      }
-                    }),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                InfoLabel(
-                  label: txt('surfaceSelectionBehaviour'),
-                  child: ComboBox<SurfaceSelectionMode>(
-                    value: surfaceSelectionMode,
-                    isExpanded: true,
-                    items: SurfaceSelectionMode.values
+                    placeholder: Text(txt('procedureHandlingChoose')),
+                    items: ProcedureHandlingMode.values
                         .map(
                           (mode) => ComboBoxItem(
                             value: mode,
-                            child: Text(txt('surfaceMode_${mode.name}')),
+                            child: Text(txt('procedureHandling_${mode.name}')),
                           ),
                         )
                         .toList(),
                     onChanged: (value) => setDialogState(() {
-                      surfaceSelectionMode =
-                          value ?? SurfaceSelectionMode.optional;
-                      if (surfaceSelectionMode ==
-                          SurfaceSelectionMode.notApplicable) {
+                      handlingMode = value;
+                      if (value != ProcedureHandlingMode.surfaceBased) {
                         defaultSurfaces.clear();
                       }
                     }),
                   ),
                 ),
-                if (surfaceSelectionMode == SurfaceSelectionMode.optional &&
-                    (targetScope == null ||
-                        targetScope == TreatmentTargetScope.tooth) &&
-                    !(targetScope == null && toothRequired == false)) ...[
+                if (handlingMode != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    txt('procedureHandlingDescription_${handlingMode!.name}'),
+                    style: FluentTheme.of(context).typography.caption,
+                  ),
+                ] else ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    txt('procedureHandlingRequired'),
+                    style: TextStyle(color: Colors.orange.dark),
+                  ),
+                ],
+                if (handlingMode == ProcedureHandlingMode.surfaceBased) ...[
                   const SizedBox(height: 10),
                   Text(txt('catalogueSurfacePreset')),
                   const SizedBox(height: 7),
@@ -570,27 +539,23 @@ Future<void> _showProcedureDialog(
                         onChanged: (_) => setDialogState(defaultSurfaces.clear),
                         child: Text(txt('surfaceUnspecified')),
                       ),
-                      ...DentalSurface.values.map(
-                        (surface) => ToggleButton(
-                          checked: defaultSurfaces.contains(surface),
-                          onChanged: (selected) => setDialogState(() {
-                            if (surface == DentalSurface.wholeTooth &&
-                                selected) {
-                              defaultSurfaces
-                                ..clear()
-                                ..add(surface);
-                            } else {
-                              defaultSurfaces.remove(DentalSurface.wholeTooth);
-                              if (selected) {
-                                defaultSurfaces.add(surface);
-                              } else {
-                                defaultSurfaces.remove(surface);
-                              }
-                            }
-                          }),
-                          child: Text(_catalogueSurfaceLabel(surface)),
-                        ),
-                      ),
+                      ...DentalSurface.values
+                          .where(
+                            (surface) => surface != DentalSurface.wholeTooth,
+                          )
+                          .map(
+                            (surface) => ToggleButton(
+                              checked: defaultSurfaces.contains(surface),
+                              onChanged: (selected) => setDialogState(() {
+                                if (selected) {
+                                  defaultSurfaces.add(surface);
+                                } else {
+                                  defaultSurfaces.remove(surface);
+                                }
+                              }),
+                              child: Text(_catalogueSurfaceLabel(surface)),
+                            ),
+                          ),
                     ],
                   ),
                   const SizedBox(height: 5),
@@ -617,7 +582,7 @@ Future<void> _showProcedureDialog(
           ),
           FilledButton(
             onPressed: () {
-              if (name.text.trim().isEmpty) return;
+              if (name.text.trim().isEmpty || handlingMode == null) return;
               final item = existing?.copy(false) ??
                   ProcedureCatalogItem.fromJson(<String, dynamic>{});
               item.title = name.text.trim();
@@ -627,11 +592,9 @@ Future<void> _showProcedureDialog(
                   ) ??
                   0;
               item.durationMinutes = int.tryParse(duration.text.trim());
-              item.toothRequired = toothRequired;
-              item.targetScope = targetScope;
-              item.surfaceSelectionMode = surfaceSelectionMode;
               item.defaultSurfaces =
                   defaultSurfaces.map((surface) => surface.name).toList();
+              item.applyHandlingMode(handlingMode!);
               item.hidden = hidden;
               procedureCatalog.set(item);
               Navigator.pop(dialogContext);

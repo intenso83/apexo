@@ -25,8 +25,7 @@ void main() {
       'id': 'procedure123456',
       'name': 'Composite filling',
       'therapyGroupID': group.id,
-      'targetScope': 'tooth',
-      'surfaceSelectionMode': 'optional',
+      'handlingMode': 'surfaceBased',
     });
     therapyGroups.set(group);
     procedureCatalog.set(procedure);
@@ -82,15 +81,21 @@ void main() {
       'id': 'group1234567890',
       'name': 'Prosthetics',
     });
-    final procedure = ProcedureCatalogItem.fromJson({
-      'id': 'procedure123456',
-      'name': 'Prosthetic treatment',
+    final bridgeProcedure = ProcedureCatalogItem.fromJson({
+      'id': 'bridgeprocedure1',
+      'name': 'Bridge work',
       'therapyGroupID': group.id,
-      'targetScope': 'tooth',
-      'surfaceSelectionMode': 'optional',
+      'handlingMode': 'bridge',
+    });
+    final removableProcedure = ProcedureCatalogItem.fromJson({
+      'id': 'removableproc12',
+      'name': 'Removable work',
+      'therapyGroupID': group.id,
+      'handlingMode': 'removableProsthesis',
     });
     therapyGroups.set(group);
-    procedureCatalog.set(procedure);
+    procedureCatalog.set(bridgeProcedure);
+    procedureCatalog.set(removableProcedure);
 
     tester.view.physicalSize = const Size(1400, 1800);
     tester.view.devicePixelRatio = 1;
@@ -110,11 +115,6 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const Key('treatment-target-scope')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Bridge').last);
-    await tester.pumpAndSettle();
-
     expect(find.text('Bridge units'), findsOneWidget);
     expect(find.byKey(const Key('add-bridge-unit')), findsOneWidget);
     expect(
@@ -126,9 +126,9 @@ void main() {
       isNotNull,
     );
 
-    await tester.tap(find.byKey(const Key('treatment-target-scope')));
+    await tester.tap(find.byKey(const Key('procedure-selector')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Removable prosthesis').last);
+    await tester.tap(find.text('Removable work').last);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('removable-arch')), findsOneWidget);
@@ -141,6 +141,63 @@ void main() {
           .onPressed,
       isNotNull,
     );
+
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('whole-tooth therapies need no extra surface click',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    final group = TherapyGroup.fromJson({
+      'id': 'group1234567890',
+      'name': 'Endodontics',
+    });
+    final procedure = ProcedureCatalogItem.fromJson({
+      'id': 'procedure123456',
+      'name': 'Root canal',
+      'therapyGroupID': group.id,
+      'handlingMode': 'wholeTooth',
+      'targetScope': 'tooth',
+      'surfaceSelectionMode': 'automaticWholeTooth',
+      'defaultSurfaces': ['wholeTooth'],
+    });
+    therapyGroups.set(group);
+    procedureCatalog.set(procedure);
+
+    tester.view.physicalSize = const Size(1400, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1200,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('whole-tooth-automatic')), findsOneWidget);
+    expect(find.byKey(const Key('surface-unspecified')), findsNothing);
+    expect(find.byKey(const Key('treatment-target-scope')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('record-treatment-event')));
+    await tester.pump();
+
+    final event = odontogramEvents.forPatient('patient1234567').single;
+    expect(event.toothFdi, 11);
+    expect(event.surfaces, ['wholeTooth']);
 
     await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpWidget(const SizedBox.shrink());

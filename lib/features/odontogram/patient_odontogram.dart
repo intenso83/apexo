@@ -90,6 +90,12 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
                 selectedFdi = fdi;
                 if (selectedTargetScope == TreatmentTargetScope.tooth) {
                   selectedSurfaces.clear();
+                  final procedure = procedureCatalog.get(selectedProcedureID);
+                  if (procedure != null &&
+                      procedureCatalog.handlingDecision(procedure).mode ==
+                          ProcedureHandlingMode.wholeTooth) {
+                    selectedSurfaces.add(DentalSurface.wholeTooth);
+                  }
                 }
               }),
             ),
@@ -162,6 +168,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           InfoLabel(
             label: txt('procedureName'),
             child: ComboBox<String>(
+              key: const Key('procedure-selector'),
               value: selectedProcedureID.isEmpty ? null : selectedProcedureID,
               isExpanded: true,
               items: procedures
@@ -184,33 +191,27 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             ),
           ],
           const SizedBox(height: 9),
-          InfoLabel(
-            label: txt('treatmentTargetType'),
-            child: ComboBox<TreatmentTargetScope>(
-              key: const Key('treatment-target-scope'),
-              value: selectedTargetScope,
-              isExpanded: true,
-              items: TreatmentTargetScope.values
-                  .map(
-                    (scope) => ComboBoxItem(
-                      value: scope,
-                      child: Text(txt('targetScope_${scope.name}')),
-                    ),
-                  )
-                  .toList(),
-              onChanged: canEdit
-                  ? (value) => setState(() {
-                        selectedTargetScope =
-                            value ?? TreatmentTargetScope.tooth;
-                        if (selectedTargetScope != TreatmentTargetScope.tooth) {
-                          selectedSurfaces.clear();
-                        }
-                      })
-                  : null,
+          if (selectedProcedure != null)
+            InfoBar(
+              key: const Key('automatic-procedure-handling'),
+              title: Text(
+                '${txt('automaticHandling')}: '
+                '${txt('procedureHandling_${procedureCatalog.handlingDecision(selectedProcedure).mode.name}')}',
+              ),
+              content: Text(txt('automaticHandlingDescription')),
+              severity: procedureCatalog
+                      .handlingDecision(selectedProcedure)
+                      .needsReview
+                  ? InfoBarSeverity.warning
+                  : InfoBarSeverity.info,
             ),
-          ),
           const SizedBox(height: 10),
-          _buildTargetEditor(selectedProcedure),
+          _buildTargetEditor(
+            selectedProcedure,
+            selectedProcedure == null
+                ? null
+                : procedureCatalog.handlingDecision(selectedProcedure).mode,
+          ),
           if (!_targetConfigurationValid) ...[
             const SizedBox(height: 8),
             InfoBar(
@@ -268,20 +269,35 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
     );
   }
 
-  Widget _buildTargetEditor(ProcedureCatalogItem? procedure) {
+  Widget _buildTargetEditor(
+    ProcedureCatalogItem? procedure,
+    ProcedureHandlingMode? handlingMode,
+  ) {
     return switch (selectedTargetScope) {
       TreatmentTargetScope.patient => InfoBar(
           title: Text(txt('patientLevelTreatment')),
           content: Text(txt('patientLevelTreatmentDescription')),
           severity: InfoBarSeverity.info,
         ),
-      TreatmentTargetScope.tooth => _buildSurfaceEditor(procedure),
+      TreatmentTargetScope.tooth =>
+        _buildSurfaceEditor(procedure, handlingMode),
       TreatmentTargetScope.bridge => _buildBridgeEditor(),
       TreatmentTargetScope.removableProsthesis => _buildRemovableEditor(),
     };
   }
 
-  Widget _buildSurfaceEditor(ProcedureCatalogItem? procedure) {
+  Widget _buildSurfaceEditor(
+    ProcedureCatalogItem? procedure,
+    ProcedureHandlingMode? handlingMode,
+  ) {
+    if (handlingMode == ProcedureHandlingMode.wholeTooth) {
+      return InfoBar(
+        key: const Key('whole-tooth-automatic'),
+        title: Text('${txt('tooth')} $selectedFdi'),
+        content: Text(txt('wholeToothSelectedAutomatically')),
+        severity: InfoBarSeverity.info,
+      );
+    }
     if (procedure?.surfaceSelectionMode == SurfaceSelectionMode.notApplicable) {
       return InfoBar(
         title: Text('${txt('tooth')} $selectedFdi'),
@@ -308,32 +324,27 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
                 child: Text(txt('surfaceUnspecified')),
               ),
             ),
-            ...DentalSurface.values.map(
-              (surface) => ToggleButton(
-                key: Key('surface-${surface.name}'),
-                checked: selectedSurfaces.contains(surface),
-                onChanged: canEdit
-                    ? (selected) => setState(() {
-                          if (surface == DentalSurface.wholeTooth && selected) {
-                            selectedSurfaces
-                              ..clear()
-                              ..add(surface);
-                          } else {
-                            selectedSurfaces.remove(DentalSurface.wholeTooth);
-                            if (selected) {
-                              selectedSurfaces.add(surface);
-                            } else {
-                              selectedSurfaces.remove(surface);
-                            }
-                          }
-                        })
-                    : null,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(_surfaceText(surface, selectedFdi)),
+            ...DentalSurface.values
+                .where((surface) => surface != DentalSurface.wholeTooth)
+                .map(
+                  (surface) => ToggleButton(
+                    key: Key('surface-${surface.name}'),
+                    checked: selectedSurfaces.contains(surface),
+                    onChanged: canEdit
+                        ? (selected) => setState(() {
+                              if (selected) {
+                                selectedSurfaces.add(surface);
+                              } else {
+                                selectedSurfaces.remove(surface);
+                              }
+                            })
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(_surfaceText(surface, selectedFdi)),
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ],
         ),
         if (procedure != null && procedure.defaultSurfaces.isNotEmpty) ...[
@@ -567,16 +578,20 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
 
   void _applyProcedureDefaults(ProcedureCatalogItem? procedure) {
     if (procedure == null) return;
-    selectedTargetScope = procedure.effectiveTargetScope;
+    final handlingMode = procedureCatalog.handlingDecision(procedure).mode;
+    selectedTargetScope = handlingMode.targetScope;
     selectedSurfaces
       ..clear()
       ..addAll(
-        DentalSurface.values.where(
-          (surface) => procedure.defaultSurfaces.contains(surface.name),
-        ),
+        handlingMode == ProcedureHandlingMode.wholeTooth
+            ? const [DentalSurface.wholeTooth]
+            : DentalSurface.values.where(
+                (surface) =>
+                    surface != DentalSurface.wholeTooth &&
+                    procedure.defaultSurfaces.contains(surface.name),
+              ),
       );
-    if (procedure.surfaceSelectionMode == SurfaceSelectionMode.notApplicable ||
-        selectedTargetScope != TreatmentTargetScope.tooth) {
+    if (selectedTargetScope != TreatmentTargetScope.tooth) {
       selectedSurfaces.clear();
     }
   }
@@ -658,10 +673,10 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
     });
     odontogramEvents.set(event);
     setState(() {
-      selectedSurfaces.clear();
       bridgeUnits.clear();
       removableComponents.clear();
       notesController.clear();
+      _applyProcedureDefaults(procedure);
     });
   }
 }

@@ -320,6 +320,32 @@ class En {
     "targetScope_tooth": "Tooth / surfaces",
     "targetScope_bridge": "Bridge",
     "targetScope_removableProsthesis": "Removable prosthesis",
+    "procedureHandlingMode": "How Apexo handles this therapy",
+    "procedureHandlingChoose": "Choose one workflow",
+    "procedureHandlingRequired":
+        "Choose how this therapy should behave during daily entry.",
+    "procedureHandling_surfaceBased": "Filling / choose surfaces",
+    "procedureHandling_wholeTooth": "Whole tooth",
+    "procedureHandling_bridge": "Bridge",
+    "procedureHandling_removableProsthesis": "Removable prosthesis",
+    "procedureHandling_patientLevel": "General / patient-level work",
+    "procedureHandlingDescription_surfaceBased":
+        "After choosing a tooth, Apexo shows Mesial, Distal, Facial, Oral and Occlusal/Incisal surfaces.",
+    "procedureHandlingDescription_wholeTooth":
+        "For crowns, endodontics, extractions and similar work. Apexo selects the whole tooth automatically.",
+    "procedureHandlingDescription_bridge":
+        "Apexo opens the connected bridge-unit mapper.",
+    "procedureHandlingDescription_removableProsthesis":
+        "Apexo opens the dental-arch and removable-component mapper.",
+    "procedureHandlingDescription_patientLevel":
+        "The entry is kept in history without drawing on a tooth.",
+    "procedureHandlingNeedsReview": "Automatic suggestion — please review",
+    "procedureHandlingSuggested": "Automatic suggestion from imported data",
+    "automaticHandling": "Automatic workflow",
+    "automaticHandlingDescription":
+        "This was chosen from the selected therapy's catalogue setting.",
+    "wholeToothSelectedAutomatically":
+        "The whole tooth is selected automatically; no surface click is needed.",
     "patientLevelTreatment": "Patient-level treatment",
     "patientLevelTreatmentDescription":
         "This entry stays in the treatment history and does not draw on a tooth.",
@@ -332,6 +358,7 @@ class En {
     "surfaceSelectionBehaviour": "Surface selection",
     "surfaceMode_notApplicable": "Not applicable",
     "surfaceMode_optional": "Optional",
+    "surfaceMode_automaticWholeTooth": "Automatic whole tooth",
     "selectedTooth": "Selected tooth",
     "bridgeUnitMapping": "Bridge units",
     "bridgeWithoutUnitsDescription":

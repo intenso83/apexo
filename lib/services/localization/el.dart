@@ -322,6 +322,32 @@ class El implements En {
     "targetScope_tooth": "Δόντι / επιφάνειες",
     "targetScope_bridge": "Γέφυρα",
     "targetScope_removableProsthesis": "Κινητή προσθετική εργασία",
+    "procedureHandlingMode": "Πώς χειρίζεται το Apexo αυτή τη θεραπεία",
+    "procedureHandlingChoose": "Επιλέξτε μία ροή εργασίας",
+    "procedureHandlingRequired":
+        "Επιλέξτε πώς θα συμπεριφέρεται αυτή η θεραπεία στην καθημερινή καταχώριση.",
+    "procedureHandling_surfaceBased": "Έμφραξη / επιλογή επιφανειών",
+    "procedureHandling_wholeTooth": "Ολόκληρο δόντι",
+    "procedureHandling_bridge": "Γέφυρα",
+    "procedureHandling_removableProsthesis": "Κινητή προσθετική",
+    "procedureHandling_patientLevel": "Γενική εργασία ασθενή",
+    "procedureHandlingDescription_surfaceBased":
+        "Μετά την επιλογή δοντιού εμφανίζονται οι επιφάνειες Εγγύς, Άπω, Προσωπική, Υπερώια/Γλωσσική και Μασητική/Κοπτική.",
+    "procedureHandlingDescription_wholeTooth":
+        "Για στεφάνες, ενδοδοντία, εξαγωγές και παρόμοιες εργασίες. Επιλέγεται αυτόματα ολόκληρο το δόντι.",
+    "procedureHandlingDescription_bridge":
+        "Ανοίγει αυτόματα η χαρτογράφηση των συνδεδεμένων μονάδων γέφυρας.",
+    "procedureHandlingDescription_removableProsthesis":
+        "Ανοίγει αυτόματα η χαρτογράφηση τόξου και στοιχείων κινητής εργασίας.",
+    "procedureHandlingDescription_patientLevel":
+        "Η καταχώριση μένει στο ιστορικό χωρίς να σχεδιάζεται σε δόντι.",
+    "procedureHandlingNeedsReview": "Αυτόματη πρόταση — χρειάζεται έλεγχο",
+    "procedureHandlingSuggested": "Αυτόματη πρόταση από τα εισαγόμενα δεδομένα",
+    "automaticHandling": "Αυτόματη ροή",
+    "automaticHandlingDescription":
+        "Επιλέχθηκε από τη ρύθμιση της συγκεκριμένης θεραπείας στον κατάλογο.",
+    "wholeToothSelectedAutomatically":
+        "Επιλέχθηκε αυτόματα ολόκληρο το δόντι· δεν χρειάζεται επιπλέον επιλογή επιφάνειας.",
     "patientLevelTreatment": "Γενική θεραπεία ασθενή",
     "patientLevelTreatmentDescription":
         "Η καταχώριση θα εμφανίζεται στο ιστορικό χωρίς να σχεδιάζεται σε κάποιο δόντι.",
@@ -334,6 +360,7 @@ class El implements En {
     "surfaceSelectionBehaviour": "Επιλογή επιφανειών",
     "surfaceMode_notApplicable": "Δεν εφαρμόζεται",
     "surfaceMode_optional": "Προαιρετική",
+    "surfaceMode_automaticWholeTooth": "Αυτόματα ολόκληρο δόντι",
     "selectedTooth": "Επιλεγμένο δόντι",
     "bridgeUnitMapping": "Μονάδες γέφυρας",
     "bridgeWithoutUnitsDescription":

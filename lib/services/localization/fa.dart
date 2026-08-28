@@ -318,6 +318,30 @@ class Fa implements En {
     "targetScope_tooth": "دندان / سطوح",
     "targetScope_bridge": "پل",
     "targetScope_removableProsthesis": "پروتز متحرک",
+    "procedureHandlingMode": "نحوهٔ مدیریت این درمان در Apexo",
+    "procedureHandlingChoose": "یک گردش کار انتخاب کنید",
+    "procedureHandlingRequired": "نحوهٔ ثبت روزانهٔ این درمان را انتخاب کنید.",
+    "procedureHandling_surfaceBased": "ترمیم / انتخاب سطوح",
+    "procedureHandling_wholeTooth": "کل دندان",
+    "procedureHandling_bridge": "بریج",
+    "procedureHandling_removableProsthesis": "پروتز متحرک",
+    "procedureHandling_patientLevel": "کار عمومی / سطح بیمار",
+    "procedureHandlingDescription_surfaceBased":
+        "پس از انتخاب دندان، Apexo سطوح دندان را نشان می‌دهد.",
+    "procedureHandlingDescription_wholeTooth":
+        "برای روکش، اندودانتیکس، کشیدن و کارهای مشابه؛ کل دندان خودکار انتخاب می‌شود.",
+    "procedureHandlingDescription_bridge":
+        "Apexo نقشهٔ واحدهای بریج را باز می‌کند.",
+    "procedureHandlingDescription_removableProsthesis":
+        "Apexo نقشهٔ قوس و اجزای پروتز متحرک را باز می‌کند.",
+    "procedureHandlingDescription_patientLevel":
+        "ثبت در تاریخچه می‌ماند و روی دندان رسم نمی‌شود.",
+    "procedureHandlingNeedsReview": "پیشنهاد خودکار — نیازمند بررسی",
+    "procedureHandlingSuggested": "پیشنهاد خودکار از داده‌های واردشده",
+    "automaticHandling": "گردش کار خودکار",
+    "automaticHandlingDescription": "از تنظیم درمان در کاتالوگ انتخاب شده است.",
+    "wholeToothSelectedAutomatically":
+        "کل دندان خودکار انتخاب شده است؛ نیازی به انتخاب سطح نیست.",
     "patientLevelTreatment": "درمان در سطح بیمار",
     "patientLevelTreatmentDescription":
         "این مورد در سابقه باقی می‌ماند و روی دندان نمایش داده نمی‌شود.",
@@ -330,6 +354,7 @@ class Fa implements En {
     "surfaceSelectionBehaviour": "انتخاب سطح",
     "surfaceMode_notApplicable": "قابل اعمال نیست",
     "surfaceMode_optional": "اختیاری",
+    "surfaceMode_automaticWholeTooth": "کل دندان به‌صورت خودکار",
     "selectedTooth": "دندان انتخاب‌شده",
     "bridgeUnitMapping": "واحدهای پل",
     "bridgeWithoutUnitsDescription":

@@ -329,6 +329,33 @@ class Es implements En {
     "targetScope_tooth": "Diente / superficies",
     "targetScope_bridge": "Puente",
     "targetScope_removableProsthesis": "Prótesis removible",
+    "procedureHandlingMode": "Cómo maneja Apexo este tratamiento",
+    "procedureHandlingChoose": "Elija un flujo de trabajo",
+    "procedureHandlingRequired":
+        "Elija cómo debe comportarse este tratamiento durante el registro diario.",
+    "procedureHandling_surfaceBased": "Empaste / elegir superficies",
+    "procedureHandling_wholeTooth": "Diente completo",
+    "procedureHandling_bridge": "Puente",
+    "procedureHandling_removableProsthesis": "Prótesis removible",
+    "procedureHandling_patientLevel": "Trabajo general / del paciente",
+    "procedureHandlingDescription_surfaceBased":
+        "Después de elegir un diente, Apexo muestra las superficies dentales.",
+    "procedureHandlingDescription_wholeTooth":
+        "Para coronas, endodoncias, extracciones y trabajos similares. Se selecciona todo el diente automáticamente.",
+    "procedureHandlingDescription_bridge":
+        "Apexo abre el editor de unidades de puente conectadas.",
+    "procedureHandlingDescription_removableProsthesis":
+        "Apexo abre el editor de arco y componentes removibles.",
+    "procedureHandlingDescription_patientLevel":
+        "La entrada queda en el historial sin dibujarse en un diente.",
+    "procedureHandlingNeedsReview": "Sugerencia automática — revisar",
+    "procedureHandlingSuggested":
+        "Sugerencia automática de los datos importados",
+    "automaticHandling": "Flujo automático",
+    "automaticHandlingDescription":
+        "Se eligió desde la configuración del tratamiento en el catálogo.",
+    "wholeToothSelectedAutomatically":
+        "Se seleccionó todo el diente automáticamente; no hace falta elegir una superficie.",
     "patientLevelTreatment": "Tratamiento a nivel del paciente",
     "patientLevelTreatmentDescription":
         "Este registro permanece en el historial y no se dibuja en ningún diente.",
@@ -341,6 +368,7 @@ class Es implements En {
     "surfaceSelectionBehaviour": "Selección de superficies",
     "surfaceMode_notApplicable": "No aplicable",
     "surfaceMode_optional": "Opcional",
+    "surfaceMode_automaticWholeTooth": "Diente completo automático",
     "selectedTooth": "Diente seleccionado",
     "bridgeUnitMapping": "Unidades del puente",
     "bridgeWithoutUnitsDescription":

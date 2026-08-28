@@ -5,9 +5,50 @@ enum TreatmentTargetScope {
   removableProsthesis,
 }
 
+/// The daily-entry workflow that Apexo opens after a procedure is selected.
+///
+/// This is deliberately stored on each procedure, rather than inferred from
+/// its therapy group. A single group can therefore contain, for example, both
+/// crowns and bridges without asking the clinician for an extra target choice.
+enum ProcedureHandlingMode {
+  surfaceBased,
+  wholeTooth,
+  bridge,
+  removableProsthesis,
+  patientLevel,
+}
+
 enum SurfaceSelectionMode {
   notApplicable,
   optional,
+  automaticWholeTooth,
+}
+
+extension ProcedureHandlingModeRules on ProcedureHandlingMode {
+  TreatmentTargetScope get targetScope => switch (this) {
+        ProcedureHandlingMode.surfaceBased ||
+        ProcedureHandlingMode.wholeTooth =>
+          TreatmentTargetScope.tooth,
+        ProcedureHandlingMode.bridge => TreatmentTargetScope.bridge,
+        ProcedureHandlingMode.removableProsthesis =>
+          TreatmentTargetScope.removableProsthesis,
+        ProcedureHandlingMode.patientLevel => TreatmentTargetScope.patient,
+      };
+
+  SurfaceSelectionMode get surfaceSelectionMode => switch (this) {
+        ProcedureHandlingMode.surfaceBased => SurfaceSelectionMode.optional,
+        ProcedureHandlingMode.wholeTooth =>
+          SurfaceSelectionMode.automaticWholeTooth,
+        ProcedureHandlingMode.bridge ||
+        ProcedureHandlingMode.removableProsthesis ||
+        ProcedureHandlingMode.patientLevel =>
+          SurfaceSelectionMode.notApplicable,
+      };
+
+  List<String> get automaticSurfaces => switch (this) {
+        ProcedureHandlingMode.wholeTooth => const ['wholeTooth'],
+        _ => const [],
+      };
 }
 
 enum DentalArch {
