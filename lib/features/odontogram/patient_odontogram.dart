@@ -1070,23 +1070,32 @@ class _ToothAssetImage extends StatelessWidget {
           (marker.status == OdontogramEventStatus.completed ||
               marker.status == OdontogramEventStatus.existing),
     );
+    final completedImplant = overlays.any(
+      (marker) =>
+          marker.kind == OdontogramOverlayKind.implant &&
+          (marker.status == OdontogramEventStatus.completed ||
+              marker.status == OdontogramEventStatus.existing),
+    );
+    final toothOpacity = completedExtraction
+        ? 0.14
+        : completedImplant
+            ? 0.22
+            : 1.0;
     return SizedBox(
       width: 48,
       height: 48,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Opacity(opacity: completedExtraction ? 0.18 : 1, child: image),
+          Opacity(opacity: toothOpacity, child: image),
           for (final marker in overlays)
             IgnorePointer(
-              child: CustomPaint(
+              child: OdontogramTreatmentOverlayLayer(
                 key: Key(
                   'odontogram-overlay-${marker.kind.name}-$fdi-${view.name}',
                 ),
-                painter: OdontogramTreatmentOverlayPainter(
-                  marker: marker,
-                  asset: asset,
-                ),
+                marker: marker,
+                asset: asset,
               ),
             ),
         ],

@@ -1,4 +1,5 @@
 import 'package:apexo/features/odontogram/odontogram_event_model.dart';
+import 'package:apexo/features/odontogram/odontogram_assets.dart';
 import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/odontogram_overlay_painter.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
@@ -29,6 +30,8 @@ void main() {
       OdontogramOverlayKind.rootCanal,
     ]);
     expect(markers.first.status, OdontogramEventStatus.planned);
+    expect(markers.first.surfaces, {DentalSurface.wholeTooth});
+    expect(markers.first.procedureName, 'crown');
   });
 
   test('bridge marker preserves the mapped unit role', () {
