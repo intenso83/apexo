@@ -156,6 +156,20 @@ void main() {
     );
     expect(
       classifyProcedureHandling(
+        procedureName: 'Στεφάνη ζιρκονίας / μεταλλοκεραμική',
+        groupName: 'Ακίνητη Προσθετική',
+      ).mode,
+      ProcedureHandlingMode.wholeTooth,
+    );
+    expect(
+      inferOdontogramOverlay(
+        procedureName: 'Στεφάνη ζιρκονίας / μεταλλοκεραμική',
+        groupName: 'Ακίνητη Προσθετική',
+      ),
+      OdontogramOverlayKind.crown,
+    );
+    expect(
+      classifyProcedureHandling(
         procedureName: 'Κλινική εξέταση',
         groupName: 'Διάγνωση',
       ).mode,

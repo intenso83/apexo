@@ -25,27 +25,17 @@ ProcedureHandlingDecision classifyProcedureHandling({
 }) {
   final procedure = _normalize(procedureName);
   final group = _normalize(groupName);
-  final combined = '$group $procedure';
 
-  if (_hasAny(combined, const [
+  // The procedure name is the most specific signal and must win over its
+  // parent group. In Greek, "ακινητη" (fixed) contains the full
+  // substring "κινητη" (removable), so classifying the combined
+  // group/name text made fixed crowns look like removable prostheses.
+  if (_hasAny(procedure, const [
     'bridge',
     'maryland',
     'γεφυρ',
   ])) {
     return _decision(ProcedureHandlingMode.bridge, 'bridge_keyword');
-  }
-
-  if (_hasAny(combined, const [
-    'removable',
-    'denture',
-    'partial denture',
-    'κινητη προσθετικ',
-    'οδοντοστοιχ',
-  ])) {
-    return _decision(
-      ProcedureHandlingMode.removableProsthesis,
-      'removable_keyword',
-    );
   }
 
   if (_hasAny(procedure, const [
@@ -63,7 +53,7 @@ ProcedureHandlingDecision classifyProcedureHandling({
     return _decision(ProcedureHandlingMode.surfaceBased, 'surface_keyword');
   }
 
-  if (_hasAny(combined, const [
+  if (_hasAny(procedure, const [
     'crown',
     'veneer',
     'extraction',
@@ -79,12 +69,24 @@ ProcedureHandlingDecision classifyProcedureHandling({
     'ενδοδοντ',
     'απονευρ',
     'πολφοτομ',
-    'ακινητη προσθετικ',
   ])) {
     return _decision(ProcedureHandlingMode.wholeTooth, 'whole_tooth_keyword');
   }
 
-  if (_hasAny(combined, const [
+  if (_hasAny(procedure, const [
+    'removable',
+    'denture',
+    'partial denture',
+    'κινητη προσθετικ',
+    'οδοντοστοιχ',
+  ])) {
+    return _decision(
+      ProcedureHandlingMode.removableProsthesis,
+      'removable_keyword',
+    );
+  }
+
+  if (_hasAny(procedure, const [
     'general',
     'diagnos',
     'prevent',
@@ -101,6 +103,48 @@ ProcedureHandlingDecision classifyProcedureHandling({
     'περιοδοντ',
   ])) {
     return _decision(ProcedureHandlingMode.patientLevel, 'patient_keyword');
+  }
+
+  // Group-level fallbacks come only after procedure-specific recognition.
+  if (_hasAny(group, const ['bridge', 'maryland', 'γεφυρ'])) {
+    return _decision(ProcedureHandlingMode.bridge, 'bridge_group');
+  }
+  if (_hasAny(group, const ['fixed prosth', 'ακινητη προσθετικ'])) {
+    return _decision(ProcedureHandlingMode.wholeTooth, 'fixed_group');
+  }
+  if (_hasAny(group, const [
+    'removable',
+    'denture',
+    'κινητη προσθετικ',
+    'οδοντοστοιχ',
+  ])) {
+    return _decision(
+      ProcedureHandlingMode.removableProsthesis,
+      'removable_group',
+    );
+  }
+  if (_hasAny(group, const [
+    'endodont',
+    'implant',
+    'ενδοδοντ',
+    'εμφυτευ',
+    'εξακτικ',
+  ])) {
+    return _decision(ProcedureHandlingMode.wholeTooth, 'whole_tooth_group');
+  }
+  if (_hasAny(group, const [
+    'general',
+    'diagnos',
+    'prevent',
+    'orthodont',
+    'periodont',
+    'γενικ',
+    'διαγνωσ',
+    'προληψ',
+    'ορθοδοντ',
+    'περιοδοντ',
+  ])) {
+    return _decision(ProcedureHandlingMode.patientLevel, 'patient_group');
   }
 
   return const ProcedureHandlingDecision(

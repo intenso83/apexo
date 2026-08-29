@@ -108,35 +108,45 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
 
   void _paintCrown(Canvas canvas, Size size, Color color) {
     final path = _crownPath(size);
+    canvas.drawPath(path, _haloStroke(size, 4.6));
     canvas.drawPath(
       path,
       Paint()
-        ..color = color.withValues(alpha: 0.20)
+        ..color = color.withValues(alpha: 0.34)
         ..style = PaintingStyle.fill,
     );
-    canvas.drawPath(path, _stroke(color, size, 2.2));
+    canvas.drawPath(path, _stroke(color, size, 2.7));
     final y = asset.view == OdontogramView.facial
         ? (asset.jaw == OdontogramJaw.upper
             ? size.height * 0.62
             : size.height * 0.38)
-        : size.height * 0.25;
+        : size.height * 0.22;
     canvas.drawLine(
-      Offset(size.width * 0.23, y),
-      Offset(size.width * 0.77, y),
-      _stroke(color, size, 1.3),
+      Offset(size.width * 0.22, y),
+      Offset(size.width * 0.78, y),
+      _haloStroke(size, 3.6),
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.22, y),
+      Offset(size.width * 0.78, y),
+      _stroke(color, size, 1.7),
     );
   }
 
   void _paintRootCanal(Canvas canvas, Size size, Color color) {
     if (asset.view != OdontogramView.facial) {
-      final center = Offset(size.width * 0.5, size.height * 0.5);
-      canvas.drawCircle(
-          center, size.shortestSide * 0.12, _stroke(color, size, 2));
-      canvas.drawCircle(
-        center,
-        size.shortestSide * 0.045,
-        Paint()..color = color,
-      );
+      for (final center in _canalCenters(size)) {
+        canvas.drawCircle(
+          center,
+          size.shortestSide * 0.085,
+          Paint()..color = const Color(0xE6FFFFFF),
+        );
+        canvas.drawCircle(
+          center,
+          size.shortestSide * 0.052,
+          Paint()..color = color,
+        );
+      }
       return;
     }
 
@@ -151,8 +161,13 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
     final spread = switch (canalCount) { 1 => 0.0, 2 => 0.14, _ => 0.21 };
     canvas.drawCircle(
       Offset(size.width * 0.5, chamberY),
-      size.shortestSide * 0.085,
-      Paint()..color = color.withValues(alpha: 0.80),
+      size.shortestSide * 0.12,
+      Paint()..color = const Color(0xE6FFFFFF),
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.5, chamberY),
+      size.shortestSide * 0.075,
+      Paint()..color = color.withValues(alpha: 0.92),
     );
     for (var index = 0; index < canalCount; index++) {
       final fraction = canalCount == 1 ? 0.5 : index / (canalCount - 1);
@@ -165,8 +180,27 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
           endX,
           rootY,
         );
-      canvas.drawPath(path, _stroke(color, size, 2.2));
+      canvas.drawPath(path, _haloStroke(size, 4.1));
+      canvas.drawPath(path, _stroke(color, size, 2.0));
     }
+  }
+
+  List<Offset> _canalCenters(Size size) {
+    final center = Offset(size.width * 0.5, size.height * 0.5);
+    final horizontal = size.width * 0.105;
+    final vertical = size.height * 0.085;
+    return switch (asset.toothType) {
+      OdontogramToothType.incisor || OdontogramToothType.canine => [center],
+      OdontogramToothType.premolar => [
+          center.translate(-horizontal, 0),
+          center.translate(horizontal, 0),
+        ],
+      OdontogramToothType.molar => [
+          center.translate(-horizontal, vertical),
+          center.translate(horizontal, vertical),
+          center.translate(0, -vertical),
+        ],
+    };
   }
 
   void _paintExtraction(Canvas canvas, Size size, Color color) {
@@ -288,18 +322,29 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
 
   Path _crownPath(Size size) {
     if (asset.view != OdontogramView.facial) {
-      return Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTWH(
-              size.width * 0.10,
-              size.height * 0.10,
-              size.width * 0.80,
-              size.height * 0.80,
-            ),
-            Radius.circular(size.shortestSide * 0.20),
+      final rect = switch (asset.toothType) {
+        OdontogramToothType.molar => Rect.fromLTWH(
+            size.width * 0.08,
+            size.height * 0.08,
+            size.width * 0.84,
+            size.height * 0.84,
           ),
-        );
+        OdontogramToothType.premolar => Rect.fromLTWH(
+            size.width * 0.16,
+            size.height * 0.08,
+            size.width * 0.68,
+            size.height * 0.84,
+          ),
+        OdontogramToothType.incisor ||
+        OdontogramToothType.canine =>
+          Rect.fromLTWH(
+            size.width * 0.20,
+            size.height * 0.08,
+            size.width * 0.60,
+            size.height * 0.84,
+          ),
+      };
+      return Path()..addOval(rect);
     }
     final upper = asset.jaw == OdontogramJaw.upper;
     final top = size.height * (upper ? 0.54 : 0.08);
@@ -319,6 +364,13 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
 
   Paint _stroke(Color color, Size size, double width) => Paint()
     ..color = color
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = width * (size.shortestSide / 48)
+    ..strokeJoin = StrokeJoin.round
+    ..strokeCap = StrokeCap.round;
+
+  Paint _haloStroke(Size size, double width) => Paint()
+    ..color = const Color(0xE6FFFFFF)
     ..style = PaintingStyle.stroke
     ..strokeWidth = width * (size.shortestSide / 48)
     ..strokeJoin = StrokeJoin.round
