@@ -52,7 +52,7 @@ void main() {
     expect(marker.bridgeRole, BridgeUnitRole.pontic);
   });
 
-  test('oral view is reserved for crown and filling overlays', () {
+  test('oral view keeps crown filling and extraction overlays', () {
     expect(
       odontogramOverlayVisibleInView(
         OdontogramOverlayKind.crown,
@@ -67,10 +67,16 @@ void main() {
       ),
       isTrue,
     );
+    expect(
+      odontogramOverlayVisibleInView(
+        OdontogramOverlayKind.extraction,
+        OdontogramView.oral,
+      ),
+      isTrue,
+    );
     for (final hiddenKind in [
       OdontogramOverlayKind.rootCanal,
       OdontogramOverlayKind.implant,
-      OdontogramOverlayKind.extraction,
       OdontogramOverlayKind.bridge,
     ]) {
       expect(

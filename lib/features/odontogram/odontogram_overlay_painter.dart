@@ -71,7 +71,8 @@ bool odontogramOverlayVisibleInView(
 ) =>
     view != OdontogramView.oral ||
     kind == OdontogramOverlayKind.crown ||
-    kind == OdontogramOverlayKind.filling;
+    kind == OdontogramOverlayKind.filling ||
+    kind == OdontogramOverlayKind.extraction;
 
 /// Paints a treatment as a material layer that follows the supplied tooth art.
 ///
@@ -172,7 +173,8 @@ class _ClinicalCrownClipper extends CustomClipper<Rect> {
 
   @override
   Rect getClip(Size size) {
-    if (asset.view == OdontogramView.occlusalIncisal) {
+    if (asset.view == OdontogramView.occlusalIncisal ||
+        asset.view == OdontogramView.oral) {
       return Offset.zero & size;
     }
     return asset.jaw == OdontogramJaw.upper
@@ -311,19 +313,19 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
       final rect = switch (surface) {
         DentalSurface.mesial => Rect.fromCenter(
             center: Offset(
-              size.width * (mesialOnLeft ? 0.35 : 0.65),
+              size.width * (mesialOnLeft ? 0.37 : 0.63),
               center.dy,
             ),
-            width: size.width * 0.29,
-            height: size.height * 0.42,
+            width: size.width * 0.22,
+            height: size.height * 0.32,
           ),
         DentalSurface.distal => Rect.fromCenter(
             center: Offset(
-              size.width * (mesialOnLeft ? 0.65 : 0.35),
+              size.width * (mesialOnLeft ? 0.63 : 0.37),
               center.dy,
             ),
-            width: size.width * 0.29,
-            height: size.height * 0.42,
+            width: size.width * 0.22,
+            height: size.height * 0.32,
           ),
         DentalSurface.facial => Rect.fromCenter(
             center: Offset(center.dx, size.height * 0.36),
@@ -338,9 +340,9 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
         DentalSurface.occlusalIncisal => Rect.fromCenter(
             center: center,
             width: size.width *
-                (asset.toothType == OdontogramToothType.molar ? 0.38 : 0.30),
+                (asset.toothType == OdontogramToothType.molar ? 0.30 : 0.25),
             height: size.height *
-                (asset.toothType == OdontogramToothType.molar ? 0.30 : 0.24),
+                (asset.toothType == OdontogramToothType.molar ? 0.23 : 0.20),
           ),
         DentalSurface.wholeTooth => Rect.zero,
       };
@@ -362,8 +364,8 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
     final rect = switch (surface) {
       DentalSurface.mesial || DentalSurface.distal => Rect.fromCenter(
           center: Offset(sideX, crownCenterY),
-          width: size.width * 0.19,
-          height: size.height * 0.25,
+          width: size.width * 0.15,
+          height: size.height * 0.21,
         ),
       DentalSurface.facial || DentalSurface.oral => Rect.fromCenter(
           center: Offset(size.width * 0.5, crownCenterY),
@@ -463,7 +465,6 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
 
     final upper = asset.jaw == OdontogramJaw.upper;
     final chamberY = size.height * (upper ? 0.70 : 0.30);
-    final rootY = size.height * (upper ? 0.16 : 0.84);
     final routes = _canalRoutes();
     final chamber = Rect.fromCenter(
       center: Offset(size.width * 0.5, chamberY),
@@ -483,15 +484,16 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
       _stroke(statusColor.withValues(alpha: 0.68), size, 0.65),
     );
     for (final route in routes) {
+      final apexY = size.height * route.apexY;
       final path = Path()
         ..moveTo(size.width * route.chamberX, chamberY)
         ..cubicTo(
           size.width * route.controlX,
-          chamberY + (rootY - chamberY) * 0.34,
+          chamberY + (apexY - chamberY) * 0.34,
           size.width * route.controlX,
-          chamberY + (rootY - chamberY) * 0.72,
+          chamberY + (apexY - chamberY) * 0.72,
           size.width * route.apexX,
-          rootY,
+          apexY,
         );
       canvas.drawPath(path, _stroke(const Color(0xCFFFFFFF), size, 2.35));
       canvas.drawPath(path, _stroke(materialColor, size, 1.10));
@@ -505,43 +507,117 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
         ),
       );
       canvas.drawCircle(
-        Offset(size.width * route.apexX, rootY),
+        Offset(size.width * route.apexX, apexY),
         size.shortestSide * 0.018,
         Paint()..color = materialColor,
       );
     }
   }
 
-  List<({double chamberX, double controlX, double apexX})> _canalRoutes() {
+  List<
+      ({
+        double chamberX,
+        double controlX,
+        double apexX,
+        double apexY,
+      })> _canalRoutes() {
     final toothPosition = asset.fdi % 10;
     final upper = asset.jaw == OdontogramJaw.upper;
     double orient(double x) => asset.flipHorizontally ? 1 - x : x;
-    final incisorCurve = toothPosition == 2 ? 0.02 : 0.0;
-    final routes = switch (asset.toothType) {
-      OdontogramToothType.incisor => [
+    List<
+        ({
+          double chamberX,
+          double controlX,
+          double apexX,
+          double apexY,
+        })> single(double apexX, double apexY) => [
           (
             chamberX: 0.50,
-            controlX: 0.50 + incisorCurve,
-            apexX: 0.50,
+            controlX: (0.50 + apexX) / 2,
+            apexX: apexX,
+            apexY: apexY,
           ),
-        ],
-      OdontogramToothType.canine => const [
-          (chamberX: 0.50, controlX: 0.51, apexX: 0.50),
-        ],
-      OdontogramToothType.premolar => const [
-          (chamberX: 0.50, controlX: 0.50, apexX: 0.50),
-        ],
-      OdontogramToothType.molar => toothPosition == 8
-          ? const [(chamberX: 0.50, controlX: 0.50, apexX: 0.50)]
-          : upper
-              ? const [
-                  (chamberX: 0.47, controlX: 0.42, apexX: 0.41),
-                  (chamberX: 0.53, controlX: 0.58, apexX: 0.59),
-                ]
-              : const [
-                  (chamberX: 0.47, controlX: 0.40, apexX: 0.38),
-                  (chamberX: 0.53, controlX: 0.60, apexX: 0.62),
+        ];
+    final routes = switch (asset.toothType) {
+      OdontogramToothType.incisor => single(
+          upper
+              ? (toothPosition == 1 ? 0.44 : 0.46)
+              : (toothPosition == 1 ? 0.48 : 0.49),
+          upper ? 0.08 : 0.92,
+        ),
+      OdontogramToothType.canine => single(
+          upper ? 0.50 : 0.51,
+          upper ? 0.08 : 0.92,
+        ),
+      OdontogramToothType.premolar => single(
+          upper
+              ? (toothPosition == 4 ? 0.45 : 0.37)
+              : (toothPosition == 4 ? 0.52 : 0.54),
+          upper ? 0.08 : 0.92,
+        ),
+      OdontogramToothType.molar => upper
+          ? switch (toothPosition) {
+              6 => const [
+                  (
+                    chamberX: 0.47,
+                    controlX: 0.45,
+                    apexX: 0.44,
+                    apexY: 0.08,
+                  ),
+                  (
+                    chamberX: 0.53,
+                    controlX: 0.54,
+                    apexX: 0.54,
+                    apexY: 0.16,
+                  ),
                 ],
+              7 => const [
+                  (
+                    chamberX: 0.47,
+                    controlX: 0.41,
+                    apexX: 0.38,
+                    apexY: 0.08,
+                  ),
+                  (
+                    chamberX: 0.53,
+                    controlX: 0.49,
+                    apexX: 0.47,
+                    apexY: 0.14,
+                  ),
+                ],
+              _ => single(0.35, 0.08),
+            }
+          : switch (toothPosition) {
+              6 => const [
+                  (
+                    chamberX: 0.47,
+                    controlX: 0.40,
+                    apexX: 0.36,
+                    apexY: 0.89,
+                  ),
+                  (
+                    chamberX: 0.53,
+                    controlX: 0.56,
+                    apexX: 0.54,
+                    apexY: 0.93,
+                  ),
+                ],
+              7 => const [
+                  (
+                    chamberX: 0.47,
+                    controlX: 0.38,
+                    apexX: 0.33,
+                    apexY: 0.87,
+                  ),
+                  (
+                    chamberX: 0.53,
+                    controlX: 0.48,
+                    apexX: 0.46,
+                    apexY: 0.93,
+                  ),
+                ],
+              _ => single(0.49, 0.93),
+            },
     };
     return [
       for (final route in routes)
@@ -549,6 +625,7 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
           chamberX: orient(route.chamberX),
           controlX: orient(route.controlX),
           apexX: orient(route.apexX),
+          apexY: route.apexY,
         ),
     ];
   }
