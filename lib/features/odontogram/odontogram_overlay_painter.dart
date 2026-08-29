@@ -65,6 +65,14 @@ List<OdontogramOverlayMarker> odontogramOverlayMarkersForTooth(
 DentalSurface? _surfaceByName(String value) =>
     DentalSurface.values.where((surface) => surface.name == value).firstOrNull;
 
+bool odontogramOverlayVisibleInView(
+  OdontogramOverlayKind kind,
+  OdontogramView view,
+) =>
+    view != OdontogramView.oral ||
+    kind == OdontogramOverlayKind.crown ||
+    kind == OdontogramOverlayKind.filling;
+
 /// Paints a treatment as a material layer that follows the supplied tooth art.
 ///
 /// Crowns and bridge units reuse the source image as an alpha mask, so enamel
@@ -82,6 +90,9 @@ class OdontogramTreatmentOverlayLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!odontogramOverlayVisibleInView(marker.kind, asset.view)) {
+      return const SizedBox.shrink();
+    }
     final material = switch (marker.kind) {
       OdontogramOverlayKind.crown ||
       OdontogramOverlayKind.bridge =>
@@ -517,23 +528,20 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
       OdontogramToothType.canine => const [
           (chamberX: 0.50, controlX: 0.51, apexX: 0.50),
         ],
-      OdontogramToothType.premolar => upper && toothPosition == 4
-          ? const [
-              (chamberX: 0.46, controlX: 0.43, apexX: 0.40),
-              (chamberX: 0.54, controlX: 0.57, apexX: 0.60),
-            ]
-          : const [(chamberX: 0.50, controlX: 0.50, apexX: 0.50)],
-      OdontogramToothType.molar => upper
-          ? const [
-              (chamberX: 0.45, controlX: 0.39, apexX: 0.34),
-              (chamberX: 0.50, controlX: 0.50, apexX: 0.50),
-              (chamberX: 0.55, controlX: 0.61, apexX: 0.66),
-            ]
-          : const [
-              (chamberX: 0.45, controlX: 0.39, apexX: 0.36),
-              (chamberX: 0.49, controlX: 0.45, apexX: 0.43),
-              (chamberX: 0.55, controlX: 0.61, apexX: 0.64),
-            ],
+      OdontogramToothType.premolar => const [
+          (chamberX: 0.50, controlX: 0.50, apexX: 0.50),
+        ],
+      OdontogramToothType.molar => toothPosition == 8
+          ? const [(chamberX: 0.50, controlX: 0.50, apexX: 0.50)]
+          : upper
+              ? const [
+                  (chamberX: 0.47, controlX: 0.42, apexX: 0.41),
+                  (chamberX: 0.53, controlX: 0.58, apexX: 0.59),
+                ]
+              : const [
+                  (chamberX: 0.47, controlX: 0.40, apexX: 0.38),
+                  (chamberX: 0.53, controlX: 0.60, apexX: 0.62),
+                ],
     };
     return [
       for (final route in routes)
