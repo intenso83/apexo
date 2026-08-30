@@ -291,25 +291,6 @@ Future<Uint8List> buildTreatmentPlanPdf({
                 plan.consentText(language),
                 style: const pw.TextStyle(color: grey, fontSize: 8.5),
               ),
-              pw.SizedBox(height: 8),
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 5,
-                ),
-                decoration: pw.BoxDecoration(
-                  color: paleBlue,
-                  borderRadius: pw.BorderRadius.circular(12),
-                ),
-                child: pw.Text(
-                  _consentStatus(plan.consentStatus, language),
-                  style: pw.TextStyle(
-                    color: blue,
-                    fontSize: 8,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
               pw.SizedBox(height: 30),
               pw.Row(
                 children: [
@@ -545,9 +526,3 @@ String _targetLabel(
       };
   }
 }
-
-String _consentStatus(
-  TreatmentPlanConsentStatus status,
-  TreatmentPlanLanguage language,
-) =>
-    planText(status.name, language);
