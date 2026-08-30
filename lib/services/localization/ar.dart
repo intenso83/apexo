@@ -399,6 +399,7 @@ class Ar implements En {
     "mappingUnspecified": "التحديد غير معروف",
     "allTreatments": "كل العلاجات",
     "treatmentHistory": "سجل العلاجات",
+    "treatmentPlanning": "خطة العلاج",
     "treatmentHistoryPilot": "تجربة سجل علاجات DentalWin",
     "treatmentHistoryPilotDescription":
         "سجل مستورد للقراءة فقط بغرض التحقق. لم تتغير بيانات DentalWin أو بيانات الإنتاج.",

@@ -1,0 +1,2234 @@
+[
+  {
+    "recordID": "dbddfdf88cd2edb",
+    "sourceCode": "4950",
+    "groupGreek": "Uncategorized legacy review",
+    "greek": "ΕΝΔΙΑΜΕΣΟ ΜΕΤΑΛΛΟΠΟΡΣΕΛΑΝΗΣ",
+    "english": "Metal-ceramic pontic",
+    "german": "Metallkeramisches Brückenglied"
+  },
+  {
+    "recordID": "d98586645cb2a35",
+    "sourceCode": "4955",
+    "groupGreek": "Uncategorized legacy review",
+    "greek": "BALL ATCHAMENT",
+    "english": "Ball attachment",
+    "german": "Kugelattachment"
+  },
+  {
+    "recordID": "d3ef52ba05cf028",
+    "sourceCode": "4956",
+    "groupGreek": "Uncategorized legacy review",
+    "greek": "INLAY",
+    "english": "Inlay",
+    "german": "Inlay"
+  },
+  {
+    "recordID": "dffe708945d4978",
+    "sourceCode": "86108",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Ανασύσταση κοπτικής γωνίας d",
+    "english": "Incisal angle reconstruction (distal)",
+    "german": "Schneidekantenrekonstruktion (distal)"
+  },
+  {
+    "recordID": "d00a82b8ee9c226",
+    "sourceCode": "86107",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Ανασύσταση κοπτικής γωνίας m",
+    "english": "Incisal angle reconstruction (mesial)",
+    "german": "Schneidekantenrekonstruktion (mesial)"
+  },
+  {
+    "recordID": "d836aa249841cda",
+    "sourceCode": "4974",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Ανασύσταση ρητίνης",
+    "english": "Composite reconstruction",
+    "german": "Kompositaufbau"
+  },
+  {
+    "recordID": "d5ce982d8994b2e",
+    "sourceCode": "4975",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Ανασύσταση ρητίνης με καρφίδα m",
+    "english": "Composite core build-up with pin (mesial)",
+    "german": "Kompositaufbau mit Stift (mesial)"
+  },
+  {
+    "recordID": "d3a5d0a8e8d1402",
+    "sourceCode": "4871",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Ανασύσταση ρητίνης με καρφίδα o",
+    "english": "Composite core build-up with pin (occlusal)",
+    "german": "Kompositaufbau mit Stift (okklusal)"
+  },
+  {
+    "recordID": "d0913594e566c4b",
+    "sourceCode": "86081",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Απευαισθητοποίηση με Bonding",
+    "english": "Desensitization with bonding agent",
+    "german": "Desensibilisierung mit Bonding"
+  },
+  {
+    "recordID": "dcece5404f6096e",
+    "sourceCode": "86149",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Απευαισθητοποίηση με Pro-Relief",
+    "english": "Desensitization with Pro-Relief",
+    "german": "Desensibilisierung mit Pro-Relief"
+  },
+  {
+    "recordID": "dd66d1c3f48c9f1",
+    "sourceCode": "86150",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Απευαισθητοποίηση με Teethmate Desensitizer",
+    "english": "Desensitization with Teethmate Desensitizer",
+    "german": "Desensibilisierung mit Teethmate Desensitizer"
+  },
+  {
+    "recordID": "d79383714d94aec",
+    "sourceCode": "4875",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "ΑΥΧΕΝΙΚΗ ΕΜΦΡ.ΥΑΛΟΙΟΝΟΜΕΡΗ",
+    "english": "Cervical glass-ionomer restoration",
+    "german": "Zervikale Glasionomerfüllung"
+  },
+  {
+    "recordID": "d49bb62e6e60c70",
+    "sourceCode": "4989",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη οπών & σχισμών",
+    "english": "Pit and fissure sealant",
+    "german": "Fissurenversiegelung"
+  },
+  {
+    "recordID": "d7e84d02932c30f",
+    "sourceCode": "86106",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη προσθίου d",
+    "english": "Anterior restoration (distal)",
+    "german": "Frontzahnfüllung (distal)"
+  },
+  {
+    "recordID": "da385337dade99e",
+    "sourceCode": "86105",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη προσθίου m",
+    "english": "Anterior restoration (mesial)",
+    "german": "Frontzahnfüllung (mesial)"
+  },
+  {
+    "recordID": "d2cedf605d6f9ed",
+    "sourceCode": "5060",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης παριακού βοθρίου",
+    "english": "Composite restoration buccal pit",
+    "german": "Kompositfüllung Bukkalgrübchen"
+  },
+  {
+    "recordID": "d7fbb9eb5d90de4",
+    "sourceCode": "4970",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης υπερώια αύλακα",
+    "english": "Composite restoration palatal groove",
+    "german": "Kompositfüllung Palatinalfurche"
+  },
+  {
+    "recordID": "d244f4777dd9e27",
+    "sourceCode": "4965",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης mo",
+    "english": "Composite restoration (mesio-occlusal)",
+    "german": "Kompositfüllung (mesio-okklusal)"
+  },
+  {
+    "recordID": "d62fe2cd53ba33d",
+    "sourceCode": "4968",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης mod",
+    "english": "Composite restoration (mesio-occluso-distal)",
+    "german": "Kompositfüllung (mesio-okkluso-distal)"
+  },
+  {
+    "recordID": "da09a4d819c7877",
+    "sourceCode": "4966",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης o",
+    "english": "Composite restoration (occlusal)",
+    "german": "Kompositfüllung (okklusal)"
+  },
+  {
+    "recordID": "dab6ac465a12f1d",
+    "sourceCode": "4967",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης od",
+    "english": "Composite restoration (occluso-distal)",
+    "german": "Kompositfüllung (okkluso-distal)"
+  },
+  {
+    "recordID": "d75cdea6fb64f59",
+    "sourceCode": "4952",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Έμφραξη ρητίνης V ομάδας",
+    "english": "Class V composite restoration",
+    "german": "Kompositfüllung Klasse V"
+  },
+  {
+    "recordID": "dc5b6e85b295ef0",
+    "sourceCode": "5061",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Επισκευή ρητίνης",
+    "english": "Repair of resin",
+    "german": "Reparatur von Komposit"
+  },
+  {
+    "recordID": "d327f75e2794f91",
+    "sourceCode": "86206",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Κλείσιμο διαστήματος με ρητίνη",
+    "english": "Diastema closure with composite",
+    "german": "Diastemaschluss mit Komposit"
+  },
+  {
+    "recordID": "d854db0c4966cae",
+    "sourceCode": "86137",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Ουδέτερο στρώμα",
+    "english": "Liner/base",
+    "german": "Unterfüllung"
+  },
+  {
+    "recordID": "d5253b87ae7fde0",
+    "sourceCode": "5045",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Όψη ρητίνης",
+    "english": "Composite veneer",
+    "german": "Kompositveneer"
+  },
+  {
+    "recordID": "d0f157f543d75c2",
+    "sourceCode": "86136",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Τοποθέτηση καρφίδας",
+    "english": "Pin placement",
+    "german": "Stiftsetzung"
+  },
+  {
+    "recordID": "d61bae2538542a7",
+    "sourceCode": "86174",
+    "groupGreek": "Οδον. Χειρουργική 1",
+    "greek": "Icon",
+    "english": "Icon resin infiltration",
+    "german": "Icon-Kariesinfiltration"
+  },
+  {
+    "recordID": "d9bab7b10443fc0",
+    "sourceCode": "4926",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Ακρορριζεκτομή",
+    "english": "Apicoectomy",
+    "german": "Wurzelspitzenresektion"
+  },
+  {
+    "recordID": "d9ba787335629b0",
+    "sourceCode": "86133",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Αλλαγή φαρμάκου (Ευγενόλη)",
+    "english": "Medication change (eugenol)",
+    "german": "Medikamentenwechsel (Eugenol)"
+  },
+  {
+    "recordID": "d1a6d735bdfc806",
+    "sourceCode": "86046",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Αλλαγή φαρμάκου (CaOH)",
+    "english": "Medication change (CaOH)",
+    "german": "Medikamentenwechsel (CaOH)"
+  },
+  {
+    "recordID": "dba45ee4d9a2398",
+    "sourceCode": "86048",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Αλλαγή φαρμάκου (Cresophene)",
+    "english": "Medication change (Cresophene)",
+    "german": "Medikamentenwechsel (Cresophene)"
+  },
+  {
+    "recordID": "d6c0d1ed02df4ee",
+    "sourceCode": "86047",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Αλλαγή φαρμάκου (Ledermix)",
+    "english": "Medication change (Ledermix)",
+    "german": "Medikamentenwechsel (Ledermix)"
+  },
+  {
+    "recordID": "db2c7c441cad29c",
+    "sourceCode": "86087",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Άμεση κάλυψη πολφού (CaOH)",
+    "english": "Direct pulp capping (CaOH)",
+    "german": "Direkte Pulpaüberkappung (CaOH)"
+  },
+  {
+    "recordID": "d2a39338d738a73",
+    "sourceCode": "86130",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Διάνοιξη / Kanaele Darstellung",
+    "english": "Access opening / Kanaele Darstellung",
+    "german": "Trepanation / Kanaele Darstellung"
+  },
+  {
+    "recordID": "d74368dcf23ab66",
+    "sourceCode": "86131",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Διεύρυνση ΡΣ",
+    "english": "Root-canal enlargement",
+    "german": "Wurzelkanalerweiterung"
+  },
+  {
+    "recordID": "d51ab4b445b2210",
+    "sourceCode": "86088",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Έμμεση κάλυψη πολφού (CaOH)",
+    "english": "Indirect pulp capping (CaOH)",
+    "german": "Indirekte Pulpaüberkappung (CaOH)"
+  },
+  {
+    "recordID": "d8fc480d3a20cff",
+    "sourceCode": "5072",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Ενδοδοντική θεραπεία γομφίου",
+    "english": "Root canal treatment of molar",
+    "german": "Wurzelkanalbehandlung eines Molaren"
+  },
+  {
+    "recordID": "d8318eceb0caf9e",
+    "sourceCode": "5070",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Ενδοδοντική θεραπεία μονόριζου",
+    "english": "Root canal treatment of single-rooted tooth",
+    "german": "Wurzelkanalbehandlung eines einwurzeligen Zahns"
+  },
+  {
+    "recordID": "d623d71860ab2cc",
+    "sourceCode": "5071",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Ενδοδοντική θεραπεία προγόμφιου",
+    "english": "Root canal treatment of premolar",
+    "german": "Wurzelkanalbehandlung eines Prämolaren"
+  },
+  {
+    "recordID": "db0bfa6ebd078bf",
+    "sourceCode": "86051",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Επανάληψη ενδοδοντικής θεραπείας",
+    "english": "Root canal retreatment",
+    "german": "Endodontische Revision"
+  },
+  {
+    "recordID": "d78cbe365cc107b",
+    "sourceCode": "86139",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Ουδέτερο στρώμα",
+    "english": "Liner/base",
+    "german": "Unterfüllung"
+  },
+  {
+    "recordID": "d9b98042d5154ac",
+    "sourceCode": "5031",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Πολφοτομή",
+    "english": "Pulpotomy",
+    "german": "Pulpotomie"
+  },
+  {
+    "recordID": "d703b03c0750efc",
+    "sourceCode": "86170",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τελική έμφραξη",
+    "english": "Final root filling",
+    "german": "Definitive Wurzelfüllung"
+  },
+  {
+    "recordID": "d2f0cc08ba84616",
+    "sourceCode": "86132",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση ευγενόλης",
+    "english": "Placement of eugenol",
+    "german": "Einbringen von Eugenol"
+  },
+  {
+    "recordID": "d8f5aae56932e50",
+    "sourceCode": "86141",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση ευκαλήπτου",
+    "english": "Placement of eucalyptus oil",
+    "german": "Einbringen von Eukalyptusöl"
+  },
+  {
+    "recordID": "dda047fe1ed55b5",
+    "sourceCode": "86135",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση καρφίδας",
+    "english": "Pin placement",
+    "german": "Stiftsetzung"
+  },
+  {
+    "recordID": "dbb1af56a5c9bcd",
+    "sourceCode": "86165",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση CaOH",
+    "english": "Placement of CaOH",
+    "german": "Einbringen von CaOH"
+  },
+  {
+    "recordID": "d65a62df1044049",
+    "sourceCode": "86049",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση Caustinerf",
+    "english": "Placement of Caustinerf",
+    "german": "Einbringen von Caustinerf"
+  },
+  {
+    "recordID": "d41dbfe78886fa7",
+    "sourceCode": "86050",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση Depulpin",
+    "english": "Placement of Depulpin",
+    "german": "Einbringen von Depulpin"
+  },
+  {
+    "recordID": "db8e681ecefec17",
+    "sourceCode": "86175",
+    "groupGreek": "Ενδοδοντία",
+    "greek": "Τοποθέτηση MTA",
+    "english": "Placement of MTA",
+    "german": "Einbringen von MTA"
+  },
+  {
+    "recordID": "d479b3a3dc923a2",
+    "sourceCode": "86159",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ακρορυζική αλλοίωση",
+    "english": "Periapical lesion",
+    "german": "Periapikale Läsion"
+  },
+  {
+    "recordID": "d2202d77a147f12",
+    "sourceCode": "86122",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ακτινογραφία",
+    "english": "Radiograph",
+    "german": "Röntgenaufnahme"
+  },
+  {
+    "recordID": "daf03378af753d8",
+    "sourceCode": "4961",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ακτινογραφία δήξεως",
+    "english": "Bitewing radiograph",
+    "german": "Bissflügelaufnahme"
+  },
+  {
+    "recordID": "d8770b814bcda7a",
+    "sourceCode": "86063",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ακτινογραφία εδάφους στόματος",
+    "english": "Occlusal radiograph",
+    "german": "Okklusalaufnahme"
+  },
+  {
+    "recordID": "d6b70dc312888dd",
+    "sourceCode": "4962",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ακτινογραφία ενδοστοματική",
+    "english": "Intraoral radiograph",
+    "german": "Intraorale Röntgenaufnahme"
+  },
+  {
+    "recordID": "d1aaa6091f9fc06",
+    "sourceCode": "86031",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ανεπαρκής ενδοδοντική θεραπεία",
+    "english": "inadequate Root canal treatment of",
+    "german": "unzureichend Wurzelkanalbehandlung eines"
+  },
+  {
+    "recordID": "d7e791b37f2675b",
+    "sourceCode": "86058",
+    "groupGreek": "Διάγνωση",
+    "greek": "Αντιστρεπτή πολφίτιδα",
+    "english": "Reversible pulpitis",
+    "german": "Reversible Pulpitis"
+  },
+  {
+    "recordID": "d18fd874eabe3d5",
+    "sourceCode": "86143",
+    "groupGreek": "Διάγνωση",
+    "greek": "Απόστημα",
+    "english": "Abscess",
+    "german": "Abszess"
+  },
+  {
+    "recordID": "d5b5a3bfd3a5384",
+    "sourceCode": "86056",
+    "groupGreek": "Διάγνωση",
+    "greek": "Αποτριβές οδόντων",
+    "english": "Tooth wear",
+    "german": "Zahnabrasionen"
+  },
+  {
+    "recordID": "d9e4a7b8362d8b4",
+    "sourceCode": "86154",
+    "groupGreek": "Διάγνωση",
+    "greek": "Αυχενική αποτριβή",
+    "english": "Cervical abrasion",
+    "german": "Zervikale Abrasion"
+  },
+  {
+    "recordID": "d33766456bc11f2",
+    "sourceCode": "86216",
+    "groupGreek": "Διάγνωση",
+    "greek": "Αυχενική υπερευαισθησία",
+    "english": "Cervical hypersensitivity",
+    "german": "Zervikale Überempfindlichkeit"
+  },
+  {
+    "recordID": "d4b9572d8c77716",
+    "sourceCode": "86055",
+    "groupGreek": "Διάγνωση",
+    "greek": "Γενικευμένη ουλίτιδα",
+    "english": "Generalized gingivitis",
+    "german": "Generalisierte Gingivitis"
+  },
+  {
+    "recordID": "d2f77f949ecd564",
+    "sourceCode": "86118",
+    "groupGreek": "Διάγνωση",
+    "greek": "Δοκιμασία ζωτικότητας πολφού",
+    "english": "Pulp vitality test",
+    "german": "Vitalitätsprüfung der Pulpa"
+  },
+  {
+    "recordID": "d4892885f034d01",
+    "sourceCode": "5076",
+    "groupGreek": "Διάγνωση",
+    "greek": "Ελλείπον δόντι",
+    "english": "Missing tooth",
+    "german": "Fehlender Zahn"
+  },
+  {
+    "recordID": "d783967503a68e2",
+    "sourceCode": "86204",
+    "groupGreek": "Διάγνωση",
+    "greek": "Εξωτερική απορρόφηση",
+    "english": "External resorption",
+    "german": "Externe Resorption"
+  },
+  {
+    "recordID": "da236a864f67fb4",
+    "sourceCode": "86203",
+    "groupGreek": "Διάγνωση",
+    "greek": "Εσωτερική απορρόφηση",
+    "english": "Internal resorption",
+    "german": "Interne Resorption"
+  },
+  {
+    "recordID": "d897778bb205e05",
+    "sourceCode": "86057",
+    "groupGreek": "Διάγνωση",
+    "greek": "Κάταγμα έμφραξης",
+    "english": "Fractured restoration",
+    "german": "Füllungsfraktur"
+  },
+  {
+    "recordID": "d3fe584bafbaac9",
+    "sourceCode": "86054",
+    "groupGreek": "Διάγνωση",
+    "greek": "Κάταγμα οδόντος",
+    "english": "Tooth fracture",
+    "german": "Zahnfraktur"
+  },
+  {
+    "recordID": "d350b50b759b560",
+    "sourceCode": "86059",
+    "groupGreek": "Διάγνωση",
+    "greek": "Μη αντιστρεπτή πολφίτιδα",
+    "english": "Irreversible pulpitis",
+    "german": "Irreversible Pulpitis"
+  },
+  {
+    "recordID": "ddeec5c0e975fd3",
+    "sourceCode": "86160",
+    "groupGreek": "Διάγνωση",
+    "greek": "Νέκρωση",
+    "english": "Necrosis",
+    "german": "Nekrose"
+  },
+  {
+    "recordID": "d54f48426869305",
+    "sourceCode": "86060",
+    "groupGreek": "Διάγνωση",
+    "greek": "Νέκρωση πολφού",
+    "english": "Pulp necrosis",
+    "german": "Pulpanekrose"
+  },
+  {
+    "recordID": "d385527f0d2adfd",
+    "sourceCode": "86033",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά γέφυρα",
+    "english": "old Bridge",
+    "german": "alt Brücke"
+  },
+  {
+    "recordID": "dbe3be862fad410",
+    "sourceCode": "86146",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά έμφραξη αμαλγάματος (ανεπαρκής)",
+    "english": "old Amalgam restoration (inadequate)",
+    "german": "alt Amalgamfüllung (unzureichend)"
+  },
+  {
+    "recordID": "d244ecbd9642a34",
+    "sourceCode": "86098",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά έμφραξη ρητίνης b (ανεπαρκής)",
+    "english": "old Composite restoration (buccal) (inadequate)",
+    "german": "alt Kompositfüllung (bukkal) (unzureichend)"
+  },
+  {
+    "recordID": "d42b6438114f38f",
+    "sourceCode": "86074",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά έμφραξη ρητίνης mo (ανεπαρκής)",
+    "english": "old Composite restoration (mesio-occlusal) (inadequate)",
+    "german": "alt Kompositfüllung (mesio-okklusal) (unzureichend)"
+  },
+  {
+    "recordID": "d9da06b70db8a77",
+    "sourceCode": "86073",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά έμφραξη ρητίνης mod (ανεπαρκής)",
+    "english": "old Composite restoration (mesio-occluso-distal) (inadequate)",
+    "german": "alt Kompositfüllung (mesio-okkluso-distal) (unzureichend)"
+  },
+  {
+    "recordID": "d0907eb835ca384",
+    "sourceCode": "86071",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά έμφραξη ρητίνης o (ανεπαρκής)",
+    "english": "old Composite restoration (occlusal) (inadequate)",
+    "german": "alt Kompositfüllung (okklusal) (unzureichend)"
+  },
+  {
+    "recordID": "de963cc14c4e94b",
+    "sourceCode": "86072",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά έμφραξη ρητίνης od (ανεπαρκής)",
+    "english": "old Composite restoration (occluso-distal) (inadequate)",
+    "german": "alt Kompositfüllung (okkluso-distal) (unzureichend)"
+  },
+  {
+    "recordID": "d9c99279e587bc6",
+    "sourceCode": "86034",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά μερική οδοντοστοιχία",
+    "english": "old Partial denture",
+    "german": "alt Teilprothese"
+  },
+  {
+    "recordID": "d9249a0477246e5",
+    "sourceCode": "86029",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιά στεφάνη",
+    "english": "old Crown",
+    "german": "alt Krone"
+  },
+  {
+    "recordID": "dcc84d348b334ee",
+    "sourceCode": "86032",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιό εμφύτευμα",
+    "english": "old Implant",
+    "german": "alt Implantat"
+  },
+  {
+    "recordID": "d70d0398282fe87",
+    "sourceCode": "86035",
+    "groupGreek": "Διάγνωση",
+    "greek": "Παλιός άξονας",
+    "english": "Existing post",
+    "german": "Vorhandener Stiftaufbau"
+  },
+  {
+    "recordID": "d5fca87d0eefa47",
+    "sourceCode": "86062",
+    "groupGreek": "Διάγνωση",
+    "greek": "Πανοραμική ακτινογραφία",
+    "english": "Panoramic radiograph",
+    "german": "Panoramaschichtaufnahme"
+  },
+  {
+    "recordID": "d615e6f802f78d5",
+    "sourceCode": "86173",
+    "groupGreek": "Διάγνωση",
+    "greek": "Περιεμφυτευματίτιδα",
+    "english": "Peri-implantitis",
+    "german": "Periimplantitis"
+  },
+  {
+    "recordID": "d780049c98638d7",
+    "sourceCode": "86161",
+    "groupGreek": "Διάγνωση",
+    "greek": "Περιοδοντίτιδα",
+    "english": "Periodontitis",
+    "german": "Parodontitis"
+  },
+  {
+    "recordID": "d1bea9b131cab00",
+    "sourceCode": "86109",
+    "groupGreek": "Διάγνωση",
+    "greek": "Περιστεφανίτιδα",
+    "english": "Pericoronitis",
+    "german": "Perikoronitis"
+  },
+  {
+    "recordID": "dfeaac6a1e04149",
+    "sourceCode": "86144",
+    "groupGreek": "Διάγνωση",
+    "greek": "Συρίγγιο",
+    "english": "Fistula",
+    "german": "Fistel"
+  },
+  {
+    "recordID": "dd64dc341910f7d",
+    "sourceCode": "86110",
+    "groupGreek": "Διάγνωση",
+    "greek": "Σφηνοειδείς αυχενικές διαβρώσεις",
+    "english": "Wedge-shaped cervical lesions",
+    "german": "Keilförmige zervikale Läsionen"
+  },
+  {
+    "recordID": "d34b0902680662b",
+    "sourceCode": "5077",
+    "groupGreek": "Διάγνωση",
+    "greek": "Τερηδόνα",
+    "english": "Caries",
+    "german": "Karies"
+  },
+  {
+    "recordID": "dd312d42f18113a",
+    "sourceCode": "86148",
+    "groupGreek": "Διάγνωση",
+    "greek": "Υπόλοιπο ρίζας",
+    "english": "Retained root",
+    "german": "Wurzelrest"
+  },
+  {
+    "recordID": "d31f0727ce33dbc",
+    "sourceCode": "86147",
+    "groupGreek": "Διάγνωση",
+    "greek": "Υφίζηση",
+    "english": "Gingival recession",
+    "german": "Gingivarezession"
+  },
+  {
+    "recordID": "d1a2ebb8f10a50a",
+    "sourceCode": "4960",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Ακρορριζεκτομή",
+    "english": "Apicoectomy",
+    "german": "Wurzelspitzenresektion"
+  },
+  {
+    "recordID": "dab2236b036c5ad",
+    "sourceCode": "4982",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Αφαίρεση καλύπτρας",
+    "english": "Removal of operculum",
+    "german": "Entfernung der Schleimhautkappe"
+  },
+  {
+    "recordID": "d0bd80a0800a74f",
+    "sourceCode": "4913",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Αφαίρεση καλύπτρας - Περιστεφανίτιδα",
+    "english": "Removal of operculum - Pericoronitis",
+    "german": "Entfernung der Schleimhautkappe - Perikoronitis"
+  },
+  {
+    "recordID": "dbb91a4221c309a",
+    "sourceCode": "4983",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Βιοψία",
+    "english": "Biopsy",
+    "german": "Biopsie"
+  },
+  {
+    "recordID": "db87e87f7b61ac9",
+    "sourceCode": "86053",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Διάτρηση ιγμορείου",
+    "english": "Sinus perforation",
+    "german": "Kieferhöhlenperforation"
+  },
+  {
+    "recordID": "d784605c92d1d5c",
+    "sourceCode": "4988",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Εκπυρήνιση κύστης",
+    "english": "Cyst enucleation",
+    "german": "Zystektomie"
+  },
+  {
+    "recordID": "d28e16da8ed469e",
+    "sourceCode": "86092",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Έλεγχος τραύματος",
+    "english": "Trauma review",
+    "german": "Traumakontrolle"
+  },
+  {
+    "recordID": "d61b089a132b98f",
+    "sourceCode": "5001",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Εξαγωγή",
+    "english": "Extraction",
+    "german": "Extraktion"
+  },
+  {
+    "recordID": "de06e5164ce9e01",
+    "sourceCode": "5002",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Εξαγωγή νεογιλού",
+    "english": "Extraction of primary tooth",
+    "german": "Extraktion eines Milchzahns"
+  },
+  {
+    "recordID": "d273160980ba62a",
+    "sourceCode": "5003",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Εξαγωγή ρίζας",
+    "english": "Root extraction",
+    "german": "Wurzelentfernung"
+  },
+  {
+    "recordID": "dd62c1f775df506",
+    "sourceCode": "86067",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Επανεμφύτευση οδόντος",
+    "english": "Tooth replantation",
+    "german": "Zahnreplantation"
+  },
+  {
+    "recordID": "d1bee63fb0fc165",
+    "sourceCode": "4914",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Θεραπεία ξηρού φατνίου",
+    "english": "Dry socket treatment",
+    "german": "Behandlung einer Alveolitis sicca"
+  },
+  {
+    "recordID": "dc23a5ea1e7d85c",
+    "sourceCode": "86084",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Θεραπεία ξηρού φατνίου (Alvogyl)",
+    "english": "Dry socket treatment (Alvogyl)",
+    "german": "Behandlung einer Alveolitis sicca (Alvogyl)"
+  },
+  {
+    "recordID": "d114f7abae09516",
+    "sourceCode": "86091",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Ουλεκτομή",
+    "english": "Gingivectomy",
+    "german": "Gingivektomie"
+  },
+  {
+    "recordID": "d9ef7620b580a2a",
+    "sourceCode": "86186",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Ουλεκτομή / επιμήκυνση μύλης",
+    "english": "Gingivectomy / crown lengthening",
+    "german": "Gingivektomie / Kronenverlängerung"
+  },
+  {
+    "recordID": "dc4d65aa732360e",
+    "sourceCode": "86152",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Προγομφοποίηση / εκτομή ρίζας",
+    "english": "Bicuspidization / root resection",
+    "german": "Prämolarisierung / Wurzelresektion"
+  },
+  {
+    "recordID": "d417e253ae2da21",
+    "sourceCode": "5033",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Ράματα",
+    "english": "Sutures",
+    "german": "Nähte"
+  },
+  {
+    "recordID": "df269e106d244c9",
+    "sourceCode": "86052",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Σχάση αποστήματος",
+    "english": "Abscess incision",
+    "german": "Abszessinzision"
+  },
+  {
+    "recordID": "df64b3344369485",
+    "sourceCode": "86156",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Τοποθέτηση εμφυτεύματος",
+    "english": "Implant placement",
+    "german": "Implantatinsertion"
+  },
+  {
+    "recordID": "d338821ce6bbb7b",
+    "sourceCode": "5059",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Χειρουργική εξαγωγή",
+    "english": "Surgical extraction",
+    "german": "Operative Zahnentfernung"
+  },
+  {
+    "recordID": "d0b318d83c630c4",
+    "sourceCode": "86082",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Χειρουργική εξαγωγή εγκλείστου",
+    "english": "Surgical extraction of impacted tooth",
+    "german": "Operative Entfernung eines retinierten Zahns"
+  },
+  {
+    "recordID": "d269cf1e41342ad",
+    "sourceCode": "86083",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Χειρουργική εξαγωγή ημιεγκλείστου",
+    "english": "Surgical extraction of partially impacted tooth",
+    "german": "Operative Entfernung eines teilretinierten Zahns"
+  },
+  {
+    "recordID": "d657e89d06e5ad6",
+    "sourceCode": "86187",
+    "groupGreek": "Εξακτική/Χειρουργική",
+    "greek": "Χειρουργική επιμήκυνση μύλης",
+    "english": "Surgical crown lengthening",
+    "german": "Chirurgische Kronenverlängerung"
+  },
+  {
+    "recordID": "d679d5f12044bf5",
+    "sourceCode": "86145",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ακρυλική προσωρινή στεφάνη",
+    "english": "Temporary acrylic Crown",
+    "german": "Provisorische Acryl- Krone"
+  },
+  {
+    "recordID": "d5ab1d2ebe7f64b",
+    "sourceCode": "4915",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Άξονας υαλονημάτων",
+    "english": "Glass-fiber post",
+    "german": "Glasfaserstift"
+  },
+  {
+    "recordID": "db6d4131976c4f5",
+    "sourceCode": "5069",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Άξονας χυτός",
+    "english": "Cast post and core",
+    "german": "Gegossener Stiftaufbau"
+  },
+  {
+    "recordID": "da49503ed5ee529",
+    "sourceCode": "4917",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Άξονας Radix Anker",
+    "english": "Radix Anker post",
+    "german": "Radix-Anker-Stift"
+  },
+  {
+    "recordID": "dae967008ed3856",
+    "sourceCode": "4984",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Αφαίρεση στεφάνης",
+    "english": "Crown removal",
+    "german": "Kronenentfernung"
+  },
+  {
+    "recordID": "d9cc69d47346812",
+    "sourceCode": "86221",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Βάθρο φρεζαριστό στεφάνης",
+    "english": "Milled crown base",
+    "german": "Gefräste Kronenbasis"
+  },
+  {
+    "recordID": "dae93e6bbdca239",
+    "sourceCode": "86199",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Γέφυρα επί εμφυτευμάτων",
+    "english": "Implant-supported bridge",
+    "german": "Implantatgetragene Brücke"
+  },
+  {
+    "recordID": "dc34cc97a0be8a5",
+    "sourceCode": "86166",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Γέφυρα ζιρκονίας",
+    "english": "Bridge zirconia",
+    "german": "Brücke Zirkonoxid"
+  },
+  {
+    "recordID": "da943e2af7000bf",
+    "sourceCode": "86126",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Γέφυρα μεταλλοακρυλική",
+    "english": "Bridge metal-acrylic",
+    "german": "Brücke metallakryl"
+  },
+  {
+    "recordID": "dd287339655bc14",
+    "sourceCode": "4938",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Γέφυρα μεταλλοκεραμική",
+    "english": "Bridge metal-ceramic",
+    "german": "Brücke metallkeramisch"
+  },
+  {
+    "recordID": "dcbdf13526f96c6",
+    "sourceCode": "86089",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Γέφυρα Maryland",
+    "english": "Bridge Maryland",
+    "german": "Brücke Maryland"
+  },
+  {
+    "recordID": "d762ecaf1dc7ef4",
+    "sourceCode": "4944",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ενδιάμεσο μεταλλοκεραμικό",
+    "english": "Pontic metal-ceramic",
+    "german": "Brückenglied metallkeramisch"
+  },
+  {
+    "recordID": "d4d46256902a92b",
+    "sourceCode": "4348",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ενδιάμεσο ολικής χυτής",
+    "english": "Pontic full-cast",
+    "german": "Brückenglied Vollguss-"
+  },
+  {
+    "recordID": "d34c4a1b4f16716",
+    "sourceCode": "5074",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "ΕΝΘΕΤΟ",
+    "english": "Inlay",
+    "german": "Inlay"
+  },
+  {
+    "recordID": "d48ec61d4cbe107",
+    "sourceCode": "86190",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ένθετο/υπερένθετο ζιρκονίας",
+    "english": "Inlay/onlay zirconia",
+    "german": "Inlay/Onlay Zirkonoxid"
+  },
+  {
+    "recordID": "d9edb0e8be02200",
+    "sourceCode": "86185",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ένθετο/υπερένθετο κεραμικό",
+    "english": "Inlay/onlay ceramic",
+    "german": "Inlay/Onlay Keramik"
+  },
+  {
+    "recordID": "db0c4c5bf3e13c0",
+    "sourceCode": "86184",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ένθετο/υπερένθετο ρητίνης",
+    "english": "Inlay/onlay resin",
+    "german": "Inlay/Onlay Komposit"
+  },
+  {
+    "recordID": "d9c33914750e85d",
+    "sourceCode": "5047",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Όψη πορσελάνης",
+    "english": "Porcelain veneer",
+    "german": "Keramikveneer"
+  },
+  {
+    "recordID": "d9710a1e70db620",
+    "sourceCode": "86201",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Όψη ρητίνης",
+    "english": "Composite veneer",
+    "german": "Kompositveneer"
+  },
+  {
+    "recordID": "d4fa705bfb86355",
+    "sourceCode": "86093",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Πρόβα σκελετού",
+    "english": "Framework try-in",
+    "german": "Gerüsteinprobe"
+  },
+  {
+    "recordID": "dcafcfe3756b868",
+    "sourceCode": "86094",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Πρόβα Rohbrand",
+    "english": "Bisque-bake try-in",
+    "german": "Rohbrandeinprobe"
+  },
+  {
+    "recordID": "d9da1576f5cf08a",
+    "sourceCode": "86210",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "προσω",
+    "english": "Temporary procedure (legacy shorthand)",
+    "german": "Provisorische Leistung (alte Kurzbezeichnung)"
+  },
+  {
+    "recordID": "dc09b7fb30ccbd9",
+    "sourceCode": "5048",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "ΣΤΕΦΑΝΗ  ΠΡΟΣΩΡΙΝΗ ΑΚΡΥΛΙΚΗ",
+    "english": "Temporary acrylic crown",
+    "german": "Provisorische Acrylkrone"
+  },
+  {
+    "recordID": "d49a4ee6c4c9192",
+    "sourceCode": "4345",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "ΣΤΕΦΑΝΗ ΑΝΟΞΕΙΔ. ΝΕΟΓΙΛΩΝ",
+    "english": "Stainless-steel crown for primary teeth",
+    "german": "Edelstahlkrone für Milchzähne"
+  },
+  {
+    "recordID": "d971aef0e808f8b",
+    "sourceCode": "86191",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη επί εμφυτεύματος",
+    "english": "Implant-supported crown",
+    "german": "Implantatgetragene Krone"
+  },
+  {
+    "recordID": "d8cd07f6d60780d",
+    "sourceCode": "86151",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη ζιρκονίας",
+    "english": "Crown zirconia",
+    "german": "Krone Zirkonoxid"
+  },
+  {
+    "recordID": "d45830d161d80d3",
+    "sourceCode": "86182",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη ζιρκονίας/κεραμική όψη",
+    "english": "Zirconia crown with ceramic veneer",
+    "german": "Zirkonoxidkrone mit keramischer Verblendung"
+  },
+  {
+    "recordID": "d73582de38e6cfd",
+    "sourceCode": "86181",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη ζιρκονίας/κεραμική πλ. χτιστή",
+    "english": "Zirconia crown with layered ceramic",
+    "german": "Zirkonoxidkrone mit geschichteter Keramik"
+  },
+  {
+    "recordID": "dc345718682403c",
+    "sourceCode": "86125",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη μεταλλοακρυλική",
+    "english": "Crown metal-acrylic",
+    "german": "Krone metallakryl"
+  },
+  {
+    "recordID": "d341e4e9b9f344e",
+    "sourceCode": "4927",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη μεταλλοκεραμική",
+    "english": "Crown metal-ceramic",
+    "german": "Krone metallkeramisch"
+  },
+  {
+    "recordID": "d12149c28346759",
+    "sourceCode": "4929",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη ολική χυτή",
+    "english": "Full-cast crown",
+    "german": "Vollgusskrone"
+  },
+  {
+    "recordID": "d766f6fee7e8755",
+    "sourceCode": "5052",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "ΣΤΕΦΑΝΗ ΟΛΟΚΕΡΑΜΙΚΗ",
+    "english": "All-ceramic crown",
+    "german": "Vollkeramikkrone"
+  },
+  {
+    "recordID": "d3b60ae17e7dc19",
+    "sourceCode": "86179",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Στεφάνη ολοκεραμική",
+    "english": "All-ceramic crown",
+    "german": "Vollkeramikkrone"
+  },
+  {
+    "recordID": "d7a59ca89a598f5",
+    "sourceCode": "86169",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση άξονα",
+    "english": "Post cementation",
+    "german": "Stiftzementierung"
+  },
+  {
+    "recordID": "dcc19b3f63ce918",
+    "sourceCode": "86153",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση με Variolink",
+    "english": "Cementation with Variolink",
+    "german": "Zementierung mit Variolink"
+  },
+  {
+    "recordID": "d0c6315eb35edfb",
+    "sourceCode": "86188",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση με Variolink Esthetic",
+    "english": "Cementation with Variolink Esthetic",
+    "german": "Zementierung mit Variolink Esthetic"
+  },
+  {
+    "recordID": "d4d9c1217569bba",
+    "sourceCode": "86211",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση προσωρινή με κονία διπλ. πολυμ.",
+    "english": "Temporary cementation with dual-cure cement",
+    "german": "Provisorische Zementierung mit dualhärtendem Zement"
+  },
+  {
+    "recordID": "d22fee42a72f6d9",
+    "sourceCode": "86123",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση προσωρινή με ZnO-Eu",
+    "english": "Temporary cementation with ZnO-Eu",
+    "german": "Provisorische Zementierung mit ZnO-Eu"
+  },
+  {
+    "recordID": "de80012a5dca091",
+    "sourceCode": "86124",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση προσωρινή με ZnO-Eu + Iodoform",
+    "english": "Temporary cementation with ZnO-Eu + Iodoform",
+    "german": "Provisorische Zementierung mit ZnO-Eu + Iodoform"
+  },
+  {
+    "recordID": "d91577b1bf36b10",
+    "sourceCode": "86096",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση στεφάνης/γέφυρας με οξυφωσφορική κονία",
+    "english": "Cementation of crown/bridge with zinc-phosphate cement",
+    "german": "Zementierung von Krone/Brücke mit Zinkphosphatzement"
+  },
+  {
+    "recordID": "da32bd5a8edaa8f",
+    "sourceCode": "86167",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση στεφάνης/γέφυρας με ρητινώδη κονία",
+    "english": "Cementation of crown/bridge with resin cement",
+    "german": "Zementierung von Krone/Brücke mit Kompositzement"
+  },
+  {
+    "recordID": "d862b06d5559fcd",
+    "sourceCode": "86194",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση στεφάνης/γέφυρας με υαλοϊονομερή κονία",
+    "english": "Cementation of crown/bridge with glass-ionomer cement",
+    "german": "Zementierung von Krone/Brücke mit Glasionomerzement"
+  },
+  {
+    "recordID": "d0ba08fafbb1f4e",
+    "sourceCode": "86095",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση στεφάνης/γέφυρας με Durelon",
+    "english": "Cementation of crown/bridge with Durelon",
+    "german": "Zementierung von Krone/Brücke mit Durelon"
+  },
+  {
+    "recordID": "dac286ea089b76f",
+    "sourceCode": "86097",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Συγκόλληση στεφάνης/γέφυρας με Panavia f 2.0",
+    "english": "Cementation of crown/bridge with Panavia f 2.0",
+    "german": "Zementierung von Krone/Brücke mit Panavia f 2.0"
+  },
+  {
+    "recordID": "d7dcc4bdddaf9ec",
+    "sourceCode": "86202",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Σύνδεσμος ακριβείας CEKA",
+    "english": "CEKA precision attachment",
+    "german": "CEKA-Präzisionsgeschiebe"
+  },
+  {
+    "recordID": "df7dba9281cc3ff",
+    "sourceCode": "5056",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "ΣΥΝΔΕΣΜΟΣ ΑΚΡΙΒΕΙΑΣ CHEKA",
+    "english": "CEKA precision attachment",
+    "german": "CEKA-Präzisionsgeschiebe"
+  },
+  {
+    "recordID": "dae731dce62857b",
+    "sourceCode": "86111",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Σύνδεσμος ακριβείας ZL",
+    "english": "ZL precision attachment",
+    "german": "ZL-Präzisionsgeschiebe"
+  },
+  {
+    "recordID": "dbc9ab781c9b3cb",
+    "sourceCode": "86222",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Σύνδεσμος ημιακριβείας",
+    "english": "Semi-precision attachment",
+    "german": "Semipräzisionsgeschiebe"
+  },
+  {
+    "recordID": "d6f78b463965f05",
+    "sourceCode": "86218",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "Ball Abutment Rhein",
+    "english": "Ball Abutment Rhein",
+    "german": "Ball Abutment Rhein"
+  },
+  {
+    "recordID": "d5d66071f2dc00f",
+    "sourceCode": "86217",
+    "groupGreek": "Ακίνητη Προσθετική",
+    "greek": "OTequator Rhein",
+    "english": "OTequator Rhein",
+    "german": "OTequator Rhein"
+  },
+  {
+    "recordID": "d485f26487c7a77",
+    "sourceCode": "4350",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Αναγόμωση μερικής οδοντοστοιχίας άνω",
+    "english": "Relining of partial denture upper",
+    "german": "Unterfütterung einer Teilprothese oben"
+  },
+  {
+    "recordID": "d8c1e2b49c95a9c",
+    "sourceCode": "4351",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Αναγόμωση μερικής οδοντοστοιχίας κάτω",
+    "english": "Relining of partial denture lower",
+    "german": "Unterfütterung einer Teilprothese unten"
+  },
+  {
+    "recordID": "d1997dbe2e59c4e",
+    "sourceCode": "4353",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Αναγόμωση ολικής οδοντοστοιχίας άνω",
+    "english": "Relining of complete denture upper",
+    "german": "Unterfütterung einer Totalprothese oben"
+  },
+  {
+    "recordID": "dc90dc9e6248407",
+    "sourceCode": "4352",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Αναγόμωση ολικής οδοντοστοιχίας κάτω",
+    "english": "Relining of complete denture lower",
+    "german": "Unterfütterung einer Totalprothese unten"
+  },
+  {
+    "recordID": "dcd97df6f13b9ae",
+    "sourceCode": "86158",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Ατομικά δισκάρια",
+    "english": "Custom impression trays",
+    "german": "Individuelle Abformlöffel"
+  },
+  {
+    "recordID": "d8ffc62439d22d4",
+    "sourceCode": "86171",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Δοκός Dolder",
+    "english": "Dolder bar",
+    "german": "Dolder-Steg"
+  },
+  {
+    "recordID": "dc6533ac87b3e14",
+    "sourceCode": "86205",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Εξισορρόπηση σύγκλισης",
+    "english": "Occlusal adjustment",
+    "german": "Okklusionskorrektur"
+  },
+  {
+    "recordID": "d7dab8fcd800d18",
+    "sourceCode": "4354",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Επιδιόρθωση μερικής οδοντοστοιχίας άνω",
+    "english": "Repair of partial denture upper",
+    "german": "Reparatur einer Teilprothese oben"
+  },
+  {
+    "recordID": "df22730de800b80",
+    "sourceCode": "4355",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Επιδιόρθωση μερικής οδοντοστοιχίας κάτω",
+    "english": "Repair of partial denture lower",
+    "german": "Reparatur einer Teilprothese unten"
+  },
+  {
+    "recordID": "da970971d2160f4",
+    "sourceCode": "4356",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Επιδιόρθωση ολικής οδοντοστοιχίας άνω",
+    "english": "Repair of complete denture upper",
+    "german": "Reparatur einer Totalprothese oben"
+  },
+  {
+    "recordID": "d09bb405ee88bad",
+    "sourceCode": "4357",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Επιδιόρθωση ολικής οδοντοστοιχίας κάτω",
+    "english": "Repair of complete denture lower",
+    "german": "Reparatur einer Totalprothese unten"
+  },
+  {
+    "recordID": "dd791218f04b08e",
+    "sourceCode": "5016",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μερική οδοντοστοιχιά άνω",
+    "english": "Partial denture upper",
+    "german": "Teilprothese oben"
+  },
+  {
+    "recordID": "d3e019907f60c3b",
+    "sourceCode": "86197",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μερική οδοντοστοιχία θερμοπλαστική άνω",
+    "english": "Partial denture thermoplastic upper",
+    "german": "Teilprothese thermoplastisch oben"
+  },
+  {
+    "recordID": "d4eff76f9e97a7a",
+    "sourceCode": "86198",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μερική οδοντοστοιχία θερμοπλαστική κάτω",
+    "english": "Partial denture thermoplastic lower",
+    "german": "Teilprothese thermoplastisch unten"
+  },
+  {
+    "recordID": "d4603136a28d2b3",
+    "sourceCode": "5015",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μερική οδοντοστοιχία κάτω",
+    "english": "Partial denture lower",
+    "german": "Teilprothese unten"
+  },
+  {
+    "recordID": "d54ba306e3b6625",
+    "sourceCode": "86192",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μεταβατική μερική - `πεταλούδα` ακρυλική",
+    "english": "Transitional acrylic flipper partial denture",
+    "german": "Interimsteilprothese als Acryl-Flipper"
+  },
+  {
+    "recordID": "d3a5f5c57302fe9",
+    "sourceCode": "86193",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μεταβατική μερική - `πεταλούδα` θερμοπλαστική",
+    "english": "Transitional thermoplastic flipper partial denture",
+    "german": "Interimsteilprothese als thermoplastischer Flipper"
+  },
+  {
+    "recordID": "db4e59d6a1f3d33",
+    "sourceCode": "86120",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μεταβατική οδοντοστοιχία - Προσθήκη δοντιών",
+    "english": "Transitional denture — addition of teeth",
+    "german": "Interimsprothese — Erweiterung um Zähne"
+  },
+  {
+    "recordID": "d82b3b848bd27a1",
+    "sourceCode": "86226",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Μεταβατική ολική οδοντοστοιχία",
+    "english": "Transitional complete denture",
+    "german": "Interimstotalprothese"
+  },
+  {
+    "recordID": "d97bed746e7fa8e",
+    "sourceCode": "4359",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Ολική οδοντοστοιχία άνω",
+    "english": "Complete denture upper",
+    "german": "Totalprothese oben"
+  },
+  {
+    "recordID": "db374df67555945",
+    "sourceCode": "5024",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Ολική οδοντοστοιχία κάτω",
+    "english": "Complete denture lower",
+    "german": "Totalprothese unten"
+  },
+  {
+    "recordID": "de65e8dbaa3f459",
+    "sourceCode": "86180",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Παράδοση οδοντοστοιχίας",
+    "english": "Denture delivery",
+    "german": "Protheseneingliederung"
+  },
+  {
+    "recordID": "d0677e72aba4f7d",
+    "sourceCode": "86164",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Πρόβα οπισθίων",
+    "english": "Posterior-tooth try-in",
+    "german": "Seitenzahnprobe"
+  },
+  {
+    "recordID": "dbd6c3159adf78c",
+    "sourceCode": "86163",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Πρόβα προσθίων",
+    "english": "Anterior-tooth try-in",
+    "german": "Frontzahnprobe"
+  },
+  {
+    "recordID": "dbde5185861eed4",
+    "sourceCode": "86176",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Πρόβα σκελετού",
+    "english": "Framework try-in",
+    "german": "Gerüsteinprobe"
+  },
+  {
+    "recordID": "de877c8b586a024",
+    "sourceCode": "86178",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Πρόβα σκελετού με τόξο καταγραφής",
+    "english": "Framework try-in with facebow",
+    "german": "Gerüsteinprobe mit Gesichtsbogen"
+  },
+  {
+    "recordID": "d9f7213a19e477d",
+    "sourceCode": "5032",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Προσθήκη δοντιού οδοντοστοιχίας",
+    "english": "Addition of a denture tooth",
+    "german": "Erweiterung um einen Prothesenzahn"
+  },
+  {
+    "recordID": "d3e326e7604e9d8",
+    "sourceCode": "86162",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Τόξα καταγραφής / Relationsbestimmung",
+    "english": "Facebow records / jaw-relation registration",
+    "german": "Gesichtsbogen / Relationsbestimmung"
+  },
+  {
+    "recordID": "d7804dca05fa8d4",
+    "sourceCode": "86195",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Φλιπεράκι προσωρινό",
+    "english": "Temporary flipper",
+    "german": "Provisorischer Flipper"
+  },
+  {
+    "recordID": "ddbc5bc21726a38",
+    "sourceCode": "86157",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Attachment τύπου Ball Abutment",
+    "english": "Ball-abutment attachment",
+    "german": "Kugelkopfattachment"
+  },
+  {
+    "recordID": "d2329f6c361a1d1",
+    "sourceCode": "86172",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Ball Attachment για επένθετη",
+    "english": "Ball attachment for overdenture",
+    "german": "Kugelattachment für Deckprothese"
+  },
+  {
+    "recordID": "db3e555421ad664",
+    "sourceCode": "86225",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Locator για Omnitaper",
+    "english": "Locator for Omnitaper",
+    "german": "Locator für Omnitaper"
+  },
+  {
+    "recordID": "d8d8d4377d41acf",
+    "sourceCode": "86224",
+    "groupGreek": "Κινητή Προσθετική",
+    "greek": "Locator για Paltop",
+    "english": "Locator for Paltop",
+    "german": "Locator für Paltop"
+  },
+  {
+    "recordID": "d0ec0f981caeb49",
+    "sourceCode": "4981",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΑΠΟΚΑΛΥΨΗ ΚΛΙΝΙΚΗΣ ΜΥΛΗΣ",
+    "english": "Clinical crown exposure",
+    "german": "Freilegung der klinischen Krone"
+  },
+  {
+    "recordID": "d3fcbcbccf9172c",
+    "sourceCode": "86114",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Απόξεση οδόντος",
+    "english": "Scaling/root planing of tooth",
+    "german": "Scaling/Wurzelglättung am Zahn"
+  },
+  {
+    "recordID": "d9b7e0d7eb976f3",
+    "sourceCode": "86090",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Θεραπεία γεν. περιοδοντίτιδας",
+    "english": "Treatment of generalized periodontitis",
+    "german": "Behandlung der generalisierten Parodontitis"
+  },
+  {
+    "recordID": "dd9da5c5ddfa2c4",
+    "sourceCode": "5009",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΘΕΡΑΠΕΙΑ ΓΕΝΙΚΕΥΜΕΝΗΣ ΧΡ.ΟΥΛΙ",
+    "english": "Treatment of generalized chronic gingivitis",
+    "german": "Behandlung der generalisierten chronischen Gingivitis"
+  },
+  {
+    "recordID": "df6fe368cc9222b",
+    "sourceCode": "5007",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΘΕΡΑΠΕΙΑ ΕΝΤΟΠΙΣΜΕΝΗΣ ΟΥΛΙΤΙΔΑ",
+    "english": "Treatment of localized gingivitis",
+    "german": "Behandlung der lokalisierten Gingivitis"
+  },
+  {
+    "recordID": "d0c7b65c36490b5",
+    "sourceCode": "5008",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΘΕΡΑΠΕΙΑ ΟΥΛΙΤΙΔΟΣ",
+    "english": "Gingivitis treatment",
+    "german": "Gingivitisbehandlung"
+  },
+  {
+    "recordID": "da2938afaa259e4",
+    "sourceCode": "5012",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΘΕΡΑΠΕΙΑ ΧΕΙΡ. ΠΕΡΙΟΔΟΝΤ. Α ΤΕ",
+    "english": "Periodontal surgical treatment (legacy abbreviation)",
+    "german": "Parodontalchirurgische Behandlung (alte Kurzbezeichnung)"
+  },
+  {
+    "recordID": "da173e2d5136a05",
+    "sourceCode": "86112",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Μέτρηση / Περιοδοντόγραμμα",
+    "english": "Periodontal charting",
+    "german": "Parodontalstatus"
+  },
+  {
+    "recordID": "d8e2f39e1b42663",
+    "sourceCode": "5018",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΜΟΣΧΕΥΜΑΤΑ",
+    "english": "Grafts",
+    "german": "Transplantate"
+  },
+  {
+    "recordID": "d5419e59512f1a7",
+    "sourceCode": "5011",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Ναρθηκοποίηση",
+    "english": "Splinting",
+    "german": "Schienung"
+  },
+  {
+    "recordID": "d528cec47ec78cd",
+    "sourceCode": "5026",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΟΥΛΕΚΤΟΜΗ",
+    "english": "Gingivectomy",
+    "german": "Gingivektomie"
+  },
+  {
+    "recordID": "d5e6f49a23c72cf",
+    "sourceCode": "5028",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΠΕΡΙΟΔΟΝΤΙΤΙΔΑ ΑΡΧΟΜΕΝΗ",
+    "english": "Early periodontitis",
+    "german": "Beginnende Parodontitis"
+  },
+  {
+    "recordID": "dc5ed550e1e2352",
+    "sourceCode": "5029",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΠΕΡΙΟΔΟΝΤΙΤΙΔΑ ΜΕΤΡΙΑΣ ΒΑΡΥΤΗΤΑΣ",
+    "english": "Moderate periodontitis",
+    "german": "Mittelschwere Parodontitis"
+  },
+  {
+    "recordID": "dfc59909eded03f",
+    "sourceCode": "5030",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "ΠΕΡΙΟΔΟΝΤΙΤΙΔΑ ΠΡΟΧΩΡΗΜΕΝΗ",
+    "english": "Advanced periodontitis",
+    "german": "Fortgeschrittene Parodontitis"
+  },
+  {
+    "recordID": "df657a45d15b335",
+    "sourceCode": "86100",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Συντ. θεραπεία περιοδοντίτιδας ανά ημιμόριο 1-4",
+    "english": "Conservative periodontitis treatment per half-arch 1–4",
+    "german": "Konservative Parodontitisbehandlung pro Kieferhälfte 1–4"
+  },
+  {
+    "recordID": "d50667a4cecffe6",
+    "sourceCode": "86104",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Συντ. θεραπεία περιοδοντίτιδας ανά ημιμόριο 2-3",
+    "english": "Conservative periodontitis treatment per half-arch 2–3",
+    "german": "Konservative Parodontitisbehandlung pro Kieferhälfte 2–3"
+  },
+  {
+    "recordID": "d95c8875d9909e7",
+    "sourceCode": "86099",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Συντ. θεραπεία περιοδοντίτιδας ανά τεταρτημόριο 1",
+    "english": "Conservative periodontitis treatment per quadrant 1",
+    "german": "Konservative Parodontitisbehandlung pro Quadrant 1"
+  },
+  {
+    "recordID": "d21b17206ef2947",
+    "sourceCode": "86101",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Συντ. θεραπεία περιοδοντίτιδας ανά τεταρτημόριο 2",
+    "english": "Conservative periodontitis treatment per quadrant 2",
+    "german": "Konservative Parodontitisbehandlung pro Quadrant 2"
+  },
+  {
+    "recordID": "d16b35897a502df",
+    "sourceCode": "86102",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Συντ. θεραπεία περιοδοντίτιδας ανά τεταρτημόριο 3",
+    "english": "Conservative periodontitis treatment per quadrant 3",
+    "german": "Konservative Parodontitisbehandlung pro Quadrant 3"
+  },
+  {
+    "recordID": "decfe20dd8e7d48",
+    "sourceCode": "86103",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Συντ. θεραπεία περιοδοντίτιδας ανά τεταρτημόριο 4",
+    "english": "Conservative periodontitis treatment per quadrant 4",
+    "german": "Konservative Parodontitisbehandlung pro Quadrant 4"
+  },
+  {
+    "recordID": "d1f67b40f60481a",
+    "sourceCode": "86115",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Τοποθέτηση CHX",
+    "english": "Placement of CHX",
+    "german": "Einbringen von CHX"
+  },
+  {
+    "recordID": "d15fa574e858077",
+    "sourceCode": "86189",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Τοποθέτηση Periocline",
+    "english": "Placement of Periocline",
+    "german": "Einbringen von Periocline"
+  },
+  {
+    "recordID": "d198a60b13e06b4",
+    "sourceCode": "5065",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Recall",
+    "english": "Recall",
+    "german": "Recall"
+  },
+  {
+    "recordID": "d9c1727b6cb0dd4",
+    "sourceCode": "86134",
+    "groupGreek": "Περιοδοντολογία",
+    "greek": "Reevaluation",
+    "english": "Re-evaluation",
+    "german": "Reevaluation"
+  },
+  {
+    "recordID": "d6f96a3401a0ac9",
+    "sourceCode": "4986",
+    "groupGreek": "Ορθοδοντική",
+    "greek": "Διατηρητής χώρου",
+    "english": "Space maintainer",
+    "german": "Platzhalter"
+  },
+  {
+    "recordID": "d02e42f792881a9",
+    "sourceCode": "86215",
+    "groupGreek": "Ορθοδοντική",
+    "greek": "Ορθοδοντικό μηχάνημα",
+    "english": "Orthodontic appliance",
+    "german": "Kieferorthopädisches Gerät"
+  },
+  {
+    "recordID": "de2eda767212552",
+    "sourceCode": "86113",
+    "groupGreek": "Ορθοδοντική",
+    "greek": "Retainer",
+    "english": "Retainer",
+    "german": "Retainer"
+  },
+  {
+    "recordID": "db58beab6ae497a",
+    "sourceCode": "4527",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "ΑΞΟΝΑΣ",
+    "english": "Post",
+    "german": "Stiftaufbau"
+  },
+  {
+    "recordID": "d997b128ba58ff2",
+    "sourceCode": "86213",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Αποκάλυψη εμφυτεύματος",
+    "english": "Implant uncovering",
+    "german": "Implantatfreilegung"
+  },
+  {
+    "recordID": "dcc8a5f62722d58",
+    "sourceCode": "4990",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "ΕΜΦΥΤΕΥΜΑ",
+    "english": "Implant",
+    "german": "Implantat"
+  },
+  {
+    "recordID": "d13e542c6e6719c",
+    "sourceCode": "4991",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "ΕΜΦΥΤΕΥΜΑ BRANEMARK",
+    "english": "Brånemark implant",
+    "german": "Brånemark-Implantat"
+  },
+  {
+    "recordID": "d8560a7ab5b282c",
+    "sourceCode": "86219",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Εμφύτευμα Omnitaper / Dentsply",
+    "english": "Implant Omnitaper / Dentsply",
+    "german": "Implantat Omnitaper / Dentsply"
+  },
+  {
+    "recordID": "d8266b60009fd89",
+    "sourceCode": "86212",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Εμφύτευμα Paltop",
+    "english": "Implant Paltop",
+    "german": "Implantat Paltop"
+  },
+  {
+    "recordID": "d9a37706fb8c5bf",
+    "sourceCode": "4992",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "ΕΜΦΥΤΕΥΜΑ SOUTHERN",
+    "english": "Southern implant",
+    "german": "Southern-Implantat"
+  },
+  {
+    "recordID": "d3c6909afb9e2ae",
+    "sourceCode": "4993",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "ΕΜΦΥΤΕΥΜΑ STRAUMMAN",
+    "english": "Straumann implant (source spelling: STRAUMMAN)",
+    "german": "Straumann-Implantat (Quellschreibweise: STRAUMMAN)"
+  },
+  {
+    "recordID": "d65ba38daefd443",
+    "sourceCode": "4951",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Εμφύτευμα Xive",
+    "english": "Implant Xive",
+    "german": "Implantat Xive"
+  },
+  {
+    "recordID": "ddd72e3f8507de6",
+    "sourceCode": "86208",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Κοχλίωση εμφυτευμάτων",
+    "english": "Screw retention of implant restorations",
+    "german": "Verschraubung von Implantatversorgungen"
+  },
+  {
+    "recordID": "de5cdf73d9d2d51",
+    "sourceCode": "86209",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Συγκόλληση με Implant Temp",
+    "english": "Cementation with Implant Temp",
+    "german": "Zementierung mit Implant Temp"
+  },
+  {
+    "recordID": "d4e38b74fa82fad",
+    "sourceCode": "86227",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Τοποθέτηση Multi Unit",
+    "english": "Placement of Multi Unit",
+    "german": "Einbringen von Multi Unit"
+  },
+  {
+    "recordID": "d98fa842ed1506f",
+    "sourceCode": "86214",
+    "groupGreek": "Εμφυτεύματα",
+    "greek": "Χειρουργική αφαίρεση εμφυτεύματος",
+    "english": "Surgical implant removal",
+    "german": "Operative Implantatentfernung"
+  },
+  {
+    "recordID": "dcd55bda1917806",
+    "sourceCode": "86121",
+    "groupGreek": "Πρόληψη",
+    "greek": "Έλεγχος",
+    "english": "Check-up",
+    "german": "Kontrolle"
+  },
+  {
+    "recordID": "dc86130c4b7d11c",
+    "sourceCode": "5020",
+    "groupGreek": "Πρόληψη",
+    "greek": "ΘΕΡΑΠΕΙΑ ΜΕ ΝΑΡΘΗΚΑ ΣΥΓΚΛΕΙΣΙΑΚΟ",
+    "english": "Occlusal splint therapy",
+    "german": "Okklusionsschienentherapie"
+  },
+  {
+    "recordID": "d33ac05090ae74f",
+    "sourceCode": "86068",
+    "groupGreek": "Πρόληψη",
+    "greek": "Καθαρισμός / Αποτρύγωση / Στίλβωση",
+    "english": "Cleaning / scaling / polishing",
+    "german": "Reinigung / Zahnsteinentfernung / Politur"
+  },
+  {
+    "recordID": "d72ec422f17eeb8",
+    "sourceCode": "5014",
+    "groupGreek": "Πρόληψη",
+    "greek": "Λεύκανση με νάρθηκα νυχτός",
+    "english": "Whitening with night tray",
+    "german": "Bleaching mit Nachtschiene"
+  },
+  {
+    "recordID": "d1c6687acaf052a",
+    "sourceCode": "86155",
+    "groupGreek": "Πρόληψη",
+    "greek": "Λεύκανση στο ιατρείο",
+    "english": "In-office whitening",
+    "german": "In-Office-Bleaching"
+  },
+  {
+    "recordID": "d383150ae44acaa",
+    "sourceCode": "86196",
+    "groupGreek": "Πρόληψη",
+    "greek": "Νάρθηκας αθλητικός",
+    "english": "Sports mouthguard",
+    "german": "Sportmundschutz"
+  },
+  {
+    "recordID": "d1aca9abddab068",
+    "sourceCode": "5021",
+    "groupGreek": "Πρόληψη",
+    "greek": "Νάρθηκας βρουξισμού άνω γνάθος",
+    "english": "Bruxism splint upper jaw",
+    "german": "Knirscherschiene Oberkiefer"
+  },
+  {
+    "recordID": "dc7553908d1db5d",
+    "sourceCode": "86085",
+    "groupGreek": "Πρόληψη",
+    "greek": "Νάρθηκας βρουξισμού άνω γνάθος (μαλακός)",
+    "english": "Bruxism splint upper jaw (soft)",
+    "german": "Knirscherschiene Oberkiefer (weich)"
+  },
+  {
+    "recordID": "d4bc879412ceeee",
+    "sourceCode": "86069",
+    "groupGreek": "Πρόληψη",
+    "greek": "Νάρθηκας βρουξισμού κάτω γνάθος",
+    "english": "Bruxism splint lower jaw",
+    "german": "Knirscherschiene Unterkiefer"
+  },
+  {
+    "recordID": "d946bca8f2a6353",
+    "sourceCode": "86086",
+    "groupGreek": "Πρόληψη",
+    "greek": "Νάρθηκας βρουξισμού κάτω γνάθος (μαλακός)",
+    "english": "Bruxism splint lower jaw (soft)",
+    "german": "Knirscherschiene Unterkiefer (weich)"
+  },
+  {
+    "recordID": "d8fa8ed6d93214d",
+    "sourceCode": "5019",
+    "groupGreek": "Πρόληψη",
+    "greek": "Νάρθηκας σύγκλισης",
+    "english": "Occlusal splint",
+    "german": "Okklusionsschiene"
+  },
+  {
+    "recordID": "d18e83e60ca8b8c",
+    "sourceCode": "86042",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Ανασύσταση Αμαλγάματος / Καρφίδα mo",
+    "english": "Amalgam core build-up / pin (mesio-occlusal)",
+    "german": "Amalgamaufbau / Stift (mesio-okklusal)"
+  },
+  {
+    "recordID": "d6cd0d38fd6472f",
+    "sourceCode": "86045",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Ανασύσταση Αμαλγάματος / Καρφίδα od",
+    "english": "Amalgam core build-up / pin (occluso-distal)",
+    "german": "Amalgamaufbau / Stift (okkluso-distal)"
+  },
+  {
+    "recordID": "d75d29902df9f07",
+    "sourceCode": "86207",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Ανασύσταση υαλοϊονομερούς",
+    "english": "Glass-ionomer reconstruction",
+    "german": "Glasionomeraufbau"
+  },
+  {
+    "recordID": "dabcc1bfa8c5587",
+    "sourceCode": "86119",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Αφαίρεση παλιάς (ανεπαρκούς) έμφραξης",
+    "english": "Removal of old inadequate restoration",
+    "german": "Entfernung einer alten unzureichenden Füllung"
+  },
+  {
+    "recordID": "d69df5e1df4b3c7",
+    "sourceCode": "86044",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος ο",
+    "english": "Amalgam restoration (occlusal)",
+    "german": "Amalgamfüllung (okklusal)"
+  },
+  {
+    "recordID": "d1d3ba4830fc8d8",
+    "sourceCode": "86043",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος παριακού βοθρίου",
+    "english": "Amalgam restoration buccal pit",
+    "german": "Amalgamfüllung Bukkalgrübchen"
+  },
+  {
+    "recordID": "d5f43a481f8de22",
+    "sourceCode": "86041",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος υπερώια αύλακα",
+    "english": "Amalgam restoration palatal groove",
+    "german": "Amalgamfüllung Palatinalfurche"
+  },
+  {
+    "recordID": "d2796cd60040b9d",
+    "sourceCode": "86037",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος mo",
+    "english": "Amalgam restoration (mesio-occlusal)",
+    "german": "Amalgamfüllung (mesio-okklusal)"
+  },
+  {
+    "recordID": "d853cc14bb27827",
+    "sourceCode": "86039",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος mod",
+    "english": "Amalgam restoration (mesio-occluso-distal)",
+    "german": "Amalgamfüllung (mesio-okkluso-distal)"
+  },
+  {
+    "recordID": "d0c57593ae6d0d7",
+    "sourceCode": "86038",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος od",
+    "english": "Amalgam restoration (occluso-distal)",
+    "german": "Amalgamfüllung (okkluso-distal)"
+  },
+  {
+    "recordID": "dcd6e19d3fb9456",
+    "sourceCode": "86040",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη Αμαλγάματος V ομάδας",
+    "english": "Class V amalgam restoration",
+    "german": "Amalgamfüllung Klasse V"
+  },
+  {
+    "recordID": "daf70e586a5bc1a",
+    "sourceCode": "86075",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη υαλοϊονομερούς mo",
+    "english": "Glass-ionomer restoration (mesio-occlusal)",
+    "german": "Glasionomerfüllung (mesio-okklusal)"
+  },
+  {
+    "recordID": "dbe9a0d8e008455",
+    "sourceCode": "86078",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη υαλοϊονομερούς mod",
+    "english": "Glass-ionomer restoration (mesio-occluso-distal)",
+    "german": "Glasionomerfüllung (mesio-okkluso-distal)"
+  },
+  {
+    "recordID": "d5461c6482a230e",
+    "sourceCode": "86076",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη υαλοϊονομερούς o",
+    "english": "Glass-ionomer restoration (occlusal)",
+    "german": "Glasionomerfüllung (okklusal)"
+  },
+  {
+    "recordID": "de8919bcb176c58",
+    "sourceCode": "86077",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη υαλοϊονομερούς od",
+    "english": "Glass-ionomer restoration (occluso-distal)",
+    "german": "Glasionomerfüllung (okkluso-distal)"
+  },
+  {
+    "recordID": "d0c82b3d98fbc6c",
+    "sourceCode": "86079",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Έμφραξη υαλοϊονομερούς V ομάδας",
+    "english": "Class V glass-ionomer restoration",
+    "german": "Glasionomerfüllung Klasse V"
+  },
+  {
+    "recordID": "d379738b29163da",
+    "sourceCode": "86138",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Ουδέτερο στρώμα",
+    "english": "Liner/base",
+    "german": "Unterfüllung"
+  },
+  {
+    "recordID": "d23c8f288e446bd",
+    "sourceCode": "86116",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Προσωρινή έμφραξη με IRM",
+    "english": "Temporary restoration with IRM",
+    "german": "Provisorische Füllung mit IRM"
+  },
+  {
+    "recordID": "d752d30c6d22bf1",
+    "sourceCode": "86117",
+    "groupGreek": "Οδοντ. Χειρουργική 2",
+    "greek": "Προσωρινή έμφραξη με ZnO - Eugenol",
+    "english": "Temporary restoration with zinc oxide–eugenol",
+    "german": "Provisorische Füllung mit Zinkoxid-Eugenol"
+  },
+  {
+    "recordID": "d1d37730655e5f4",
+    "sourceCode": "86064",
+    "groupGreek": "Παιδοδοντία",
+    "greek": "Διάβρωση οδόντος",
+    "english": "Tooth erosion",
+    "german": "Zahnerosion"
+  },
+  {
+    "recordID": "d5fa59a5eeba7a0",
+    "sourceCode": "86065",
+    "groupGreek": "Παιδοδοντία",
+    "greek": "Έμφραξη με υαλοϊονομερή",
+    "english": "Glass-ionomer restoration",
+    "german": "Glasionomerfüllung"
+  },
+  {
+    "recordID": "d9a406efc9b258e",
+    "sourceCode": "86070",
+    "groupGreek": "Παιδοδοντία",
+    "greek": "Φθορίωση με νάρθηκα",
+    "english": "Fluoride treatment with tray",
+    "german": "Fluoridierung mit Schiene"
+  },
+  {
+    "recordID": "d50ea407e5dd9b0",
+    "sourceCode": "86066",
+    "groupGreek": "Παιδοδοντία",
+    "greek": "Χρωματισμός πλάκας",
+    "english": "Plaque disclosing",
+    "german": "Plaqueanfärbung"
+  },
+  {
+    "recordID": "d97067592788640",
+    "sourceCode": "86127",
+    "groupGreek": "Γενικά",
+    "greek": "Δώθηκε συνταγή φαρμακευτικής αγωγής",
+    "english": "Medication prescription issued",
+    "german": "Medikamentenverordnung ausgestellt"
+  },
+  {
+    "recordID": "da2340862968e09",
+    "sourceCode": "86128",
+    "groupGreek": "Γενικά",
+    "greek": "Ηλεκτρονική συνταγή",
+    "english": "Electronic prescription",
+    "german": "Elektronisches Rezept"
+  },
+  {
+    "recordID": "d93ed0d18b79339",
+    "sourceCode": "86129",
+    "groupGreek": "Γενικά",
+    "greek": "Πανοραμική ακτινογραφία",
+    "english": "Panoramic radiograph",
+    "german": "Panoramaschichtaufnahme"
+  },
+  {
+    "recordID": "d6470b6962bfe06",
+    "sourceCode": "86140",
+    "groupGreek": "Γενικά",
+    "greek": "Παραπομπή",
+    "english": "Referral",
+    "german": "Überweisung"
+  },
+  {
+    "recordID": "da500f80ef1af57",
+    "sourceCode": "86142",
+    "groupGreek": "Γενικά",
+    "greek": "Χημειοπροφύλαξη / Antibiotische Abschirmung",
+    "english": "Antibiotic prophylaxis",
+    "german": "Antibiotische Abschirmung"
+  },
+  {
+    "recordID": "df041e07cef1040",
+    "sourceCode": "86223",
+    "groupGreek": "Γενικά",
+    "greek": "Appointment / No entry",
+    "english": "Appointment / no entry",
+    "german": "Termin / kein Eintrag"
+  },
+  {
+    "recordID": "dc58ab36eb297ed",
+    "sourceCode": "86200",
+    "groupGreek": "Γενικά",
+    "greek": "CBCT",
+    "english": "CBCT",
+    "german": "DVT / CBCT"
+  }
+]

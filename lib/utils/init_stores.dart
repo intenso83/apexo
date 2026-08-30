@@ -7,6 +7,7 @@ import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/treatment_history/treatment_history_store.dart';
+import 'package:apexo/features/treatment_planning/treatment_plan_store.dart';
 
 initializeStores() {
   globalSettings.init();
@@ -16,6 +17,7 @@ initializeStores() {
   therapyGroups.init();
   procedureCatalog.init();
   odontogramEvents.init();
+  treatmentPlans.init();
 
   appointments.observableMap.observe((events) {
     for (var event in events) {

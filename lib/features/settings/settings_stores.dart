@@ -30,6 +30,14 @@ class GlobalSettings extends Store<Setting> {
   String get startDayOfWeek => get("start_day_of_wk").value;
   String get isoCountryCode => get("ISO_country____").value;
   bool get aiServicesEnabled => get("ai_services_ena").value == "1";
+  String get treatmentPlanBrandEl => get("txplan_brand_el").value;
+  String get treatmentPlanBrandEn => get("txplan_brand_en").value;
+  String get treatmentPlanBrandDe => get("txplan_brand_de").value;
+  String get treatmentPlanConsentEl => get("txplan_cnsnt_el").value;
+  String get treatmentPlanConsentEn => get("txplan_cnsnt_en").value;
+  String get treatmentPlanConsentDe => get("txplan_cnsnt_de").value;
+  String get treatmentPlanLogoBase64 => get("txplan_logo_b64").value;
+  String get treatmentPlanLogoName => get("txplan_logo_nm_").value;
 
   // Windows-only feature: directory/directories where the Xray software
   // stores `.dcm` files. Supports multiple directories separated by `;`.
@@ -73,6 +81,17 @@ class GlobalSettings extends Store<Setting> {
     "ai_services_ena": "0",
     "dicom_watch_dir": "",
     "dicom_auto_imp_": "1",
+    "txplan_brand_el": "Οδοντιατρείο Ευριπίδη Δημητρακόπουλου",
+    "txplan_brand_en": "E. Dimitrakopoulos Dental Practice",
+    "txplan_brand_de": "Zahnarztpraxis E. Dimitrakopoulos",
+    "txplan_cnsnt_el":
+        "Έχω ενημερωθεί για το προτεινόμενο σχέδιο θεραπείας, τις εναλλακτικές λύσεις και την οικονομική εκτίμηση.",
+    "txplan_cnsnt_en":
+        "I have been informed about the proposed treatment plan, its alternatives, and the estimated cost.",
+    "txplan_cnsnt_de":
+        "Ich wurde über den vorgeschlagenen Behandlungsplan, die Alternativen und die voraussichtlichen Kosten informiert.",
+    "txplan_logo_b64": "",
+    "txplan_logo_nm_": "treatment_plan_logo.gif",
   };
 
   @override

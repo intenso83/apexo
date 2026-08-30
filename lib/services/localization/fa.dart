@@ -403,6 +403,7 @@ class Fa implements En {
     "mappingUnspecified": "نقشه مشخص نشده",
     "allTreatments": "همه درمان‌ها",
     "treatmentHistory": "سابقه درمان",
+    "treatmentPlanning": "طرح درمان",
     "treatmentHistoryPilot": "آزمایش سابقه درمان DentalWin",
     "treatmentHistoryPilotDescription":
         "سابقه واردشده فقط برای خواندن و بررسی است. داده‌های DentalWin و محیط اصلی تغییری نکرده‌اند.",

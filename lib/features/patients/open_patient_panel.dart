@@ -35,6 +35,7 @@ import 'package:apexo/features/patients/patient_fields_prototype.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/treatment_history/treatment_history_timeline.dart';
+import 'package:apexo/features/treatment_planning/patient_treatment_planning.dart';
 import 'package:apexo/widget_keys.dart';
 import 'package:fluent_ui/fluent_ui.dart' hide TextBox;
 import 'package:flutter/cupertino.dart';
@@ -181,6 +182,12 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
         title: txt("treatmentHistory"),
         icon: FluentIcons.history,
         body: TreatmentHistoryTimeline(patientID: editingCopy.id),
+        onlyIfSaved: true,
+      ),
+      PanelTab(
+        title: txt("treatmentPlanning"),
+        icon: FluentIcons.health,
+        body: PatientTreatmentPlanning(patient: editingCopy),
         onlyIfSaved: true,
       ),
       if (login.perm(Perm.revenue).read)

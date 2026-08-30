@@ -408,6 +408,7 @@ class El implements En {
     "mappingUnspecified": "Χωρίς προσδιορισμένη χαρτογράφηση",
     "allTreatments": "Όλες οι θεραπείες",
     "treatmentHistory": "Ιστορικό θεραπειών",
+    "treatmentPlanning": "Σχέδιο θεραπείας",
     "treatmentHistoryPilot": "Πιλοτικό ιστορικό θεραπειών DentalWin",
     "treatmentHistoryPilotDescription":
         "Εισαγόμενο ιστορικό μόνο για ανάγνωση και έλεγχο. Το DentalWin και τα δεδομένα παραγωγής παραμένουν αμετάβλητα.",

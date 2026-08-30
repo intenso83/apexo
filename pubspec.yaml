@@ -81,9 +81,12 @@ flutter:
     - CHANGELOG.md
     - assets/app_icon.png
     - assets/images/logo.png
+    - assets/images/treatment_plan_logo.gif
     - assets/images/missing.png
+    - assets/therapy_catalogue_translations.json
     - assets/fonts/readex.ttf
     - assets/fonts/readex-bold.ttf
+    - assets/fonts/DejaVuSans.ttf
     - assets/fonts/DentalIcons.ttf
     - assets/odontogram/v1/png/
     - assets/ding.wav

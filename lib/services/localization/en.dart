@@ -406,6 +406,7 @@ class En {
     "mappingUnspecified": "Mapping not specified",
     "allTreatments": "All Treatments",
     "treatmentHistory": "Treatment history",
+    "treatmentPlanning": "Treatment planning",
     "treatmentHistoryPilot": "DentalWin treatment-history pilot",
     "treatmentHistoryPilotDescription":
         "Read-only imported history for verification. DentalWin and production data are unchanged.",

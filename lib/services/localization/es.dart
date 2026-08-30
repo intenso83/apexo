@@ -417,6 +417,7 @@ class Es implements En {
     "mappingUnspecified": "Mapa no especificado",
     "allTreatments": "Todos",
     "treatmentHistory": "Historial de tratamientos",
+    "treatmentPlanning": "Plan de tratamiento",
     "treatmentHistoryPilot":
         "Piloto del historial de tratamientos de DentalWin",
     "treatmentHistoryPilotDescription":
