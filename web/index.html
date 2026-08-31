@@ -30,6 +30,7 @@
 
 	<title>Apexo</title>
 	<link rel="manifest" href="manifest.json" />
+	<script src="https://accounts.google.com/gsi/client" async></script>
 	<style>
 		#progress {
 			width: 92px;
@@ -190,6 +191,7 @@
 	</script>
 
 	<script type="module" src="./fcm/fcm.js"></script>
+	<script src="./google_calendar_oauth.js"></script>
 	<script>
 		function reloadIfPathBuilderError(event) {
 			var errorMsg = event.message || (event.reason ? (event.reason.message || event.reason) : "");

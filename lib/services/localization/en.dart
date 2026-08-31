@@ -1064,6 +1064,22 @@ class En {
         "A generic event title protects patient identity. Patient names require an explicit opt-in.",
     "googleCalendarGenericTitle": "Generic: Dental appointment",
     "googleCalendarPatientTitle": "Include patient name",
+    "googleCalendarConnect": "Connect Google account",
+    "googleCalendarReconnect": "Reconnect Google account",
+    "googleCalendarDisconnect": "Disconnect",
+    "googleCalendarSyncNow": "Sync now",
+    "googleCalendarSessionActive":
+        "Authorization is active for this browser session.",
+    "googleCalendarReconnectRequired":
+        "Account remembered. Reconnect after a browser restart before syncing.",
+    "googleCalendarConnectReady":
+        "Choose the Google account that belongs to this Apexo user.",
+    "googleCalendarAssignedOnly":
+        "Only appointments assigned to this Apexo user are synchronized ({count} currently visible).",
+    "googleCalendarLastSync": "Last successful sync",
+    "googleCalendarSetupRequired": "Google Cloud setup required",
+    "googleCalendarSetupRequired_desc":
+        "An administrator must enable the integration and save a public Web OAuth client ID before users can connect.",
 
     // calendar system
     "calendarSystem": "Calendar system",

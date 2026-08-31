@@ -1060,6 +1060,21 @@ class Fa implements En {
         "عنوان عمومی از هویت بیمار محافظت می‌کند. نمایش نام بیمار نیازمند فعال‌سازی صریح است.",
     "googleCalendarGenericTitle": "عمومی: نوبت دندانپزشکی",
     "googleCalendarPatientTitle": "نمایش نام بیمار",
+    "googleCalendarConnect": "اتصال حساب Google",
+    "googleCalendarReconnect": "اتصال دوباره حساب Google",
+    "googleCalendarDisconnect": "قطع اتصال",
+    "googleCalendarSyncNow": "همگام‌سازی اکنون",
+    "googleCalendarSessionActive": "مجوز برای این نشست مرورگر فعال است.",
+    "googleCalendarReconnectRequired":
+        "حساب به خاطر سپرده شده است. پس از راه‌اندازی مجدد مرورگر، پیش از همگام‌سازی دوباره متصل شوید.",
+    "googleCalendarConnectReady":
+        "حساب Google متعلق به این کاربر Apexo را انتخاب کنید.",
+    "googleCalendarAssignedOnly":
+        "فقط نوبت‌های اختصاص‌یافته به این کاربر Apexo همگام می‌شوند ({count} مورد اکنون قابل مشاهده است).",
+    "googleCalendarLastSync": "آخرین همگام‌سازی موفق",
+    "googleCalendarSetupRequired": "تنظیم Google Cloud لازم است",
+    "googleCalendarSetupRequired_desc":
+        "مدیر باید یکپارچه‌سازی را فعال و یک شناسه عمومی Web OAuth ذخیره کند تا کاربران بتوانند متصل شوند.",
 
     // calendar system
     "calendarSystem": "سیستم تقویم",

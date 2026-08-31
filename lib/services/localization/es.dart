@@ -1087,6 +1087,22 @@ class Es implements En {
         "Un título genérico protege la identidad del paciente. Los nombres requieren activación explícita.",
     "googleCalendarGenericTitle": "Genérico: Cita dental",
     "googleCalendarPatientTitle": "Incluir nombre del paciente",
+    "googleCalendarConnect": "Conectar cuenta de Google",
+    "googleCalendarReconnect": "Volver a conectar Google",
+    "googleCalendarDisconnect": "Desconectar",
+    "googleCalendarSyncNow": "Sincronizar ahora",
+    "googleCalendarSessionActive":
+        "La autorización está activa durante esta sesión del navegador.",
+    "googleCalendarReconnectRequired":
+        "Cuenta recordada. Vuelva a conectar después de reiniciar el navegador antes de sincronizar.",
+    "googleCalendarConnectReady":
+        "Elija la cuenta de Google que pertenece a este usuario de Apexo.",
+    "googleCalendarAssignedOnly":
+        "Solo se sincronizan las citas asignadas a este usuario de Apexo ({count} visibles actualmente).",
+    "googleCalendarLastSync": "Última sincronización correcta",
+    "googleCalendarSetupRequired": "Se requiere configurar Google Cloud",
+    "googleCalendarSetupRequired_desc":
+        "Un administrador debe activar la integración y guardar un ID de cliente OAuth web público antes de conectar usuarios.",
 
     // calendar system
     "calendarSystem": "Sistema de calendario",

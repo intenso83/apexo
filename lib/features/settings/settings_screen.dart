@@ -4,6 +4,7 @@ import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_connection_controller.dart';
 import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/network_actions/network_actions_controller.dart';
@@ -234,20 +235,8 @@ class SettingsScreen extends StatelessWidget {
             scope: Scope.device,
             initValue: "",
             apply: (_) {},
-            footer: InfoBar(
-              severity: googleCalendarUserSettings().isConnected
-                  ? InfoBarSeverity.success
-                  : InfoBarSeverity.warning,
-              title: Txt(
-                googleCalendarUserSettings().isConnected
-                    ? txt("googleCalendarConnected")
-                    : txt("googleCalendarNotConnected"),
-              ),
-              content: Txt(
-                googleCalendarUserSettings().isConnected
-                    ? googleCalendarUserSettings().googleAccountEmail
-                    : txt("googleCalendarConnectPending"),
-              ),
+            footer: GoogleCalendarConnectionPanel(
+              accountId: googleCalendarAccountId,
             ),
           ),
           SettingsItem(
@@ -503,6 +492,166 @@ class SettingsScreen extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class GoogleCalendarConnectionPanel extends StatelessWidget {
+  final String accountId;
+
+  const GoogleCalendarConnectionPanel({
+    super.key,
+    required this.accountId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MStreamBuilder(
+      streams: [
+        googleCalendarConnectionController.state.stream,
+        localSettings.stream,
+        globalSettings.observableMap.stream,
+        appointments.observableMap.stream,
+      ],
+      builder: (context, _) {
+        final saved = localSettings.googleCalendarForUser(accountId);
+        final runtime = googleCalendarConnectionController.state();
+        final isCurrentRuntime = runtime.accountId == accountId;
+        final active =
+            googleCalendarConnectionController.hasActiveSession(accountId);
+        final busy = isCurrentRuntime && runtime.isBusy;
+        final configured = globalSettings.googleCalendarSyncEnabled &&
+            globalSettings.googleCalendarClientId.trim().isNotEmpty;
+        final assignedCount = googleCalendarConnectionController
+            .assignedAppointmentCount(accountId);
+        final message = isCurrentRuntime && runtime.message.isNotEmpty
+            ? runtime.message
+            : saved.isConnected
+                ? (active
+                    ? txt("googleCalendarSessionActive")
+                    : txt("googleCalendarReconnectRequired"))
+                : txt("googleCalendarConnectReady");
+        final isError = isCurrentRuntime &&
+            runtime.phase == GoogleCalendarConnectionPhase.error;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InfoBar(
+              severity: isError
+                  ? InfoBarSeverity.error
+                  : active
+                      ? InfoBarSeverity.success
+                      : InfoBarSeverity.info,
+              title: Txt(
+                saved.isConnected
+                    ? saved.googleAccountEmail
+                    : txt("googleCalendarNotConnected"),
+              ),
+              content: Txt(message),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton(
+                  key: const Key("google_calendar_connect_button"),
+                  onPressed: busy || !configured
+                      ? null
+                      : () => googleCalendarConnectionController.connect(
+                            accountId: accountId,
+                            clientId: globalSettings.googleCalendarClientId,
+                          ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (busy &&
+                          runtime.phase ==
+                              GoogleCalendarConnectionPhase.authorizing)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: ProgressRing(strokeWidth: 2),
+                        )
+                      else
+                        const Icon(FluentIcons.plug_connected),
+                      const SizedBox(width: 7),
+                      Txt(saved.isConnected
+                          ? txt("googleCalendarReconnect")
+                          : txt("googleCalendarConnect")),
+                    ],
+                  ),
+                ),
+                FilledButton(
+                  key: const Key("google_calendar_sync_button"),
+                  onPressed: busy || !configured || !saved.syncEnabled
+                      ? null
+                      : () => googleCalendarConnectionController.syncNow(
+                            accountId: accountId,
+                            clientId: globalSettings.googleCalendarClientId,
+                          ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (busy &&
+                          runtime.phase ==
+                              GoogleCalendarConnectionPhase.syncing)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: ProgressRing(strokeWidth: 2),
+                        )
+                      else
+                        const Icon(FluentIcons.sync),
+                      const SizedBox(width: 7),
+                      Txt(txt("googleCalendarSyncNow")),
+                    ],
+                  ),
+                ),
+                if (saved.isConnected)
+                  Button(
+                    key: const Key("google_calendar_disconnect_button"),
+                    onPressed: busy
+                        ? null
+                        : () => googleCalendarConnectionController
+                            .disconnect(accountId),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(FluentIcons.plug_disconnected),
+                        const SizedBox(width: 7),
+                        Txt(txt("googleCalendarDisconnect")),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Txt(
+              txt("googleCalendarAssignedOnly")
+                  .replaceAll("{count}", assignedCount.toString()),
+              style: const TextStyle(fontSize: 12),
+            ),
+            if (saved.lastSuccessfulSync != null) ...[
+              const SizedBox(height: 4),
+              Txt(
+                "${txt("googleCalendarLastSync")}: "
+                "${saved.lastSuccessfulSync!.toLocal()}",
+                style: const TextStyle(fontSize: 12),
+              ),
+            ],
+            if (!configured) ...[
+              const SizedBox(height: 8),
+              InfoBar(
+                severity: InfoBarSeverity.warning,
+                title: Txt(txt("googleCalendarSetupRequired")),
+                content: Txt(txt("googleCalendarSetupRequired_desc")),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

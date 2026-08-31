@@ -1,0 +1,328 @@
+import 'package:apexo/core/observable.dart';
+import 'package:apexo/features/appointments/appointment_model.dart';
+import 'package:apexo/features/appointments/appointments_store.dart';
+import 'package:apexo/features/settings/settings_stores.dart';
+import 'package:apexo/services/login.dart';
+import 'package:apexo/utils/hash.dart';
+import 'package:http/http.dart' as http;
+
+import 'google_calendar_authorization.dart';
+import 'google_calendar_gateway.dart';
+import 'google_calendar_models.dart';
+import 'google_calendar_sync_engine.dart';
+
+enum GoogleCalendarConnectionPhase {
+  idle,
+  authorizing,
+  syncing,
+  connected,
+  error,
+}
+
+class GoogleCalendarRuntimeState {
+  final String accountId;
+  final GoogleCalendarConnectionPhase phase;
+  final String message;
+  final GoogleCalendarSyncResult? lastResult;
+
+  const GoogleCalendarRuntimeState({
+    this.accountId = '',
+    this.phase = GoogleCalendarConnectionPhase.idle,
+    this.message = '',
+    this.lastResult,
+  });
+
+  bool get isBusy =>
+      phase == GoogleCalendarConnectionPhase.authorizing ||
+      phase == GoogleCalendarConnectionPhase.syncing;
+}
+
+/// Owns only short-lived, in-memory Google access tokens. Persistent settings
+/// contain the connected email and sync cursor, never an OAuth token.
+class GoogleCalendarConnectionController {
+  final GoogleCalendarAuthorization authorization;
+  final http.Client httpClient;
+  final Map<String, GoogleCalendarAuthorizationSession> _sessions = {};
+
+  GoogleCalendarConnectionController({
+    GoogleCalendarAuthorization? authorization,
+    http.Client? httpClient,
+  })  : authorization = authorization ?? googleCalendarAuthorization,
+        httpClient = httpClient ?? http.Client();
+
+  final state = ObservableState(const GoogleCalendarRuntimeState());
+
+  bool hasActiveSession(String accountId) =>
+      _sessions[accountId]?.isValid == true;
+
+  int assignedAppointmentCount(String accountId) =>
+      assignedAppointments(appointments.present.values, accountId).length;
+
+  static List<Appointment> assignedAppointments(
+    Iterable<Appointment> source,
+    String accountId,
+  ) =>
+      source
+          .where((appointment) =>
+              accountId.isNotEmpty &&
+              appointment.operatorsIDs.contains(accountId))
+          .toList(growable: false);
+
+  Future<void> connect({
+    required String accountId,
+    required String clientId,
+  }) async {
+    if (!_validateConfiguration(accountId, clientId)) return;
+    state(GoogleCalendarRuntimeState(
+      accountId: accountId,
+      phase: GoogleCalendarConnectionPhase.authorizing,
+      message: 'Opening the Google account chooser…',
+    ));
+    try {
+      final session = await authorization.authorize(
+        clientId: clientId,
+        apexoAccountId: accountId,
+        forceAccountChooser: true,
+      );
+      final previous = localSettings.googleCalendarForUser(accountId);
+      if (previous.googleAccountEmail.isNotEmpty &&
+          previous.googleAccountEmail.toLowerCase() !=
+              session.email.toLowerCase()) {
+        throw GoogleCalendarAuthorizationException(
+          'This Apexo user is already linked to '
+          '${previous.googleAccountEmail}. Disconnect first to change accounts.',
+        );
+      }
+      _sessions[accountId] = session;
+      localSettings.setGoogleCalendarForUser(
+        accountId,
+        previous.copyWith(
+          syncEnabled: true,
+          googleAccountEmail: session.email,
+          credentialReference: 'gis:$accountId',
+          syncToken: previous.syncToken,
+          lastError: '',
+        ),
+      );
+      state(GoogleCalendarRuntimeState(
+        accountId: accountId,
+        phase: GoogleCalendarConnectionPhase.connected,
+        message: 'Connected to ${session.email}.',
+      ));
+    } catch (error) {
+      _setError(accountId, error);
+    }
+  }
+
+  Future<void> disconnect(String accountId) async {
+    final session = _sessions.remove(accountId);
+    try {
+      if (session != null) await authorization.revoke(session);
+    } catch (_) {
+      // Local disconnect must still succeed if Google cannot be reached.
+    }
+    localSettings.disconnectGoogleCalendarForUser(accountId);
+    state(GoogleCalendarRuntimeState(
+      accountId: accountId,
+      phase: GoogleCalendarConnectionPhase.idle,
+      message: 'Google Calendar disconnected from this Apexo user.',
+    ));
+  }
+
+  Future<void> syncNow({
+    required String accountId,
+    required String clientId,
+  }) async {
+    if (!_validateConfiguration(accountId, clientId)) return;
+    final settings = localSettings.googleCalendarForUser(accountId);
+    if (!settings.syncEnabled) {
+      return _setError(
+        accountId,
+        const GoogleCalendarAuthorizationException(
+          'Enable synchronization for this Apexo user first.',
+        ),
+      );
+    }
+    try {
+      var session = _sessions[accountId];
+      if (session?.isValid != true) {
+        state(GoogleCalendarRuntimeState(
+          accountId: accountId,
+          phase: GoogleCalendarConnectionPhase.authorizing,
+          message: 'Renewing Google authorization…',
+        ));
+        session = await authorization.authorize(
+          clientId: clientId,
+          apexoAccountId: accountId,
+          forceAccountChooser: settings.googleAccountEmail.isEmpty,
+        );
+        if (settings.googleAccountEmail.isNotEmpty &&
+            settings.googleAccountEmail.toLowerCase() !=
+                session.email.toLowerCase()) {
+          throw GoogleCalendarAuthorizationException(
+            'Google returned ${session.email}, but this Apexo user is linked '
+            'to ${settings.googleAccountEmail}. Disconnect first to change accounts.',
+          );
+        }
+        _sessions[accountId] = session;
+      }
+
+      state(GoogleCalendarRuntimeState(
+        accountId: accountId,
+        phase: GoogleCalendarConnectionPhase.syncing,
+        message: 'Synchronizing assigned appointments…',
+      ));
+      final gateway = GoogleCalendarHttpGateway(
+        client: httpClient,
+        accessTokenProvider: () async {
+          final current = _sessions[accountId];
+          if (current?.isValid != true) {
+            throw const GoogleCalendarAuthorizationException(
+              'Google authorization expired. Press Sync now again.',
+            );
+          }
+          return current!.accessToken;
+        },
+      );
+      final assigned = assignedAppointments(
+        appointments.docs.values,
+        accountId,
+      );
+      final removedAssignments = appointments.docs.values
+          .where((appointment) =>
+              !appointment.operatorsIDs.contains(accountId) &&
+              appointment.googleCalendarLinkFor(accountId).isLinked)
+          .toList(growable: false);
+      var removedFromGoogle = 0;
+      for (final appointment in removedAssignments) {
+        final link = appointment.googleCalendarLinkFor(accountId);
+        await gateway.deleteEvent(
+          calendarId:
+              link.calendarId.isEmpty ? settings.calendarId : link.calendarId,
+          eventId: link.eventId,
+        );
+        appointment.removeGoogleCalendarLink(accountId);
+        appointments.set(appointment);
+        removedFromGoogle++;
+      }
+      final engineResult =
+          await GoogleCalendarSyncEngine(gateway: gateway).sync(
+        appointments: assigned,
+        preferences: GoogleCalendarSyncPreferences(
+          enabled: true,
+          calendarId: settings.calendarId,
+          clinicId: simpleHash(login.url),
+          accountId: accountId,
+          direction: settings.direction,
+          titleMode: settings.titleMode,
+        ),
+        state: GoogleCalendarSyncState(
+          syncToken: settings.syncToken,
+          lastSuccessfulSync: settings.lastSuccessfulSync,
+        ),
+        saveAppointment: (appointment) async {
+          appointments.set(appointment);
+        },
+        patientName: (appointment) => appointment.title,
+      );
+      final result = GoogleCalendarSyncResult(
+        created: engineResult.created,
+        updatedInGoogle: engineResult.updatedInGoogle,
+        updatedInApexo: engineResult.updatedInApexo,
+        deletedFromGoogle: engineResult.deletedFromGoogle + removedFromGoogle,
+        performedFullResync: engineResult.performedFullResync,
+        nextSyncToken: engineResult.nextSyncToken,
+        issues: engineResult.issues,
+      );
+      await appointments.waitUntilChangesAreProcessed();
+      final issueMessage = result.issues.isEmpty
+          ? ''
+          : '${result.issues.length} item(s) need review.';
+      localSettings.setGoogleCalendarForUser(
+        accountId,
+        localSettings.googleCalendarForUser(accountId).copyWith(
+              googleAccountEmail: session!.email,
+              credentialReference: 'gis:$accountId',
+              syncToken: result.nextSyncToken ?? '',
+              lastSuccessfulSync: DateTime.now().toUtc(),
+              lastError: issueMessage,
+            ),
+      );
+      state(GoogleCalendarRuntimeState(
+        accountId: accountId,
+        phase: GoogleCalendarConnectionPhase.connected,
+        message: _resultMessage(result, assigned.length),
+        lastResult: result,
+      ));
+    } catch (error) {
+      _setError(accountId, error);
+    }
+  }
+
+  bool _validateConfiguration(String accountId, String clientId) {
+    if (accountId.isEmpty) {
+      _setError(
+        accountId,
+        const GoogleCalendarAuthorizationException(
+          'A signed-in Apexo user is required.',
+        ),
+      );
+      return false;
+    }
+    if (!globalSettings.googleCalendarSyncEnabled) {
+      _setError(
+        accountId,
+        const GoogleCalendarAuthorizationException(
+          'Enable the clinic Google Calendar integration first.',
+        ),
+      );
+      return false;
+    }
+    if (clientId.trim().isEmpty) {
+      _setError(
+        accountId,
+        const GoogleCalendarAuthorizationException(
+          'Enter and save the public Google OAuth client ID first.',
+        ),
+      );
+      return false;
+    }
+    if (!authorization.isSupported) {
+      _setError(
+        accountId,
+        const GoogleCalendarAuthorizationException(
+          'Google Calendar connection is currently available in Apexo Web.',
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  void _setError(String accountId, Object error) {
+    final message = error.toString();
+    final existing = localSettings.googleCalendarForUser(accountId);
+    if (accountId.isNotEmpty) {
+      localSettings.setGoogleCalendarForUser(
+        accountId,
+        existing.copyWith(lastError: message),
+      );
+    }
+    state(GoogleCalendarRuntimeState(
+      accountId: accountId,
+      phase: GoogleCalendarConnectionPhase.error,
+      message: message,
+    ));
+  }
+
+  String _resultMessage(GoogleCalendarSyncResult result, int assignedCount) {
+    final changed = result.created +
+        result.updatedInGoogle +
+        result.updatedInApexo +
+        result.deletedFromGoogle;
+    return 'Checked $assignedCount assigned appointment(s); '
+        '$changed change(s), ${result.issues.length} item(s) to review.';
+  }
+}
+
+final googleCalendarConnectionController = GoogleCalendarConnectionController();

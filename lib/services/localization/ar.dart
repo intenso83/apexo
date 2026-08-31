@@ -1052,6 +1052,20 @@ class Ar implements En {
         "يحمي العنوان العام هوية المريض. تتطلب أسماء المرضى موافقة صريحة.",
     "googleCalendarGenericTitle": "عام: موعد أسنان",
     "googleCalendarPatientTitle": "تضمين اسم المريض",
+    "googleCalendarConnect": "ربط حساب Google",
+    "googleCalendarReconnect": "إعادة ربط حساب Google",
+    "googleCalendarDisconnect": "قطع الاتصال",
+    "googleCalendarSyncNow": "المزامنة الآن",
+    "googleCalendarSessionActive": "التفويض نشط خلال جلسة المتصفح الحالية.",
+    "googleCalendarReconnectRequired":
+        "تم تذكر الحساب. أعد الاتصال بعد إعادة تشغيل المتصفح قبل المزامنة.",
+    "googleCalendarConnectReady": "اختر حساب Google الخاص بمستخدم Apexo هذا.",
+    "googleCalendarAssignedOnly":
+        "تتم مزامنة المواعيد المسندة إلى مستخدم Apexo هذا فقط ({count} ظاهرة حالياً).",
+    "googleCalendarLastSync": "آخر مزامنة ناجحة",
+    "googleCalendarSetupRequired": "يلزم إعداد Google Cloud",
+    "googleCalendarSetupRequired_desc":
+        "يجب على المسؤول تفعيل التكامل وحفظ معرّف عميل OAuth عام للويب قبل أن يتمكن المستخدمون من الاتصال.",
 
     // calendar system
     "calendarSystem": "نظام التقويم",

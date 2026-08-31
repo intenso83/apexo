@@ -1084,6 +1084,22 @@ class El implements En {
         "Ο γενικός τίτλος προστατεύει την ταυτότητα του ασθενούς. Η χρήση ονόματος απαιτεί ρητή επιλογή.",
     "googleCalendarGenericTitle": "Γενικός τίτλος: Οδοντιατρικό ραντεβού",
     "googleCalendarPatientTitle": "Να εμφανίζεται το όνομα ασθενούς",
+    "googleCalendarConnect": "Σύνδεση λογαριασμού Google",
+    "googleCalendarReconnect": "Επανασύνδεση λογαριασμού Google",
+    "googleCalendarDisconnect": "Αποσύνδεση",
+    "googleCalendarSyncNow": "Συγχρονισμός τώρα",
+    "googleCalendarSessionActive":
+        "Η εξουσιοδότηση είναι ενεργή για αυτή τη συνεδρία του προγράμματος περιήγησης.",
+    "googleCalendarReconnectRequired":
+        "Ο λογαριασμός έχει αποθηκευτεί. Μετά από επανεκκίνηση του browser απαιτείται επανασύνδεση πριν από τον συγχρονισμό.",
+    "googleCalendarConnectReady":
+        "Επιλέξτε τον λογαριασμό Google που ανήκει σε αυτόν τον χρήστη Apexo.",
+    "googleCalendarAssignedOnly":
+        "Συγχρονίζονται μόνο τα ραντεβού που έχουν ανατεθεί σε αυτόν τον χρήστη Apexo ({count} ορατά τώρα).",
+    "googleCalendarLastSync": "Τελευταίος επιτυχής συγχρονισμός",
+    "googleCalendarSetupRequired": "Απαιτείται ρύθμιση Google Cloud",
+    "googleCalendarSetupRequired_desc":
+        "Ο διαχειριστής πρέπει να ενεργοποιήσει την ενσωμάτωση και να αποθηκεύσει ένα δημόσιο Web OAuth client ID πριν συνδεθούν οι χρήστες.",
 
     // calendar system
     "calendarSystem": "Σύστημα ημερολογίου",
