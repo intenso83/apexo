@@ -163,6 +163,33 @@ void main() {
           restored.googleCalendarHtmlLink, 'https://calendar.google.com/event');
       expect(restored.googleCalendarSyncFingerprint, 'fingerprint');
     });
+
+    test('Google Calendar links remain isolated for multiple Apexo users', () {
+      final original = Appointment.fromJson({
+        'id': 'multi-calendar-round-trip',
+        'googleCalendarLinks': {
+          'user-a': {
+            'eventId': 'event-a',
+            'calendarId': 'calendar-a',
+            'etag': 'etag-a',
+            'syncFingerprint': 'fingerprint-a',
+          },
+          'user-b': {
+            'eventId': 'event-b',
+            'calendarId': 'calendar-b',
+            'etag': 'etag-b',
+            'syncFingerprint': 'fingerprint-b',
+          },
+        },
+      });
+
+      final restored = Appointment.fromJson(original.toJson());
+      expect(restored.googleCalendarLinkFor('user-a').eventId, 'event-a');
+      expect(restored.googleCalendarLinkFor('user-a').calendarId, 'calendar-a');
+      expect(restored.googleCalendarLinkFor('user-b').eventId, 'event-b');
+      expect(restored.googleCalendarLinkFor('user-b').calendarId, 'calendar-b');
+      expect(restored.googleCalendarLinks, hasLength(2));
+    });
   });
 
   group('Appointment.toJson', () {

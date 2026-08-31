@@ -7,6 +7,20 @@ mapping, incremental-sync rules, conflict detection, and administrative
 configuration needed for Google Calendar sync. It does not contain Google
 credentials or persist OAuth access/refresh tokens.
 
+## Multiple Apexo and Google accounts
+
+- The clinic configures one public Google OAuth client ID for the Apexo
+  installation.
+- Every Apexo user connects their own Google or Google Workspace account from
+  Settings. Google's OAuth account chooser determines which account is used.
+- Calendar choice, sync direction, privacy mode, incremental token, status,
+  and errors are stored separately under the Apexo account ID.
+- A user's Google identity and sync settings are not reused by another Apexo
+  login on the same computer.
+- OAuth access and refresh tokens are never stored in ordinary Apexo settings.
+  The live connector must keep them in platform-secure storage under an opaque
+  per-user credential reference.
+
 ## Safe default behaviour
 
 - Only events created and privately marked by Apexo are read back. Personal
@@ -23,11 +37,15 @@ credentials or persist OAuth access/refresh tokens.
 
 ## Duplicate prevention and ownership
 
-Apexo generates a deterministic Google event ID from the clinic identity and
-appointment ID. Every event also receives private extended properties:
+Apexo generates a deterministic Google event ID from the clinic identity,
+Apexo account ID, and appointment ID. An appointment keeps a separate Google
+event link for every connected Apexo account, so one user's sync cannot
+overwrite another user's event. Every event also receives private extended
+properties:
 
 - `apexoManaged=1`
 - `apexoClinicId=<clinic identity>`
+- `apexoAccountId=<Apexo account identity>`
 - `apexoAppointmentId=<appointment ID>`
 
 The private properties let the initial Calendar API query return only events

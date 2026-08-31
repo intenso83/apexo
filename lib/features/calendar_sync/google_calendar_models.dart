@@ -24,6 +24,7 @@ class GoogleCalendarSyncPreferences {
   final bool enabled;
   final String calendarId;
   final String clinicId;
+  final String accountId;
   final GoogleCalendarSyncDirection direction;
   final GoogleCalendarTitleMode titleMode;
   final int pastDays;
@@ -33,11 +34,107 @@ class GoogleCalendarSyncPreferences {
     required this.enabled,
     required this.calendarId,
     required this.clinicId,
+    required this.accountId,
     this.direction = GoogleCalendarSyncDirection.twoWay,
     this.titleMode = GoogleCalendarTitleMode.generic,
     this.pastDays = 90,
     this.futureDays = 365,
   });
+}
+
+/// Non-secret Google Calendar preferences for one signed-in Apexo account.
+///
+/// Instances are stored under the Apexo account ID. OAuth tokens themselves
+/// must live in platform-secure storage; [credentialReference] is only an
+/// opaque lookup key for that future secure store.
+class GoogleCalendarUserSettings {
+  final bool syncEnabled;
+  final String googleAccountEmail;
+  final String credentialReference;
+  final String calendarId;
+  final GoogleCalendarSyncDirection direction;
+  final GoogleCalendarTitleMode titleMode;
+  final String syncToken;
+  final DateTime? lastSuccessfulSync;
+  final String lastError;
+
+  const GoogleCalendarUserSettings({
+    this.syncEnabled = false,
+    this.googleAccountEmail = '',
+    this.credentialReference = '',
+    this.calendarId = 'primary',
+    this.direction = GoogleCalendarSyncDirection.twoWay,
+    this.titleMode = GoogleCalendarTitleMode.generic,
+    this.syncToken = '',
+    this.lastSuccessfulSync,
+    this.lastError = '',
+  });
+
+  bool get isConnected =>
+      googleAccountEmail.isNotEmpty && credentialReference.isNotEmpty;
+
+  factory GoogleCalendarUserSettings.fromJson(Map<String, dynamic> json) =>
+      GoogleCalendarUserSettings(
+        syncEnabled: json['syncEnabled'] == true,
+        googleAccountEmail: json['googleAccountEmail']?.toString() ?? '',
+        credentialReference: json['credentialReference']?.toString() ?? '',
+        calendarId: json['calendarId']?.toString() ?? 'primary',
+        direction: GoogleCalendarSyncDirection.parse(
+          json['direction']?.toString() ?? '',
+        ),
+        titleMode: GoogleCalendarTitleMode.parse(
+          json['titleMode']?.toString() ?? '',
+        ),
+        syncToken: json['syncToken']?.toString() ?? '',
+        lastSuccessfulSync: DateTime.tryParse(
+          json['lastSuccessfulSync']?.toString() ?? '',
+        ),
+        lastError: json['lastError']?.toString() ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'syncEnabled': syncEnabled,
+        if (googleAccountEmail.isNotEmpty)
+          'googleAccountEmail': googleAccountEmail,
+        if (credentialReference.isNotEmpty)
+          'credentialReference': credentialReference,
+        'calendarId': calendarId,
+        'direction': direction.name,
+        'titleMode': titleMode.name,
+        if (syncToken.isNotEmpty) 'syncToken': syncToken,
+        if (lastSuccessfulSync != null)
+          'lastSuccessfulSync': lastSuccessfulSync!.toUtc().toIso8601String(),
+        if (lastError.isNotEmpty) 'lastError': lastError,
+      };
+
+  GoogleCalendarUserSettings copyWith({
+    bool? syncEnabled,
+    String? googleAccountEmail,
+    String? credentialReference,
+    String? calendarId,
+    GoogleCalendarSyncDirection? direction,
+    GoogleCalendarTitleMode? titleMode,
+    String? syncToken,
+    DateTime? lastSuccessfulSync,
+    String? lastError,
+  }) =>
+      GoogleCalendarUserSettings(
+        syncEnabled: syncEnabled ?? this.syncEnabled,
+        googleAccountEmail: googleAccountEmail ?? this.googleAccountEmail,
+        credentialReference: credentialReference ?? this.credentialReference,
+        calendarId: calendarId ?? this.calendarId,
+        direction: direction ?? this.direction,
+        titleMode: titleMode ?? this.titleMode,
+        syncToken: syncToken ?? this.syncToken,
+        lastSuccessfulSync: lastSuccessfulSync ?? this.lastSuccessfulSync,
+        lastError: lastError ?? this.lastError,
+      );
+
+  GoogleCalendarUserSettings disconnected() => GoogleCalendarUserSettings(
+        calendarId: calendarId,
+        direction: direction,
+        titleMode: titleMode,
+      );
 }
 
 class GoogleCalendarEvent {

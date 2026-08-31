@@ -1028,12 +1028,25 @@ class Fa implements En {
     "processingPostOpNotes": "پردازش صوت یادداشت‌های بعد از عمل",
 
     // Google Calendar
+    "googleCalendarAvailable": "یکپارچه‌سازی تقویم Google",
+    "googleCalendarAvailable_desc":
+        "دسترسی در سطح درمانگاه. هر کاربر Apexo یک حساب Google جداگانه را متصل و کنترل می‌کند.",
     "googleCalendarClientId": "شناسه مشتری OAuth تقویم Google",
     "googleCalendarClientId_desc":
-        "پیکربندی عمومی OAuth از Google Cloud. هرگز راز مشتری را اینجا وارد نکنید.",
+        "پیکربندی عمومی OAuth مشترک برای این نصب Apexo. حساب هیچ کاربری را انتخاب یا آشکار نمی‌کند. هرگز راز مشتری را اینجا وارد نکنید.",
     "googleCalendarFoundationStatus": "پایه همگام‌سازی امن نصب شد",
     "googleCalendarPrivacyNotice":
         "اتصال زنده تا تکمیل OAuth خاموش می‌ماند. رویدادهای Apexo به‌طور پیش‌فرض عنوان عمومی دارند و یادداشت بالینی، تلفن، درمان یا قیمت را صادر نمی‌کنند.",
+    "googleCalendarAccount": "حساب Google شما",
+    "googleCalendarAccount_desc":
+        "هر کاربر Apexo یک حساب جداگانه Google یا Google Workspace را مجاز می‌کند. کاربران دیگر نمی‌توانند آن را ببینند یا استفاده کنند.",
+    "googleCalendarConnected": "تقویم Google متصل است",
+    "googleCalendarNotConnected": "تقویم Google متصل نیست",
+    "googleCalendarConnectPending":
+        "کنترل اتصال/قطع اتصال پس از فعال شدن مرحله نهایی OAuth در اینجا ظاهر می‌شود.",
+    "googleCalendarUserEnabled": "همگام‌سازی برای این کاربر Apexo",
+    "googleCalendarUserEnabled_desc":
+        "فقط حساب و تقویم Google شما را کنترل می‌کند و همگام‌سازی کاربر دیگری را فعال نمی‌کند.",
     "googleCalendarId": "شناسه تقویم Google",
     "googleCalendarId_desc":
         "برای تقویم اصلی از primary استفاده کنید یا شناسه یک تقویم اختصاصی را وارد کنید.",

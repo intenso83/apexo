@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:apexo/features/appointments/appointment_model.dart';
+import 'package:apexo/features/appointments/google_calendar_link.dart';
 import 'package:crypto/crypto.dart';
 
 import 'google_calendar_models.dart';
@@ -10,9 +11,12 @@ class GoogleCalendarMapper {
 
   String eventIdFor({
     required String clinicId,
+    required String accountId,
     required String appointmentId,
   }) {
-    final digest = sha256.convert(utf8.encode('$clinicId|$appointmentId'));
+    final digest = sha256.convert(
+      utf8.encode('$clinicId|$accountId|$appointmentId'),
+    );
     // Google event IDs accept base32hex characters. A hexadecimal digest and
     // the a-p-e-c-a-l prefix remain inside that alphabet.
     return 'apecal${digest.toString().substring(0, 32)}';
@@ -39,11 +43,13 @@ class GoogleCalendarMapper {
     final summary = preferences.titleMode == GoogleCalendarTitleMode.patientName
         ? _safePatientName(patientName)
         : genericSummary;
+    final link = appointment.googleCalendarLinkFor(preferences.accountId);
     return GoogleCalendarEvent(
-      id: appointment.googleCalendarEventId.isNotEmpty
-          ? appointment.googleCalendarEventId
+      id: link.eventId.isNotEmpty
+          ? link.eventId
           : eventIdFor(
               clinicId: preferences.clinicId,
+              accountId: preferences.accountId,
               appointmentId: appointment.id,
             ),
       status: 'confirmed',
@@ -53,6 +59,7 @@ class GoogleCalendarMapper {
       end: appointment.endDate,
       privateProperties: {
         'apexoClinicId': preferences.clinicId,
+        'apexoAccountId': preferences.accountId,
         'apexoAppointmentId': appointment.id,
         'apexoManaged': '1',
       },
@@ -73,16 +80,22 @@ class GoogleCalendarMapper {
 
   void applyRemoteMetadata({
     required GoogleCalendarEvent event,
+    required String accountId,
     required String calendarId,
     required String fingerprint,
     required Appointment appointment,
   }) {
-    appointment.googleCalendarEventId = event.id;
-    appointment.googleCalendarId = calendarId;
-    appointment.googleCalendarEtag = event.etag;
-    appointment.googleCalendarUpdatedAt = event.updatedAt;
-    appointment.googleCalendarHtmlLink = event.htmlLink;
-    appointment.googleCalendarSyncFingerprint = fingerprint;
+    appointment.setGoogleCalendarLink(
+      accountId,
+      GoogleCalendarAppointmentLink(
+        eventId: event.id,
+        calendarId: calendarId,
+        etag: event.etag,
+        updatedAt: event.updatedAt,
+        htmlLink: event.htmlLink,
+        syncFingerprint: fingerprint,
+      ),
+    );
   }
 
   String _safePatientName(String value) {

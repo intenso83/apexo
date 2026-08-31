@@ -1055,12 +1055,25 @@ class Es implements En {
     "processingPostOpNotes": "procesando notas post-operatorias",
 
     // Google Calendar
+    "googleCalendarAvailable": "Integración con Google Calendar",
+    "googleCalendarAvailable_desc":
+        "Disponibilidad para toda la clínica. Cada usuario de Apexo conecta y controla una cuenta de Google independiente.",
     "googleCalendarClientId": "ID de cliente OAuth de Google Calendar",
     "googleCalendarClientId_desc":
-        "Configuración OAuth pública de Google Cloud. No introduzca nunca un secreto de cliente aquí.",
+        "Configuración OAuth pública compartida para esta instalación de Apexo. No selecciona ni expone la cuenta de ningún usuario. No introduzca nunca un secreto de cliente aquí.",
     "googleCalendarFoundationStatus": "Base de sincronización segura instalada",
     "googleCalendarPrivacyNotice":
         "La conexión en vivo permanece desactivada hasta completar OAuth. Por defecto, los eventos gestionados por Apexo usan un título genérico y no exportan notas clínicas, teléfonos, tratamientos ni precios.",
+    "googleCalendarAccount": "Su cuenta de Google",
+    "googleCalendarAccount_desc":
+        "Cada usuario de Apexo autoriza una cuenta independiente de Google o Google Workspace. Los demás usuarios no pueden verla ni utilizarla.",
+    "googleCalendarConnected": "Google Calendar conectado",
+    "googleCalendarNotConnected": "Google Calendar no conectado",
+    "googleCalendarConnectPending":
+        "El control Conectar/Desconectar aparecerá aquí al habilitar el paso final de OAuth.",
+    "googleCalendarUserEnabled": "Sincronización para este usuario de Apexo",
+    "googleCalendarUserEnabled_desc":
+        "Controla únicamente su cuenta y calendario de Google; no activa la sincronización para otro usuario de Apexo.",
     "googleCalendarId": "ID del calendario de Google",
     "googleCalendarId_desc":
         "Use primary para el calendario principal o introduzca el ID de un calendario dedicado.",

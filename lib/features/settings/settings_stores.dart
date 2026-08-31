@@ -1,6 +1,7 @@
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/login/login_controller.dart';
 import 'package:apexo/services/launch.dart';
 import 'package:apexo/services/localization/locale.dart';
@@ -210,9 +211,7 @@ class LocalSettings extends ObservablePersistingObject {
   DateTime? aiTokenExpiry;
   EventsViewMode calendarEventsViewMode = EventsViewMode.agenda;
   String lastSeenVersion = "";
-  String googleCalendarSyncToken = "";
-  DateTime? googleCalendarLastSync;
-  String googleCalendarLastError = "";
+  Map<String, GoogleCalendarUserSettings> googleCalendarUsers = {};
 
   // ── DICOM viewer preferences
   // JSON string: {"windowCenter": double, "windowWidth": double,
@@ -249,6 +248,42 @@ class LocalSettings extends ObservablePersistingObject {
       aiTokenExpiry != null &&
       DateTime.now().isBefore(aiTokenExpiry!.subtract(_aiTokenSafetyMargin));
 
+  GoogleCalendarUserSettings googleCalendarForUser(String accountId) {
+    final current = googleCalendarUsers[accountId];
+    if (current != null) return current;
+    final legacy = googleCalendarUsers[_legacyGoogleCalendarAccount];
+    if (legacy != null) return legacy;
+    return GoogleCalendarUserSettings(
+      calendarId: globalSettings.googleCalendarId,
+      direction: GoogleCalendarSyncDirection.parse(
+        globalSettings.googleCalendarDirection,
+      ),
+      titleMode: GoogleCalendarTitleMode.parse(
+        globalSettings.googleCalendarTitleMode,
+      ),
+    );
+  }
+
+  void setGoogleCalendarForUser(
+    String accountId,
+    GoogleCalendarUserSettings settings,
+  ) {
+    if (accountId.isEmpty) return;
+    googleCalendarUsers = Map<String, GoogleCalendarUserSettings>.from(
+      googleCalendarUsers,
+    )
+      ..remove(_legacyGoogleCalendarAccount)
+      ..[accountId] = settings;
+    notifyAndPersist();
+  }
+
+  void disconnectGoogleCalendarForUser(String accountId) {
+    setGoogleCalendarForUser(
+      accountId,
+      googleCalendarForUser(accountId).disconnected(),
+    );
+  }
+
   @override
   fromJson(Map<String, dynamic> json) {
     selectedLocale = json["selectedLocale"] ?? selectedLocale;
@@ -267,14 +302,35 @@ class LocalSettings extends ObservablePersistingObject {
         EventsViewMode.values[json["calendarEventsViewMode"] ?? 0];
     lastSeenVersion = json["lastSeenVersion"] ?? lastSeenVersion;
     dicomViewerPrefs = json["dicomViewerPrefs"] as String? ?? "";
-    googleCalendarSyncToken = json["googleCalendarSyncToken"] as String? ?? "";
-    googleCalendarLastSync = json["googleCalendarLastSync"] == null
-        ? null
-        : DateTime.fromMillisecondsSinceEpoch(
-            json["googleCalendarLastSync"] as int,
-            isUtc: true,
-          );
-    googleCalendarLastError = json["googleCalendarLastError"] as String? ?? "";
+    final rawGoogleUsers = json["googleCalendarUsers"];
+    if (rawGoogleUsers is Map) {
+      final parsed = <String, GoogleCalendarUserSettings>{};
+      for (final entry in rawGoogleUsers.entries) {
+        if (entry.value is! Map) continue;
+        parsed[entry.key.toString()] = GoogleCalendarUserSettings.fromJson(
+          Map<String, dynamic>.from(entry.value as Map),
+        );
+      }
+      googleCalendarUsers = parsed;
+    } else if (json.containsKey("googleCalendarSyncToken") ||
+        json.containsKey("googleCalendarLastSync") ||
+        json.containsKey("googleCalendarLastError")) {
+      final legacyMilliseconds = json["googleCalendarLastSync"] as int?;
+      googleCalendarUsers = {
+        _legacyGoogleCalendarAccount: GoogleCalendarUserSettings(
+          syncToken: json["googleCalendarSyncToken"] as String? ?? "",
+          lastSuccessfulSync: legacyMilliseconds == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(
+                  legacyMilliseconds,
+                  isUtc: true,
+                ),
+          lastError: json["googleCalendarLastError"] as String? ?? "",
+        ),
+      };
+    } else {
+      googleCalendarUsers = {};
+    }
   }
 
   @override
@@ -289,11 +345,9 @@ class LocalSettings extends ObservablePersistingObject {
       "lastSeenVersion": lastSeenVersion,
       "calendarEventsViewMode": calendarEventsViewMode.index,
       "dicomViewerPrefs": dicomViewerPrefs,
-      "googleCalendarSyncToken": googleCalendarSyncToken,
-      "googleCalendarLastError": googleCalendarLastError,
-      if (googleCalendarLastSync != null)
-        "googleCalendarLastSync":
-            googleCalendarLastSync!.millisecondsSinceEpoch,
+      "googleCalendarUsers": googleCalendarUsers.map(
+        (accountId, settings) => MapEntry(accountId, settings.toJson()),
+      ),
       if (aiToken != null) "aiToken": aiToken,
       if (aiTokenExpiry != null)
         "aiTokenExpiry": aiTokenExpiry!.millisecondsSinceEpoch,
@@ -388,3 +442,5 @@ abstract class DF {
 
 final globalSettings = GlobalSettings();
 final localSettings = LocalSettings();
+
+const _legacyGoogleCalendarAccount = "__legacy_device_profile__";

@@ -1,4 +1,5 @@
 import 'package:apexo/features/appointments/appointment_model.dart';
+import 'package:apexo/features/appointments/google_calendar_link.dart';
 
 import 'google_calendar_gateway.dart';
 import 'google_calendar_mapper.dart';
@@ -52,7 +53,8 @@ class GoogleCalendarSyncEngine {
       // Incremental list requests cannot use an extended-property filter, so
       // Google may return unrelated calendar changes. Ignore them completely.
       if (event.privateProperties['apexoManaged'] != '1' ||
-          event.privateProperties['apexoClinicId'] != preferences.clinicId) {
+          event.privateProperties['apexoClinicId'] != preferences.clinicId ||
+          event.privateProperties['apexoAccountId'] != preferences.accountId) {
         continue;
       }
       final appointmentId = event.privateProperties['apexoAppointmentId'] ?? '';
@@ -78,6 +80,7 @@ class GoogleCalendarSyncEngine {
     final rangeEnd = current.add(Duration(days: preferences.futureDays));
 
     for (final appointment in appointments) {
+      final link = appointment.googleCalendarLinkFor(preferences.accountId);
       final remote = remoteByAppointmentId[appointment.id];
       final desired = mapper.fromAppointment(
         appointment: appointment,
@@ -88,18 +91,18 @@ class GoogleCalendarSyncEngine {
         appointment,
         summary: desired.summary,
       );
-      final hasSyncMetadata = appointment.googleCalendarEventId.isNotEmpty;
+      final hasSyncMetadata = link.isLinked;
       final localChanged = hasSyncMetadata &&
-          appointment.googleCalendarSyncFingerprint.isNotEmpty &&
-          appointment.googleCalendarSyncFingerprint != localFingerprint;
+          link.syncFingerprint.isNotEmpty &&
+          link.syncFingerprint != localFingerprint;
 
       if (appointment.archived == true) {
         if (hasSyncMetadata) {
           await gateway.deleteEvent(
-            calendarId: _calendarFor(appointment, preferences),
-            eventId: appointment.googleCalendarEventId,
+            calendarId: _calendarFor(link, preferences),
+            eventId: link.eventId,
           );
-          _clearMetadata(appointment);
+          appointment.removeGoogleCalendarLink(preferences.accountId);
           await saveAppointment(appointment);
           deletedFromGoogle++;
         }
@@ -117,6 +120,7 @@ class GoogleCalendarSyncEngine {
           );
           mapper.applyRemoteMetadata(
             event: inserted,
+            accountId: preferences.accountId,
             calendarId: preferences.calendarId,
             fingerprint: localFingerprint,
             appointment: appointment,
@@ -125,13 +129,14 @@ class GoogleCalendarSyncEngine {
           created++;
         } else if (hasSyncMetadata && localChanged) {
           final patched = await gateway.patchEvent(
-            calendarId: _calendarFor(appointment, preferences),
-            eventId: appointment.googleCalendarEventId,
+            calendarId: _calendarFor(link, preferences),
+            eventId: link.eventId,
             event: desired,
           );
           mapper.applyRemoteMetadata(
             event: patched,
-            calendarId: _calendarFor(appointment, preferences),
+            accountId: preferences.accountId,
+            calendarId: _calendarFor(link, preferences),
             fingerprint: localFingerprint,
             appointment: appointment,
           );
@@ -164,6 +169,7 @@ class GoogleCalendarSyncEngine {
         }
         mapper.applyRemoteMetadata(
           event: remote,
+          accountId: preferences.accountId,
           calendarId: preferences.calendarId,
           fingerprint: localFingerprint,
           appointment: appointment,
@@ -172,9 +178,9 @@ class GoogleCalendarSyncEngine {
         continue;
       }
 
-      final remoteChanged = appointment.googleCalendarEtag.isNotEmpty &&
+      final remoteChanged = link.etag.isNotEmpty &&
           remote.etag.isNotEmpty &&
-          appointment.googleCalendarEtag != remote.etag;
+          link.etag != remote.etag;
       if (localChanged && remoteChanged) {
         issues.add(GoogleCalendarSyncIssue(
           type: GoogleCalendarSyncIssueType.conflict,
@@ -202,6 +208,7 @@ class GoogleCalendarSyncEngine {
         );
         mapper.applyRemoteMetadata(
           event: remote,
+          accountId: preferences.accountId,
           calendarId: preferences.calendarId,
           fingerprint: pulledFingerprint,
           appointment: appointment,
@@ -213,13 +220,14 @@ class GoogleCalendarSyncEngine {
 
       if (localChanged || remoteChanged) {
         final patched = await gateway.patchEvent(
-          calendarId: _calendarFor(appointment, preferences),
-          eventId: appointment.googleCalendarEventId,
+          calendarId: _calendarFor(link, preferences),
+          eventId: link.eventId,
           event: desired,
         );
         mapper.applyRemoteMetadata(
           event: patched,
-          calendarId: _calendarFor(appointment, preferences),
+          accountId: preferences.accountId,
+          calendarId: _calendarFor(link, preferences),
           fingerprint: localFingerprint,
           appointment: appointment,
         );
@@ -277,21 +285,10 @@ class GoogleCalendarSyncEngine {
   }
 
   String _calendarFor(
-    Appointment appointment,
+    GoogleCalendarAppointmentLink link,
     GoogleCalendarSyncPreferences preferences,
   ) =>
-      appointment.googleCalendarId.isEmpty
-          ? preferences.calendarId
-          : appointment.googleCalendarId;
-
-  void _clearMetadata(Appointment appointment) {
-    appointment.googleCalendarEventId = '';
-    appointment.googleCalendarId = '';
-    appointment.googleCalendarEtag = '';
-    appointment.googleCalendarUpdatedAt = null;
-    appointment.googleCalendarHtmlLink = '';
-    appointment.googleCalendarSyncFingerprint = '';
-  }
+      link.calendarId.isEmpty ? preferences.calendarId : link.calendarId;
 }
 
 class _RemoteListing {

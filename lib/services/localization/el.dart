@@ -1051,13 +1051,26 @@ class El implements En {
     "processingPostOpNotes": "επεξεργασία ήχου μετεγχειρητικών σημειώσεων",
 
     // Google Calendar
+    "googleCalendarAvailable": "Ενσωμάτωση Google Calendar",
+    "googleCalendarAvailable_desc":
+        "Διαθεσιμότητα για όλο το ιατρείο. Κάθε χρήστης του Apexo συνδέει και ελέγχει ξεχωριστό λογαριασμό Google.",
     "googleCalendarClientId": "OAuth client ID του Google Calendar",
     "googleCalendarClientId_desc":
-        "Δημόσια ρύθμιση OAuth από το Google Cloud. Μην εισάγετε ποτέ client secret εδώ.",
+        "Κοινή δημόσια ρύθμιση OAuth για αυτή την εγκατάσταση Apexo. Δεν επιλέγει ούτε αποκαλύπτει τον λογαριασμό Google κανενός χρήστη. Μην εισάγετε ποτέ client secret εδώ.",
     "googleCalendarFoundationStatus":
         "Εγκαταστάθηκε η ασφαλής βάση συγχρονισμού",
     "googleCalendarPrivacyNotice":
         "Η ζωντανή σύνδεση παραμένει ανενεργή μέχρι να ολοκληρωθεί το OAuth. Από προεπιλογή, τα συμβάντα του Apexo έχουν γενικό τίτλο και δεν εξάγουν κλινικές σημειώσεις, τηλέφωνα, θεραπείες ή τιμές.",
+    "googleCalendarAccount": "Ο λογαριασμός σας Google",
+    "googleCalendarAccount_desc":
+        "Κάθε χρήστης του Apexo εξουσιοδοτεί ξεχωριστό λογαριασμό Google ή Google Workspace. Οι άλλοι χρήστες δεν μπορούν να δουν ή να χρησιμοποιήσουν αυτή την εξουσιοδότηση.",
+    "googleCalendarConnected": "Το Google Calendar συνδέθηκε",
+    "googleCalendarNotConnected": "Το Google Calendar δεν έχει συνδεθεί",
+    "googleCalendarConnectPending":
+        "Το κουμπί σύνδεσης/αποσύνδεσης θα εμφανιστεί εδώ όταν ενεργοποιηθεί το τελικό στάδιο OAuth.",
+    "googleCalendarUserEnabled": "Συγχρονισμός για αυτόν τον χρήστη Apexo",
+    "googleCalendarUserEnabled_desc":
+        "Ελέγχει μόνο τον δικό σας λογαριασμό και ημερολόγιο Google· δεν ενεργοποιεί συγχρονισμό για άλλον χρήστη Apexo.",
     "googleCalendarId": "Αναγνωριστικό ημερολογίου Google",
     "googleCalendarId_desc":
         "Χρησιμοποιήστε primary για το κύριο ημερολόγιο του λογαριασμού ή εισάγετε το ID ενός ξεχωριστού ημερολογίου.",

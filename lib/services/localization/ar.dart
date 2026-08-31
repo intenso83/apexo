@@ -1020,12 +1020,25 @@ class Ar implements En {
     "processingPostOpNotes": "معالجة الصوت لاستخراج ملاحظات ما بعد العملية",
 
     // Google Calendar
+    "googleCalendarAvailable": "تكامل تقويم Google",
+    "googleCalendarAvailable_desc":
+        "إتاحة على مستوى العيادة. يربط كل مستخدم في Apexo حساب Google منفصلاً ويتحكم فيه.",
     "googleCalendarClientId": "معرّف عميل OAuth لتقويم Google",
     "googleCalendarClientId_desc":
-        "إعداد OAuth عام من Google Cloud. لا تُدخل سر العميل هنا أبداً.",
+        "إعداد OAuth عام مشترك لتثبيت Apexo هذا. لا يحدد حساب أي مستخدم ولا يكشفه. لا تُدخل سر العميل هنا أبداً.",
     "googleCalendarFoundationStatus": "تم تثبيت أساس المزامنة الآمنة",
     "googleCalendarPrivacyNotice":
         "تبقى المزامنة المباشرة متوقفة حتى إكمال OAuth. تستخدم أحداث Apexo عنواناً عاماً افتراضياً ولا تصدّر الملاحظات السريرية أو أرقام الهاتف أو العلاجات أو الأسعار.",
+    "googleCalendarAccount": "حساب Google الخاص بك",
+    "googleCalendarAccount_desc":
+        "يفوض كل مستخدم في Apexo حساب Google أو Google Workspace منفصلاً. لا يمكن للمستخدمين الآخرين رؤيته أو استخدامه.",
+    "googleCalendarConnected": "تم ربط تقويم Google",
+    "googleCalendarNotConnected": "تقويم Google غير متصل",
+    "googleCalendarConnectPending":
+        "سيظهر زر الاتصال/قطع الاتصال هنا عند تفعيل خطوة OAuth النهائية.",
+    "googleCalendarUserEnabled": "المزامنة لمستخدم Apexo هذا",
+    "googleCalendarUserEnabled_desc":
+        "يتحكم فقط في حسابك وتقويمك على Google ولا يفعّل المزامنة لمستخدم Apexo آخر.",
     "googleCalendarId": "معرّف تقويم Google",
     "googleCalendarId_desc":
         "استخدم primary للتقويم الرئيسي أو أدخل معرّف تقويم مخصص.",

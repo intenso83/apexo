@@ -1032,12 +1032,25 @@ class En {
     "processingPostOpNotes": "processing post-op notes audio",
 
     // Google Calendar
+    "googleCalendarAvailable": "Google Calendar integration",
+    "googleCalendarAvailable_desc":
+        "Clinic-wide availability. Each Apexo user still connects and controls a separate Google account.",
     "googleCalendarClientId": "Google Calendar OAuth client ID",
     "googleCalendarClientId_desc":
-        "Public OAuth configuration from Google Cloud. Never enter a client secret here.",
+        "Shared public OAuth configuration for this Apexo installation. It does not select or expose any user's Google account. Never enter a client secret here.",
     "googleCalendarFoundationStatus": "Safe sync foundation installed",
     "googleCalendarPrivacyNotice":
         "Live connection remains off until OAuth is completed. Apexo-managed events use a generic title by default and do not export clinical notes, phone numbers, treatments, or prices.",
+    "googleCalendarAccount": "Your Google account",
+    "googleCalendarAccount_desc":
+        "Every Apexo user authorizes a separate Google or Google Workspace account. Other users cannot see or use this authorization.",
+    "googleCalendarConnected": "Google Calendar connected",
+    "googleCalendarNotConnected": "Google Calendar not connected",
+    "googleCalendarConnectPending":
+        "The Connect/Disconnect control will appear here when the final OAuth step is enabled.",
+    "googleCalendarUserEnabled": "Sync for this Apexo user",
+    "googleCalendarUserEnabled_desc":
+        "Controls only your Google account and calendar; it does not enable synchronization for another Apexo user.",
     "googleCalendarId": "Google calendar ID",
     "googleCalendarId_desc":
         "Use primary for the account's main calendar, or enter a dedicated calendar ID.",

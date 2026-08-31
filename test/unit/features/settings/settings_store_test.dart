@@ -1,5 +1,6 @@
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/settings/settings_model.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -228,9 +229,19 @@ void main() {
         'calendarEventsViewMode': EventsViewMode.timeline.index,
         'lastSeenVersion': '1.2.3',
         'dicomViewerPrefs': '{"invert":true}',
-        'googleCalendarSyncToken': 'sync-token',
-        'googleCalendarLastSync': expiry.millisecondsSinceEpoch,
-        'googleCalendarLastError': 'none',
+        'googleCalendarUsers': {
+          'user-a': {
+            'syncEnabled': true,
+            'googleAccountEmail': 'dentist.a@gmail.com',
+            'credentialReference': 'secure:user-a',
+            'calendarId': 'primary',
+            'direction': 'twoWay',
+            'titleMode': 'generic',
+            'syncToken': 'sync-token',
+            'lastSuccessfulSync': expiry.toIso8601String(),
+            'lastError': 'none',
+          },
+        },
       });
 
       expect(localSettings.selectedLocale, 2);
@@ -245,9 +256,58 @@ void main() {
       expect(localSettings.calendarEventsViewMode, EventsViewMode.timeline);
       expect(localSettings.lastSeenVersion, '1.2.3');
       expect(localSettings.dicomViewerPrefs, '{"invert":true}');
-      expect(localSettings.googleCalendarSyncToken, 'sync-token');
-      expect(localSettings.googleCalendarLastSync, expiry);
-      expect(localSettings.googleCalendarLastError, 'none');
+      final google = localSettings.googleCalendarForUser('user-a');
+      expect(google.syncEnabled, isTrue);
+      expect(google.googleAccountEmail, 'dentist.a@gmail.com');
+      expect(google.credentialReference, 'secure:user-a');
+      expect(google.syncToken, 'sync-token');
+      expect(google.lastSuccessfulSync, expiry);
+      expect(google.lastError, 'none');
+    });
+
+    test('Google Calendar settings are isolated by Apexo account ID', () {
+      localSettings.fromJson({});
+      localSettings.setGoogleCalendarForUser(
+        'user-a',
+        const GoogleCalendarUserSettings(
+          syncEnabled: true,
+          googleAccountEmail: 'dentist.a@gmail.com',
+          credentialReference: 'secure:user-a',
+          calendarId: 'dentist-a-calendar',
+        ),
+      );
+      localSettings.setGoogleCalendarForUser(
+        'user-b',
+        const GoogleCalendarUserSettings(
+          googleAccountEmail: 'dentist.b@workspace.example',
+          credentialReference: 'secure:user-b',
+          calendarId: 'primary',
+          direction: GoogleCalendarSyncDirection.apexoToGoogle,
+        ),
+      );
+
+      final userA = localSettings.googleCalendarForUser('user-a');
+      final userB = localSettings.googleCalendarForUser('user-b');
+      expect(userA.googleAccountEmail, 'dentist.a@gmail.com');
+      expect(userA.calendarId, 'dentist-a-calendar');
+      expect(userA.syncEnabled, isTrue);
+      expect(userB.googleAccountEmail, 'dentist.b@workspace.example');
+      expect(userB.direction, GoogleCalendarSyncDirection.apexoToGoogle);
+      expect(userB.syncEnabled, isFalse);
+    });
+
+    test('legacy flat Google sync state migrates without being discarded', () {
+      final lastSync = DateTime.utc(2026, 8, 31, 7);
+      localSettings.fromJson({
+        'googleCalendarSyncToken': 'legacy-token',
+        'googleCalendarLastSync': lastSync.millisecondsSinceEpoch,
+        'googleCalendarLastError': 'legacy-error',
+      });
+
+      final migrated = localSettings.googleCalendarForUser('first-user');
+      expect(migrated.syncToken, 'legacy-token');
+      expect(migrated.lastSuccessfulSync, lastSync);
+      expect(migrated.lastError, 'legacy-error');
     });
 
     test('toJson omits absent AI credentials and serializes active values', () {

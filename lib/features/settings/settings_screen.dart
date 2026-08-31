@@ -4,6 +4,7 @@ import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/network_actions/network_actions_controller.dart';
 import 'package:apexo/features/notes/notes_store.dart';
@@ -54,6 +55,12 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final googleCalendarAccountId = login.currentAccountID.isNotEmpty
+        ? login.currentAccountID
+        : login.email;
+    GoogleCalendarUserSettings googleCalendarUserSettings() =>
+        localSettings.googleCalendarForUser(googleCalendarAccountId);
+
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: ListView(
@@ -182,6 +189,23 @@ class SettingsScreen extends StatelessWidget {
           ),
           if (login.isAdmin)
             SettingsItem(
+              title: txt("googleCalendarAvailable"),
+              identifier: "gcal_enabled___",
+              description: txt("googleCalendarAvailable_desc"),
+              icon: FluentIcons.calendar,
+              inputType: InputType.dropDown,
+              scope: Scope.app,
+              options: [
+                ComboBoxItem(value: "1", child: Txt(txt("on"))),
+                ComboBoxItem(value: "0", child: Txt(txt("off"))),
+              ],
+              initValue: globalSettings.googleCalendarSyncEnabled ? "1" : "0",
+              apply: (newVal) => globalSettings.set(Setting.fromJson(
+                {"id": "gcal_enabled___", "value": newVal},
+              )),
+            ),
+          if (login.isAdmin)
+            SettingsItem(
               title: txt("googleCalendarClientId"),
               identifier: "gcal_client_id_",
               description: txt("googleCalendarClientId_desc"),
@@ -200,64 +224,118 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("googleCalendarId"),
-              identifier: "gcal_calendar_id",
-              description: txt("googleCalendarId_desc"),
-              icon: FluentIcons.calendar,
-              inputType: InputType.text,
-              scope: Scope.app,
-              initValue: globalSettings.googleCalendarId,
-              apply: (newVal) => globalSettings.set(Setting.fromJson({
-                "id": "gcal_calendar_id",
-                "value": newVal.trim().isEmpty ? "primary" : newVal.trim(),
-              })),
+          SettingsItem(
+            key: ValueKey("gcal_account_$googleCalendarAccountId"),
+            title: txt("googleCalendarAccount"),
+            identifier: "gcal_account_$googleCalendarAccountId",
+            description: txt("googleCalendarAccount_desc"),
+            icon: FluentIcons.contact,
+            inputType: InputType.none,
+            scope: Scope.device,
+            initValue: "",
+            apply: (_) {},
+            footer: InfoBar(
+              severity: googleCalendarUserSettings().isConnected
+                  ? InfoBarSeverity.success
+                  : InfoBarSeverity.warning,
+              title: Txt(
+                googleCalendarUserSettings().isConnected
+                    ? txt("googleCalendarConnected")
+                    : txt("googleCalendarNotConnected"),
+              ),
+              content: Txt(
+                googleCalendarUserSettings().isConnected
+                    ? googleCalendarUserSettings().googleAccountEmail
+                    : txt("googleCalendarConnectPending"),
+              ),
             ),
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("googleCalendarDirection"),
-              identifier: "gcal_direction_",
-              description: txt("googleCalendarDirection_desc"),
-              icon: FluentIcons.sync,
-              inputType: InputType.dropDown,
-              scope: Scope.app,
-              options: [
-                ComboBoxItem(
-                  value: "twoWay",
-                  child: Txt(txt("googleCalendarTwoWay")),
-                ),
-                ComboBoxItem(
-                  value: "apexoToGoogle",
-                  child: Txt(txt("googleCalendarOneWay")),
-                ),
-              ],
-              initValue: globalSettings.googleCalendarDirection,
-              apply: (newVal) => globalSettings.set(
-                  Setting.fromJson({"id": "gcal_direction_", "value": newVal})),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_user_enabled_$googleCalendarAccountId"),
+            title: txt("googleCalendarUserEnabled"),
+            identifier: "gcal_user_enabled_$googleCalendarAccountId",
+            description: txt("googleCalendarUserEnabled_desc"),
+            icon: FluentIcons.sync_status,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(value: "1", child: Txt(txt("on"))),
+              ComboBoxItem(value: "0", child: Txt(txt("off"))),
+            ],
+            initValue: googleCalendarUserSettings().syncEnabled ? "1" : "0",
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(syncEnabled: newVal == "1"),
             ),
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("googleCalendarTitleMode"),
-              identifier: "gcal_title_mode",
-              description: txt("googleCalendarTitleMode_desc"),
-              icon: FluentIcons.protection_center_logo32,
-              inputType: InputType.dropDown,
-              scope: Scope.app,
-              options: [
-                ComboBoxItem(
-                  value: "generic",
-                  child: Txt(txt("googleCalendarGenericTitle")),
-                ),
-                ComboBoxItem(
-                  value: "patientName",
-                  child: Txt(txt("googleCalendarPatientTitle")),
-                ),
-              ],
-              initValue: globalSettings.googleCalendarTitleMode,
-              apply: (newVal) => globalSettings.set(
-                  Setting.fromJson({"id": "gcal_title_mode", "value": newVal})),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_calendar_$googleCalendarAccountId"),
+            title: txt("googleCalendarId"),
+            identifier: "gcal_calendar_$googleCalendarAccountId",
+            description: txt("googleCalendarId_desc"),
+            icon: FluentIcons.calendar,
+            inputType: InputType.text,
+            scope: Scope.device,
+            initValue: googleCalendarUserSettings().calendarId,
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                calendarId: newVal.trim().isEmpty ? "primary" : newVal.trim(),
+              ),
             ),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_direction_$googleCalendarAccountId"),
+            title: txt("googleCalendarDirection"),
+            identifier: "gcal_direction_$googleCalendarAccountId",
+            description: txt("googleCalendarDirection_desc"),
+            icon: FluentIcons.sync,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(
+                value: "twoWay",
+                child: Txt(txt("googleCalendarTwoWay")),
+              ),
+              ComboBoxItem(
+                value: "apexoToGoogle",
+                child: Txt(txt("googleCalendarOneWay")),
+              ),
+            ],
+            initValue: googleCalendarUserSettings().direction.name,
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                direction: GoogleCalendarSyncDirection.parse(newVal),
+              ),
+            ),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_title_$googleCalendarAccountId"),
+            title: txt("googleCalendarTitleMode"),
+            identifier: "gcal_title_$googleCalendarAccountId",
+            description: txt("googleCalendarTitleMode_desc"),
+            icon: FluentIcons.protection_center_logo32,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(
+                value: "generic",
+                child: Txt(txt("googleCalendarGenericTitle")),
+              ),
+              ComboBoxItem(
+                value: "patientName",
+                child: Txt(txt("googleCalendarPatientTitle")),
+              ),
+            ],
+            initValue: googleCalendarUserSettings().titleMode.name,
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                titleMode: GoogleCalendarTitleMode.parse(newVal),
+              ),
+            ),
+          ),
           SettingsItem(
             title: txt("calendarSystem"),
             identifier: "calendarSystem",

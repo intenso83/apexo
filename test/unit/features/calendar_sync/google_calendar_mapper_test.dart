@@ -9,22 +9,41 @@ void main() {
     enabled: true,
     calendarId: 'primary',
     clinicId: 'clinic-1',
+    accountId: 'user-a',
   );
 
   test('event IDs are deterministic and valid Google base32hex IDs', () {
     final mapper = GoogleCalendarMapper();
     final first = mapper.eventIdFor(
       clinicId: 'clinic-1',
+      accountId: 'user-a',
       appointmentId: 'appointment-1',
     );
     final second = mapper.eventIdFor(
       clinicId: 'clinic-1',
+      accountId: 'user-a',
       appointmentId: 'appointment-1',
     );
 
     expect(first, second);
     expect(first, matches(RegExp(r'^[0-9a-v]+$')));
     expect(first.length, 38);
+  });
+
+  test('the same appointment gets a different event ID per Apexo account', () {
+    final mapper = GoogleCalendarMapper();
+    final first = mapper.eventIdFor(
+      clinicId: 'clinic-1',
+      accountId: 'user-a',
+      appointmentId: 'appointment-1',
+    );
+    final second = mapper.eventIdFor(
+      clinicId: 'clinic-1',
+      accountId: 'user-b',
+      appointmentId: 'appointment-1',
+    );
+
+    expect(first, isNot(second));
   });
 
   test('default mapping exports no patient identity or clinical information',
@@ -49,6 +68,7 @@ void main() {
     expect(encoded, isNot(contains('Private clinical note')));
     expect(encoded, isNot(contains('900')));
     expect(event.privateProperties['apexoAppointmentId'], 'private-event');
+    expect(event.privateProperties['apexoAccountId'], 'user-a');
   });
 
   test('patient title requires explicit preference', () {
@@ -56,6 +76,7 @@ void main() {
       enabled: true,
       calendarId: 'primary',
       clinicId: 'clinic-1',
+      accountId: 'user-a',
       titleMode: GoogleCalendarTitleMode.patientName,
     );
     final event = GoogleCalendarMapper().fromAppointment(

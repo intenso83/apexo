@@ -3,6 +3,7 @@ import 'package:apexo/features/calendar_sync/google_calendar_mapper.dart';
 import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/calendar_sync/google_calendar_sync_engine.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
+import 'package:apexo/features/appointments/google_calendar_link.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/model_factory.dart';
@@ -12,6 +13,7 @@ void main() {
     enabled: true,
     calendarId: 'primary',
     clinicId: 'clinic-1',
+    accountId: 'user-a',
   );
   final fixedNow = DateTime.utc(2026, 8, 31, 8);
 
@@ -38,8 +40,9 @@ void main() {
     expect(gateway.inserted.single.summary, 'Dental appointment');
     expect(gateway.inserted.single.toApiJson().toString(),
         isNot(contains('Private Patient')));
-    expect(appointment.googleCalendarEventId, isNotEmpty);
-    expect(appointment.googleCalendarSyncFingerprint, isNotEmpty);
+    final link = appointment.googleCalendarLinkFor(preferences.accountId);
+    expect(link.eventId, isNotEmpty);
+    expect(link.syncFingerprint, isNotEmpty);
     expect(saved, hasLength(1));
   });
 
@@ -55,12 +58,17 @@ void main() {
       preferences: preferences,
       patientName: '',
     );
-    appointment.googleCalendarEventId = original.id;
-    appointment.googleCalendarId = 'primary';
-    appointment.googleCalendarEtag = 'etag-old';
-    appointment.googleCalendarSyncFingerprint = mapper.fingerprint(
-      appointment,
-      summary: original.summary,
+    appointment.setGoogleCalendarLink(
+      preferences.accountId,
+      GoogleCalendarAppointmentLink(
+        eventId: original.id,
+        calendarId: 'primary',
+        etag: 'etag-old',
+        syncFingerprint: mapper.fingerprint(
+          appointment,
+          summary: original.summary,
+        ),
+      ),
     );
     final remote = GoogleCalendarEvent(
       id: original.id,
@@ -89,7 +97,10 @@ void main() {
     expect(result.updatedInApexo, 1);
     expect(appointment.date.toUtc(), DateTime.utc(2026, 9, 1, 10));
     expect(appointment.duration, 45);
-    expect(appointment.googleCalendarEtag, 'etag-new');
+    expect(
+      appointment.googleCalendarLinkFor(preferences.accountId).etag,
+      'etag-new',
+    );
   });
 
   test('reports a conflict instead of overwriting when both sides changed',
@@ -106,12 +117,18 @@ void main() {
     );
     final eventId = mapper.eventIdFor(
       clinicId: preferences.clinicId,
+      accountId: preferences.accountId,
       appointmentId: appointment.id,
     );
-    appointment.googleCalendarEventId = eventId;
-    appointment.googleCalendarId = 'primary';
-    appointment.googleCalendarEtag = 'etag-old';
-    appointment.googleCalendarSyncFingerprint = originalFingerprint;
+    appointment.setGoogleCalendarLink(
+      preferences.accountId,
+      GoogleCalendarAppointmentLink(
+        eventId: eventId,
+        calendarId: 'primary',
+        etag: 'etag-old',
+        syncFingerprint: originalFingerprint,
+      ),
+    );
     appointment.date = DateTime.utc(2026, 9, 1, 9); // local edit
     final remote = GoogleCalendarEvent(
       id: eventId,
@@ -125,6 +142,7 @@ void main() {
         'apexoManaged': '1',
         'apexoAppointmentId': appointment.id,
         'apexoClinicId': preferences.clinicId,
+        'apexoAccountId': preferences.accountId,
       },
     );
     final gateway = _FakeGateway(events: [remote]);
@@ -173,14 +191,20 @@ void main() {
     );
     final eventId = mapper.eventIdFor(
       clinicId: preferences.clinicId,
+      accountId: preferences.accountId,
       appointmentId: appointment.id,
     );
-    appointment.googleCalendarEventId = eventId;
-    appointment.googleCalendarId = 'primary';
-    appointment.googleCalendarEtag = 'etag-old';
-    appointment.googleCalendarSyncFingerprint = mapper.fingerprint(
-      appointment,
-      summary: GoogleCalendarMapper.genericSummary,
+    appointment.setGoogleCalendarLink(
+      preferences.accountId,
+      GoogleCalendarAppointmentLink(
+        eventId: eventId,
+        calendarId: 'primary',
+        etag: 'etag-old',
+        syncFingerprint: mapper.fingerprint(
+          appointment,
+          summary: GoogleCalendarMapper.genericSummary,
+        ),
+      ),
     );
     final gateway = _FakeGateway(events: [
       GoogleCalendarEvent(
@@ -195,6 +219,7 @@ void main() {
           'apexoManaged': '1',
           'apexoAppointmentId': appointment.id,
           'apexoClinicId': preferences.clinicId,
+          'apexoAccountId': preferences.accountId,
         },
       ),
     ]);
@@ -240,6 +265,51 @@ void main() {
     );
 
     expect(result.issues, isEmpty);
+  });
+
+  test('keeps separate event links for separate Apexo Google accounts',
+      () async {
+    final appointment = testAppointment(
+      id: 'shared-appointment',
+      date: DateTime.utc(2026, 9, 1, 8),
+    );
+    final gatewayA = _FakeGateway();
+    final gatewayB = _FakeGateway();
+    const preferencesB = GoogleCalendarSyncPreferences(
+      enabled: true,
+      calendarId: 'primary',
+      clinicId: 'clinic-1',
+      accountId: 'user-b',
+    );
+
+    await GoogleCalendarSyncEngine(
+      gateway: gatewayA,
+      now: () => fixedNow,
+    ).sync(
+      appointments: [appointment],
+      preferences: preferences,
+      state: const GoogleCalendarSyncState(),
+      saveAppointment: (_) async {},
+      patientName: (_) => '',
+    );
+    await GoogleCalendarSyncEngine(
+      gateway: gatewayB,
+      now: () => fixedNow,
+    ).sync(
+      appointments: [appointment],
+      preferences: preferencesB,
+      state: const GoogleCalendarSyncState(),
+      saveAppointment: (_) async {},
+      patientName: (_) => '',
+    );
+
+    final linkA = appointment.googleCalendarLinkFor('user-a');
+    final linkB = appointment.googleCalendarLinkFor('user-b');
+    expect(linkA.isLinked, isTrue);
+    expect(linkB.isLinked, isTrue);
+    expect(linkA.eventId, isNot(linkB.eventId));
+    expect(appointment.googleCalendarLinks.keys,
+        containsAll(['user-a', 'user-b']));
   });
 }
 

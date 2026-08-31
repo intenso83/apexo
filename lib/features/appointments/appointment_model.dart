@@ -1,5 +1,6 @@
 import 'package:apexo/core/model.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
+import 'package:apexo/features/appointments/google_calendar_link.dart';
 import 'package:apexo/services/launch.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/patients/patients_store.dart';
@@ -150,6 +151,51 @@ class Appointment extends Model {
   /* 23 */ DateTime? googleCalendarUpdatedAt;
   /* 24 */ String googleCalendarHtmlLink = "";
   /* 25 */ String googleCalendarSyncFingerprint = "";
+  /* 26 */ Map<String, GoogleCalendarAppointmentLink> googleCalendarLinks = {};
+
+  GoogleCalendarAppointmentLink googleCalendarLinkFor(String accountId) {
+    final accountLink = googleCalendarLinks[accountId];
+    if (accountLink != null) return accountLink;
+    // Read the foundation milestone's single-account fields as a legacy link.
+    // The next successful sync moves it into the account-keyed map.
+    if (googleCalendarLinks.isEmpty && googleCalendarEventId.isNotEmpty) {
+      return GoogleCalendarAppointmentLink(
+        eventId: googleCalendarEventId,
+        calendarId: googleCalendarId,
+        etag: googleCalendarEtag,
+        updatedAt: googleCalendarUpdatedAt,
+        htmlLink: googleCalendarHtmlLink,
+        syncFingerprint: googleCalendarSyncFingerprint,
+      );
+    }
+    return const GoogleCalendarAppointmentLink();
+  }
+
+  void setGoogleCalendarLink(
+    String accountId,
+    GoogleCalendarAppointmentLink link,
+  ) {
+    googleCalendarLinks = Map<String, GoogleCalendarAppointmentLink>.from(
+      googleCalendarLinks,
+    )..[accountId] = link;
+    _clearLegacyGoogleCalendarLink();
+  }
+
+  void removeGoogleCalendarLink(String accountId) {
+    googleCalendarLinks = Map<String, GoogleCalendarAppointmentLink>.from(
+      googleCalendarLinks,
+    )..remove(accountId);
+    if (googleCalendarLinks.isEmpty) _clearLegacyGoogleCalendarLink();
+  }
+
+  void _clearLegacyGoogleCalendarLink() {
+    googleCalendarEventId = "";
+    googleCalendarId = "";
+    googleCalendarEtag = "";
+    googleCalendarUpdatedAt = null;
+    googleCalendarHtmlLink = "";
+    googleCalendarSyncFingerprint = "";
+  }
 
   Appointment.fromJson(super.json) : super.fromJson();
 
@@ -198,6 +244,17 @@ class Appointment extends Model {
         json["googleCalendarHtmlLink"] ?? googleCalendarHtmlLink;
     /* 25 */ googleCalendarSyncFingerprint =
         json["googleCalendarSyncFingerprint"] ?? googleCalendarSyncFingerprint;
+    /* 26 */ final rawGoogleCalendarLinks = json["googleCalendarLinks"];
+    if (rawGoogleCalendarLinks is Map) {
+      final parsed = <String, GoogleCalendarAppointmentLink>{};
+      for (final entry in rawGoogleCalendarLinks.entries) {
+        if (entry.value is! Map) continue;
+        parsed[entry.key.toString()] = GoogleCalendarAppointmentLink.fromJson(
+          Map<String, dynamic>.from(entry.value as Map),
+        );
+      }
+      googleCalendarLinks = parsed;
+    }
   }
 
   @override
@@ -249,6 +306,11 @@ class Appointment extends Model {
     }
     /* 25 */ if (googleCalendarSyncFingerprint.isNotEmpty) {
       json['googleCalendarSyncFingerprint'] = googleCalendarSyncFingerprint;
+    }
+    /* 26 */ if (googleCalendarLinks.isNotEmpty) {
+      json['googleCalendarLinks'] = googleCalendarLinks.map(
+        (accountId, link) => MapEntry(accountId, link.toJson()),
+      );
     }
 
     json.remove("title"); // remove since it is a computed value in this case
