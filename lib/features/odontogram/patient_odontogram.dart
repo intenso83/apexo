@@ -87,8 +87,8 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
               severity: InfoBarSeverity.info,
             ),
             const SizedBox(height: 12),
-            _OdontogramChart(
-              selectedFdi: selectedFdi,
+            PatientOdontogramChart(
+              selectedFdis: {selectedFdi},
               bridgeUnits: bridgeUnits,
               events: events,
               onSelected: _selectTooth,
@@ -845,15 +845,16 @@ class _SelectedToothValue extends StatelessWidget {
   }
 }
 
-class _OdontogramChart extends StatelessWidget {
-  const _OdontogramChart({
-    required this.selectedFdi,
+class PatientOdontogramChart extends StatelessWidget {
+  const PatientOdontogramChart({
+    super.key,
+    required this.selectedFdis,
     required this.bridgeUnits,
     required this.events,
     required this.onSelected,
   });
 
-  final int selectedFdi;
+  final Set<int> selectedFdis;
   final List<BridgeUnit> bridgeUnits;
   final List<OdontogramEvent> events;
   final void Function(int fdi, bool extendSelection) onSelected;
@@ -870,7 +871,7 @@ class _OdontogramChart extends StatelessWidget {
           children: [
             _JawRow(
               fdiNumbers: OdontogramAssets.upperFdi,
-              selectedFdi: selectedFdi,
+              selectedFdis: selectedFdis,
               bridgeUnits: bridgeUnits,
               events: events,
               onSelected: onSelected,
@@ -880,7 +881,7 @@ class _OdontogramChart extends StatelessWidget {
             const SizedBox(height: 12),
             _JawRow(
               fdiNumbers: OdontogramAssets.lowerFdi,
-              selectedFdi: selectedFdi,
+              selectedFdis: selectedFdis,
               bridgeUnits: bridgeUnits,
               events: events,
               onSelected: onSelected,
@@ -895,14 +896,14 @@ class _OdontogramChart extends StatelessWidget {
 class _JawRow extends StatelessWidget {
   const _JawRow({
     required this.fdiNumbers,
-    required this.selectedFdi,
+    required this.selectedFdis,
     required this.bridgeUnits,
     required this.events,
     required this.onSelected,
   });
 
   final List<int> fdiNumbers;
-  final int selectedFdi;
+  final Set<int> selectedFdis;
   final List<BridgeUnit> bridgeUnits;
   final List<OdontogramEvent> events;
   final void Function(int fdi, bool extendSelection) onSelected;
@@ -919,7 +920,7 @@ class _JawRow extends StatelessWidget {
         final overlays = odontogramOverlayMarkersForTooth(toothEvents, fdi);
         return _ToothColumn(
           fdi: fdi,
-          selected: fdi == selectedFdi,
+          selected: selectedFdis.contains(fdi),
           bridgeRole: bridgeUnits
               .where((unit) => unit.toothFdi == fdi)
               .firstOrNull

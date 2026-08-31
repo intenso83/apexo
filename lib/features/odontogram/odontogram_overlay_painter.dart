@@ -262,16 +262,26 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final statusColor = odontogramStatusOverlayColor(marker.status);
-    final materialColor = odontogramTreatmentMaterialColor(
+    final baseMaterialColor = odontogramTreatmentMaterialColor(
       marker.kind,
       procedureName: marker.procedureName,
     );
+    final materialColor = marker.status == OdontogramEventStatus.planned
+        ? Color.lerp(
+            baseMaterialColor,
+            const Color(0xFF90CAF9),
+            0.58,
+          )!
+            .withValues(alpha: 0.74)
+        : baseMaterialColor;
     switch (marker.kind) {
       case OdontogramOverlayKind.none:
         return;
       case OdontogramOverlayKind.filling:
+        _paintPlannedOutline(canvas, _combinedFillingPath(size), size);
         return;
       case OdontogramOverlayKind.crown:
+        _paintPlannedOutline(canvas, odontogramCrownPath(asset, size), size);
         return;
       case OdontogramOverlayKind.rootCanal:
         _paintRootCanal(canvas, size, statusColor, materialColor);
@@ -286,6 +296,23 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
         _paintBridge(canvas, size, statusColor, materialColor);
         return;
     }
+  }
+
+  void _paintPlannedOutline(Canvas canvas, Path path, Size size) {
+    if (marker.status != OdontogramEventStatus.planned ||
+        path.getBounds().isEmpty) {
+      return;
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = math.max(1.15, size.shortestSide * 0.055)
+        ..color =
+            odontogramStatusOverlayColor(marker.status).withValues(alpha: 0.92),
+    );
   }
 
   Path _combinedFillingPath(Size size) {
@@ -962,8 +989,8 @@ Color odontogramTreatmentMaterialColor(
 double _materialOpacity(OdontogramEventStatus status) => switch (status) {
       OdontogramEventStatus.existing => 0.62,
       OdontogramEventStatus.monitor => 0.46,
-      OdontogramEventStatus.planned => 0.52,
-      OdontogramEventStatus.completed => 0.72,
+      OdontogramEventStatus.planned => 0.40,
+      OdontogramEventStatus.completed => 0.76,
       OdontogramEventStatus.cancelled => 0.25,
     };
 

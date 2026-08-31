@@ -74,7 +74,16 @@ void main() {
     final plan = treatmentPlans.forPatient(patient.id).single;
     expect(plan.items, hasLength(1));
     expect(plan.items.single.unitPrice, 180);
+    expect(plan.items.single.toothFdi, 11);
     expect(plan.items.single.surfaces, ['wholeTooth']);
+    expect(
+      find.byKey(ValueKey('treatment-plan-ledger-row-${plan.items.single.id}')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('odontogram-tooth-16')));
+    await tester.pumpAndSettle();
+    expect(plan.items.single.toothFdi, 16);
     expect(find.text('Ενδοδοντική θεραπεία γομφίου'), findsWidgets);
     expect(find.textContaining('180.00 EUR'), findsWidgets);
     expect(find.byKey(const Key('preview-treatment-plan-pdf')), findsOneWidget);

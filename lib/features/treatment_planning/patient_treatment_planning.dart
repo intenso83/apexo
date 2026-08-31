@@ -1,6 +1,10 @@
 import 'dart:convert';
 
 import 'package:apexo/core/multi_stream_builder.dart';
+import 'package:apexo/features/odontogram/odontogram_assets.dart';
+import 'package:apexo/features/odontogram/odontogram_event_model.dart';
+import 'package:apexo/features/odontogram/odontogram_event_store.dart';
+import 'package:apexo/features/odontogram/patient_odontogram.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
@@ -31,8 +35,11 @@ class PatientTreatmentPlanning extends StatefulWidget {
 class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
   late final Future<TreatmentCatalogueTranslations> translationsFuture;
   String? selectedPlanID;
+  String? selectedItemID;
   String? selectedGroupID;
   String? selectedProcedureID;
+  int draftSelectedFdi = 11;
+  int? bridgeRangeAnchorFdi;
   final Map<String, int> bridgeDraftTooth = {};
   final Map<String, BridgeUnitRole> bridgeDraftRole = {};
   final Map<String, int> removableDraftTooth = {};
@@ -59,6 +66,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
             therapyGroups.observableMap.stream,
             procedureCatalog.observableMap.stream,
             globalSettings.observableMap.stream,
+            odontogramEvents.observableMap.stream,
           ],
           builder: (context, _) {
             final plans = treatmentPlans.forPatient(widget.patient.id);
@@ -154,10 +162,13 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     TreatmentPlan plan,
     TreatmentCatalogueTranslations translations,
   ) {
+    final selectedItem = _selectedItem(plan);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPlanIdentity(plan),
+        const SizedBox(height: 10),
+        _buildPlanningOdontogram(plan, selectedItem),
         const SizedBox(height: 10),
         _buildCatalogueComposer(plan, translations),
         const SizedBox(height: 10),
@@ -168,20 +179,23 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               'Επιλέξτε ομάδα και θεραπεία από τον κατάλογο για να δημιουργήσετε το σχέδιο.',
             ),
           )
-        else
-          ...plan.items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _buildPlanItem(plan, item),
-              )),
-        const SizedBox(height: 2),
-        _buildDiscountAndSummary(plan),
-        const SizedBox(height: 10),
-        _buildConsent(plan),
-        const SizedBox(height: 10),
-        _buildPlanActions(plan),
+        else ...[
+          _buildTreatmentWorkspace(plan, selectedItem),
+          const SizedBox(height: 10),
+        ],
+        _buildPlanFooter(plan),
         const SizedBox(height: 30),
       ],
     );
+  }
+
+  TreatmentPlanItem? _selectedItem(TreatmentPlan plan) {
+    if (selectedItemID != null) {
+      for (final item in plan.items) {
+        if (item.id == selectedItemID) return item;
+      }
+    }
+    return null;
   }
 
   Widget _buildPlanIdentity(TreatmentPlan plan) {
@@ -246,6 +260,358 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                       );
               }),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanningOdontogram(
+    TreatmentPlan plan,
+    TreatmentPlanItem? selectedItem,
+  ) {
+    final planEvents = plan.items
+        .where((item) => item.status == TreatmentPlanItemStatus.planned)
+        .map(_planItemAsOdontogramEvent)
+        .toList(growable: false);
+    final clinicalEvents = odontogramEvents.forPatient(widget.patient.id);
+    final selectedTeeth = selectedItem == null
+        ? <int>{draftSelectedFdi}
+        : _itemTeeth(selectedItem).toSet();
+    if (selectedTeeth.isEmpty) selectedTeeth.add(draftSelectedFdi);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PatientOdontogramChart(
+          selectedFdis: selectedTeeth,
+          bridgeUnits: selectedItem?.bridgeUnits ?? const <BridgeUnit>[],
+          events: [...planEvents, ...clinicalEvents],
+          onSelected: (fdi, extendSelection) =>
+              _selectPlanningTooth(plan, fdi, extendSelection),
+        ),
+        const SizedBox(height: 6),
+        const Wrap(
+          spacing: 14,
+          runSpacing: 6,
+          children: [
+            _PlanningLegendItem(
+              color: Color(0xFF1976D2),
+              outlined: true,
+              label: 'Σχεδιαζόμενη θεραπεία',
+            ),
+            _PlanningLegendItem(
+              color: Color(0xFF00897B),
+              label: 'Ολοκληρωμένη / υπάρχουσα θεραπεία',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  OdontogramEvent _planItemAsOdontogramEvent(TreatmentPlanItem item) {
+    return OdontogramEvent.fromJson({
+      'patientID': widget.patient.id,
+      'targetScope': item.targetScope.name,
+      if (item.toothFdi != null) 'toothFdi': item.toothFdi,
+      if (item.surfaces.isNotEmpty) 'surfaces': item.surfaces,
+      if (item.bridgeUnits.isNotEmpty)
+        'bridgeUnits': item.bridgeUnits.map((unit) => unit.toJson()).toList(),
+      if (item.arch != DentalArch.unspecified) 'arch': item.arch.name,
+      if (item.removableComponents.isNotEmpty)
+        'removableComponents': item.removableComponents
+            .map((component) => component.toJson())
+            .toList(),
+      'procedureID': item.procedureID,
+      'procedureNameSnapshot': item.procedureNameElSnapshot,
+      'therapyGroupID': item.therapyGroupID,
+      'therapyGroupNameSnapshot': item.therapyGroupNameSnapshot,
+      if (item.odontogramOverlay != null)
+        'overlayKind': item.odontogramOverlay!.name,
+      'eventKind': OdontogramEventKind.treatment.name,
+      'status': OdontogramEventStatus.planned.name,
+      'recordedAt': (DateTime.now().millisecondsSinceEpoch / 60000).round(),
+    });
+  }
+
+  List<int> _itemTeeth(TreatmentPlanItem item) => switch (item.targetScope) {
+        TreatmentTargetScope.patient => const <int>[],
+        TreatmentTargetScope.tooth =>
+          item.toothFdi == null ? const <int>[] : <int>[item.toothFdi!],
+        TreatmentTargetScope.bridge =>
+          item.bridgeUnits.map((unit) => unit.toothFdi).toList(),
+        TreatmentTargetScope.removableProsthesis => item.removableComponents
+            .map((component) => component.toothFdi)
+            .toList(),
+      };
+
+  void _selectPlanningTooth(
+    TreatmentPlan plan,
+    int fdi,
+    bool extendSelection,
+  ) {
+    final item = _selectedItem(plan);
+    var changed = false;
+    setState(() {
+      draftSelectedFdi = fdi;
+      if (item == null || item.isCompleted) return;
+      switch (item.targetScope) {
+        case TreatmentTargetScope.patient:
+          return;
+        case TreatmentTargetScope.tooth:
+          item.toothFdi = fdi;
+          changed = true;
+        case TreatmentTargetScope.bridge:
+          bridgeDraftTooth[item.id] = fdi;
+          final anchor = bridgeRangeAnchorFdi ?? fdi;
+          if (extendSelection) {
+            final range = _fdiRange(anchor, fdi);
+            if (range != null) {
+              item.bridgeUnits
+                ..clear()
+                ..addAll(range.indexed.map((entry) => BridgeUnit(
+                      toothFdi: entry.$2,
+                      role: _suggestedBridgeRole(entry.$1, range.length),
+                    )));
+              changed = true;
+            }
+          } else {
+            bridgeRangeAnchorFdi = fdi;
+          }
+        case TreatmentTargetScope.removableProsthesis:
+          removableDraftTooth[item.id] = fdi;
+          if (item.arch == DentalArch.unspecified) {
+            item.arch = fdi ~/ 10 <= 2 ? DentalArch.upper : DentalArch.lower;
+            changed = true;
+          }
+      }
+    });
+    if (changed) treatmentPlans.set(plan);
+  }
+
+  Widget _buildTreatmentWorkspace(
+    TreatmentPlan plan,
+    TreatmentPlanItem? selectedItem,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final ledger = _buildTreatmentLedger(plan, selectedItem);
+        final inspector = _buildPlanItemInspector(plan, selectedItem);
+        if (constraints.maxWidth >= 900) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 7, child: ledger),
+              const SizedBox(width: 10),
+              Expanded(flex: 5, child: inspector),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [ledger, const SizedBox(height: 10), inspector],
+        );
+      },
+    );
+  }
+
+  Widget _buildTreatmentLedger(
+    TreatmentPlan plan,
+    TreatmentPlanItem? selectedItem,
+  ) {
+    return Container(
+      decoration: _planningCardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Θεραπείες εναλλακτικής',
+                    style: FluentTheme.of(context).typography.subtitle,
+                  ),
+                ),
+                Text('${plan.items.length} εγγραφές'),
+              ],
+            ),
+          ),
+          const Divider(size: 1),
+          const _TreatmentLedgerHeader(),
+          ...plan.items.map(
+            (item) => _buildTreatmentLedgerRow(
+              plan,
+              item,
+              selected: selectedItem?.id == item.id,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTreatmentLedgerRow(
+    TreatmentPlan plan,
+    TreatmentPlanItem item, {
+    required bool selected,
+  }) {
+    final accent = FluentTheme.of(context).accentColor;
+    final completed = item.isCompleted;
+    return GestureDetector(
+      key: ValueKey('treatment-plan-ledger-row-${item.id}'),
+      onTap: () => setState(() {
+        selectedItemID = item.id;
+        final teeth = _itemTeeth(item);
+        if (teeth.isNotEmpty) draftSelectedFdi = teeth.first;
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        constraints: const BoxConstraints(minHeight: 52),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? accent.withValues(alpha: 0.09) : null,
+          border: Border(
+            left: BorderSide(
+              color: completed ? const Color(0xFF00897B) : accent,
+              width: selected ? 4 : 2,
+            ),
+            bottom: BorderSide(color: Colors.grey.withAlpha(35)),
+          ),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 30,
+              child: Checkbox(
+                checked: completed,
+                onChanged: completed ? null : (_) => _completeItem(plan, item),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              flex: 5,
+              child: Tooltip(
+                message: item.displayName(plan.language),
+                child: Text(
+                  item.displayName(plan.language),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: Text(
+                _itemTargetLabel(item),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Expanded(child: Text('${item.quantity}', textAlign: TextAlign.end)),
+            Expanded(
+              flex: 2,
+              child:
+                  Text(_money(item.monetaryDiscount), textAlign: TextAlign.end),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                _money(item.net),
+                textAlign: TextAlign.end,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              completed ? FluentIcons.completed_solid : FluentIcons.edit,
+              size: 14,
+              color: completed ? const Color(0xFF00897B) : accent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _itemTargetLabel(TreatmentPlanItem item) {
+    return switch (item.targetScope) {
+      TreatmentTargetScope.patient => 'Γενικό',
+      TreatmentTargetScope.tooth => item.toothFdi == null
+          ? 'Χωρίς δόντι'
+          : '${item.toothFdi}${item.surfaces.isEmpty ? '' : ' · ${item.surfaces.map((surface) => _surfaceLabels[surface] ?? surface).join('/')}'}',
+      TreatmentTargetScope.bridge => item.bridgeUnits.isEmpty
+          ? 'Γέφυρα · χωρίς μονάδες'
+          : item.bridgeUnits.map((unit) => unit.toothFdi).join('–'),
+      TreatmentTargetScope.removableProsthesis =>
+        '${_archLabel(item.arch)}${item.removableComponents.isEmpty ? '' : ' · ${item.removableComponents.length} στοιχεία'}',
+    };
+  }
+
+  Widget _buildPlanItemInspector(
+    TreatmentPlan plan,
+    TreatmentPlanItem? item,
+  ) {
+    if (item == null) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: _planningCardDecoration(context),
+        child: const InfoBar(
+          title: Text('Επιλέξτε μια θεραπεία'),
+          content: Text(
+            'Η επιλεγμένη γραμμή επεξεργάζεται εδώ. Η επιλογή δοντιού γίνεται απευθείας από το οδοντόγραμμα.',
+          ),
+        ),
+      );
+    }
+    return _buildPlanItem(plan, item);
+  }
+
+  Widget _buildPlanFooter(TreatmentPlan plan) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6F6F3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFBBDDD7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _PlanTotalPill(label: 'Αρχικό σύνολο', value: _money(plan.gross)),
+              _PlanTotalPill(
+                label: 'Σύνολο έκπτωσης',
+                value: _money(plan.totalDiscount),
+                color: const Color(0xFFD97706),
+              ),
+              _PlanTotalPill(
+                label: 'Τελικό σύνολο',
+                value: _money(plan.total),
+                color: const Color(0xFF00897B),
+                strong: true,
+              ),
+              _buildPlanActions(plan),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expander(
+            header: const Text('Εκπτώσεις, συναίνεση και υπογεγραμμένο αρχείο'),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildDiscountAndSummary(plan),
+                const SizedBox(height: 10),
+                _buildConsent(plan),
+              ],
+            ),
           ),
         ],
       ),
@@ -356,50 +722,41 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
 
   Widget _buildPlanItem(TreatmentPlan plan, TreatmentPlanItem item) {
     final completed = item.isCompleted;
-    return Expander(
+    return Container(
       key: ValueKey('treatment-plan-item-${item.id}'),
-      initiallyExpanded: !completed,
-      header: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.displayName(plan.language),
-                  style: FluentTheme.of(context).typography.bodyStrong,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${item.quantity} × ${_money(item.unitPrice)} · ${_money(item.net)}',
-                  style: TextStyle(
-                    color: Colors.grey[110],
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color:
-                  completed ? const Color(0xFFE2F6EF) : const Color(0xFFE8F3FB),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Text(completed ? 'Ολοκληρωμένο' : 'Προγραμματισμένο'),
-          ),
-        ],
-      ),
-      content: Column(
+      padding: const EdgeInsets.all(12),
+      decoration: _planningCardDecoration(context),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  item.displayName(plan.language),
+                  style: FluentTheme.of(context).typography.subtitle,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: completed
+                      ? const Color(0xFFE2F6EF)
+                      : const Color(0xFFE8F3FB),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(completed ? 'Ολοκληρωμένο' : 'Προγραμματισμένο'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 10,
-            runSpacing: 10,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               _numberField(
                 label: 'Ποσότητα',
+                width: 145,
                 value: item.quantity.toDouble(),
                 min: 1,
                 max: 999,
@@ -412,6 +769,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               ),
               _numberField(
                 label: 'Τιμή μονάδας (${currency()})',
+                width: 175,
                 value: item.unitPrice,
                 min: 0,
                 onChanged: completed
@@ -422,7 +780,8 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                       },
               ),
               _numberField(
-                label: 'Έκπτωση γραμμής % (εσωτερικό)',
+                label: 'Έκπτωση % (εσωτερικό)',
+                width: 175,
                 value: item.discountPercent,
                 min: 0,
                 max: 100,
@@ -434,7 +793,8 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                       },
               ),
               _numberField(
-                label: 'Σταθερή έκπτωση (${currency()}) (εσωτερικό)',
+                label: 'Έκπτωση ${currency()} (εσωτερικό)',
+                width: 175,
                 value: item.discountAmount,
                 min: 0,
                 onChanged: completed
@@ -448,7 +808,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
           ),
           const SizedBox(height: 12),
           _buildTargetEditor(plan, item, completed),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _PersistedTextBox(
             key: ValueKey('plan-item-notes-${item.id}'),
             label: 'Σημειώσεις',
@@ -460,7 +820,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               treatmentPlans.set(plan);
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               if (!completed)
@@ -472,7 +832,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                     children: [
                       Icon(FluentIcons.completed),
                       SizedBox(width: 6),
-                      Text('Μεταφορά ως ολοκληρωμένη θεραπεία'),
+                      Text('Ολοκλήρωση τώρα'),
                     ],
                   ),
                 ),
@@ -483,6 +843,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                   onPressed: () {
                     plan.items
                         .removeWhere((candidate) => candidate.id == item.id);
+                    selectedItemID = null;
                     treatmentPlans.set(plan);
                   },
                 ),
@@ -508,28 +869,21 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 220,
-              child: InfoLabel(
-                label: 'Δόντι (FDI)',
-                child: ComboBox<int>(
-                  key: ValueKey('plan-item-tooth-${item.id}'),
-                  isExpanded: true,
-                  value: item.toothFdi,
-                  items: _permanentTeeth
-                      .map((fdi) => ComboBoxItem<int>(
-                            value: fdi,
-                            child: Text('$fdi'),
-                          ))
-                      .toList(),
-                  onChanged: completed
-                      ? null
-                      : (value) {
-                          item.toothFdi = value;
-                          treatmentPlans.set(plan);
-                        },
-                ),
+            InfoBar(
+              key: ValueKey('plan-item-tooth-${item.id}'),
+              title: Text(
+                item.toothFdi == null
+                    ? 'Δεν έχει επιλεγεί δόντι'
+                    : 'Δόντι ${item.toothFdi}',
               ),
+              content: Text(
+                completed
+                    ? 'Η χαρτογράφηση έχει κλειδωθεί μετά την ολοκλήρωση.'
+                    : 'Κάντε κλικ στο επιθυμητό δόντι στο οδοντόγραμμα για άμεση αλλαγή.',
+              ),
+              severity: item.toothFdi == null
+                  ? InfoBarSeverity.warning
+                  : InfoBarSeverity.info,
             ),
             if (item.handlingMode == ProcedureHandlingMode.surfaceBased) ...[
               const SizedBox(height: 10),
@@ -576,7 +930,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     TreatmentPlanItem item,
     bool completed,
   ) {
-    final draftTooth = bridgeDraftTooth[item.id] ?? 11;
+    final draftTooth = bridgeDraftTooth[item.id] ?? draftSelectedFdi;
     final draftRole = bridgeDraftRole[item.id] ?? BridgeUnitRole.abutment;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,7 +938,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         const InfoBar(
           title: Text('Χαρτογράφηση γέφυρας'),
           content: Text(
-            'Χρειάζεται τουλάχιστον ένα στήριγμα και ένα ενδιάμεσο. Η χαρτογράφηση μεταφέρεται αυτούσια στο οδοντόγραμμα.',
+            'Κλικ σε δόντι για επιλογή. Shift + κλικ σε δεύτερο δόντι δημιουργεί αυτόματα το εύρος με στηρίγματα στα άκρα και ενδιάμεσα μεταξύ τους.',
           ),
         ),
         const SizedBox(height: 8),
@@ -597,20 +951,8 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               SizedBox(
                 width: 110,
                 child: InfoLabel(
-                  label: 'Δόντι',
-                  child: ComboBox<int>(
-                    value: draftTooth,
-                    isExpanded: true,
-                    items: _permanentTeeth
-                        .map((fdi) => ComboBoxItem<int>(
-                              value: fdi,
-                              child: Text('$fdi'),
-                            ))
-                        .toList(),
-                    onChanged: (value) => setState(() {
-                      bridgeDraftTooth[item.id] = value ?? 11;
-                    }),
-                  ),
+                  label: 'Επιλεγμένο δόντι',
+                  child: _SelectedPlanningTooth(fdi: draftTooth),
                 ),
               ),
               SizedBox(
@@ -673,7 +1015,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     TreatmentPlanItem item,
     bool completed,
   ) {
-    final draftTooth = removableDraftTooth[item.id] ?? 11;
+    final draftTooth = removableDraftTooth[item.id] ?? draftSelectedFdi;
     final draftRole =
         removableDraftRole[item.id] ?? RemovableComponentRole.replacedTooth;
     return Column(
@@ -716,20 +1058,8 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               SizedBox(
                 width: 110,
                 child: InfoLabel(
-                  label: 'Δόντι',
-                  child: ComboBox<int>(
-                    value: draftTooth,
-                    isExpanded: true,
-                    items: _permanentTeeth
-                        .map((fdi) => ComboBoxItem<int>(
-                              value: fdi,
-                              child: Text('$fdi'),
-                            ))
-                        .toList(),
-                    onChanged: (value) => setState(() {
-                      removableDraftTooth[item.id] = value ?? 11;
-                    }),
-                  ),
+                  label: 'Επιλεγμένο δόντι',
+                  child: _SelectedPlanningTooth(fdi: draftTooth),
                 ),
               ),
               SizedBox(
@@ -1001,10 +1331,11 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     required double value,
     required double min,
     double? max,
+    double width = 220,
     required ValueChanged<double?>? onChanged,
   }) {
     return SizedBox(
-      width: 220,
+      width: width,
       child: InfoLabel(
         label: label,
         child: NumberBox<double>(
@@ -1054,6 +1385,27 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     setState(() => selectedPlanID = plan.id);
   }
 
+  List<int>? _fdiRange(int start, int end) {
+    for (final jaw in [OdontogramAssets.upperFdi, OdontogramAssets.lowerFdi]) {
+      final startIndex = jaw.indexOf(start);
+      final endIndex = jaw.indexOf(end);
+      if (startIndex < 0 || endIndex < 0) continue;
+      final first = startIndex < endIndex ? startIndex : endIndex;
+      final last = startIndex < endIndex ? endIndex : startIndex;
+      return jaw.sublist(first, last + 1);
+    }
+    return null;
+  }
+
+  BridgeUnitRole _suggestedBridgeRole(int index, int length) {
+    if (length == 2) {
+      return index == 0 ? BridgeUnitRole.abutment : BridgeUnitRole.pontic;
+    }
+    return index == 0 || index == length - 1
+        ? BridgeUnitRole.abutment
+        : BridgeUnitRole.pontic;
+  }
+
   void _addProcedure(
     TreatmentPlan plan,
     TreatmentCatalogueTranslations translations,
@@ -1074,7 +1426,27 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
       ..odontogramOverlay = procedureCatalog.overlayFor(procedure)
       ..unitPrice = procedure.basePrice
       ..surfaces = [...decision.mode.automaticSurfaces];
+    switch (item.targetScope) {
+      case TreatmentTargetScope.patient:
+        break;
+      case TreatmentTargetScope.tooth:
+        item.toothFdi = draftSelectedFdi;
+      case TreatmentTargetScope.bridge:
+        item.bridgeUnits = [
+          BridgeUnit(
+            toothFdi: draftSelectedFdi,
+            role: BridgeUnitRole.abutment,
+          ),
+        ];
+        bridgeDraftTooth[item.id] = draftSelectedFdi;
+        bridgeRangeAnchorFdi = draftSelectedFdi;
+      case TreatmentTargetScope.removableProsthesis:
+        item.arch =
+            draftSelectedFdi ~/ 10 <= 2 ? DentalArch.upper : DentalArch.lower;
+        removableDraftTooth[item.id] = draftSelectedFdi;
+    }
     plan.items.add(item);
+    selectedItemID = item.id;
     treatmentPlans.set(plan);
   }
 
@@ -1304,40 +1676,142 @@ class _TargetChip extends StatelessWidget {
   }
 }
 
-const _permanentTeeth = <int>[
-  18,
-  17,
-  16,
-  15,
-  14,
-  13,
-  12,
-  11,
-  21,
-  22,
-  23,
-  24,
-  25,
-  26,
-  27,
-  28,
-  48,
-  47,
-  46,
-  45,
-  44,
-  43,
-  42,
-  41,
-  31,
-  32,
-  33,
-  34,
-  35,
-  36,
-  37,
-  38,
-];
+class _TreatmentLedgerHeader extends StatelessWidget {
+  const _TreatmentLedgerHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final style = FluentTheme.of(context).typography.caption?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[120],
+        );
+    return Container(
+      color: FluentTheme.of(context).resources.subtleFillColorSecondary,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        children: [
+          const SizedBox(width: 34),
+          Expanded(flex: 5, child: Text('Θεραπεία', style: style)),
+          const SizedBox(width: 8),
+          Expanded(flex: 2, child: Text('Στόχος', style: style)),
+          Expanded(child: Text('Ποσ.', style: style, textAlign: TextAlign.end)),
+          Expanded(
+            flex: 2,
+            child: Text('Έκπτωση', style: style, textAlign: TextAlign.end),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text('Σύνολο', style: style, textAlign: TextAlign.end),
+          ),
+          const SizedBox(width: 20),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanningLegendItem extends StatelessWidget {
+  const _PlanningLegendItem({
+    required this.color,
+    required this.label,
+    this.outlined = false,
+  });
+
+  final Color color;
+  final String label;
+  final bool outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 15,
+          height: 15,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: outlined ? 0.22 : 0.72),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: color,
+              width: outlined ? 2 : 1,
+            ),
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(label, style: FluentTheme.of(context).typography.caption),
+      ],
+    );
+  }
+}
+
+class _PlanTotalPill extends StatelessWidget {
+  const _PlanTotalPill({
+    required this.label,
+    required this.value,
+    this.color = const Color(0xFF2563EB),
+    this.strong = false,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+  final bool strong;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: strong ? FontWeight.w700 : FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedPlanningTooth extends StatelessWidget {
+  const _SelectedPlanningTooth({required this.fdi});
+
+  final int fdi;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: FluentTheme.of(context).accentColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: FluentTheme.of(context).accentColor.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Text('$fdi', style: const TextStyle(fontWeight: FontWeight.w600)),
+    );
+  }
+}
+
+BoxDecoration _planningCardDecoration(BuildContext context) => BoxDecoration(
+      color: FluentTheme.of(context).resources.cardBackgroundFillColorDefault,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: Colors.grey.withAlpha(45)),
+    );
 
 const _surfaceLabels = <String, String>{
   'mesial': 'Εγγύς',
