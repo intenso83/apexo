@@ -142,6 +142,14 @@ class Appointment extends Model {
   /* 17 */ int duration = 15; // in minutes, default 15
   /* 18 */ List<String> dcmImgs = []; // DICOM X-ray filenames
   /* 19 */ String therapyGroup = ""; // calendar colour / visit category
+  // Google Calendar sync metadata. OAuth access/refresh tokens are never
+  // stored on an appointment or in PocketBase.
+  /* 20 */ String googleCalendarEventId = "";
+  /* 21 */ String googleCalendarId = "";
+  /* 22 */ String googleCalendarEtag = "";
+  /* 23 */ DateTime? googleCalendarUpdatedAt;
+  /* 24 */ String googleCalendarHtmlLink = "";
+  /* 25 */ String googleCalendarSyncFingerprint = "";
 
   Appointment.fromJson(super.json) : super.fromJson();
 
@@ -178,6 +186,18 @@ class Appointment extends Model {
     /* 17 */ duration = (json["duration"] as int?) ?? duration;
     /* 18 */ dcmImgs = List<String>.from(json["dcmImgs"] ?? dcmImgs);
     /* 19 */ therapyGroup = json["therapyGroup"] ?? therapyGroup;
+    /* 20 */ googleCalendarEventId =
+        json["googleCalendarEventId"] ?? googleCalendarEventId;
+    /* 21 */ googleCalendarId = json["googleCalendarId"] ?? googleCalendarId;
+    /* 22 */ googleCalendarEtag =
+        json["googleCalendarEtag"] ?? googleCalendarEtag;
+    /* 23 */ googleCalendarUpdatedAt = json["googleCalendarUpdatedAt"] == null
+        ? googleCalendarUpdatedAt
+        : DateTime.tryParse(json["googleCalendarUpdatedAt"].toString());
+    /* 24 */ googleCalendarHtmlLink =
+        json["googleCalendarHtmlLink"] ?? googleCalendarHtmlLink;
+    /* 25 */ googleCalendarSyncFingerprint =
+        json["googleCalendarSyncFingerprint"] ?? googleCalendarSyncFingerprint;
   }
 
   @override
@@ -210,6 +230,25 @@ class Appointment extends Model {
     /* 18 */ if (dcmImgs.isNotEmpty) json['dcmImgs'] = dcmImgs;
     /* 19 */ if (therapyGroup != d.therapyGroup) {
       json['therapyGroup'] = therapyGroup;
+    }
+    /* 20 */ if (googleCalendarEventId.isNotEmpty) {
+      json['googleCalendarEventId'] = googleCalendarEventId;
+    }
+    /* 21 */ if (googleCalendarId.isNotEmpty) {
+      json['googleCalendarId'] = googleCalendarId;
+    }
+    /* 22 */ if (googleCalendarEtag.isNotEmpty) {
+      json['googleCalendarEtag'] = googleCalendarEtag;
+    }
+    /* 23 */ if (googleCalendarUpdatedAt != null) {
+      json['googleCalendarUpdatedAt'] =
+          googleCalendarUpdatedAt!.toUtc().toIso8601String();
+    }
+    /* 24 */ if (googleCalendarHtmlLink.isNotEmpty) {
+      json['googleCalendarHtmlLink'] = googleCalendarHtmlLink;
+    }
+    /* 25 */ if (googleCalendarSyncFingerprint.isNotEmpty) {
+      json['googleCalendarSyncFingerprint'] = googleCalendarSyncFingerprint;
     }
 
     json.remove("title"); // remove since it is a computed value in this case

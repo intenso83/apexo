@@ -1054,6 +1054,27 @@ class Es implements En {
     "processingDentalHistory": "procesando historial dental",
     "processingPostOpNotes": "procesando notas post-operatorias",
 
+    // Google Calendar
+    "googleCalendarClientId": "ID de cliente OAuth de Google Calendar",
+    "googleCalendarClientId_desc":
+        "Configuración OAuth pública de Google Cloud. No introduzca nunca un secreto de cliente aquí.",
+    "googleCalendarFoundationStatus": "Base de sincronización segura instalada",
+    "googleCalendarPrivacyNotice":
+        "La conexión en vivo permanece desactivada hasta completar OAuth. Por defecto, los eventos gestionados por Apexo usan un título genérico y no exportan notas clínicas, teléfonos, tratamientos ni precios.",
+    "googleCalendarId": "ID del calendario de Google",
+    "googleCalendarId_desc":
+        "Use primary para el calendario principal o introduzca el ID de un calendario dedicado.",
+    "googleCalendarDirection": "Dirección de sincronización",
+    "googleCalendarDirection_desc":
+        "Elija si los cambios de hora de Google vuelven a Apexo o si Apexo solo publica citas.",
+    "googleCalendarTwoWay": "Horario bidireccional",
+    "googleCalendarOneWay": "Solo de Apexo a Google",
+    "googleCalendarTitleMode": "Privacidad del evento de Google",
+    "googleCalendarTitleMode_desc":
+        "Un título genérico protege la identidad del paciente. Los nombres requieren activación explícita.",
+    "googleCalendarGenericTitle": "Genérico: Cita dental",
+    "googleCalendarPatientTitle": "Incluir nombre del paciente",
+
     // calendar system
     "calendarSystem": "Sistema de calendario",
     "calendarSystem_desc":

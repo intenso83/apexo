@@ -38,6 +38,11 @@ class GlobalSettings extends Store<Setting> {
   String get treatmentPlanConsentDe => get("txplan_cnsnt_de").value;
   String get treatmentPlanLogoBase64 => get("txplan_logo_b64").value;
   String get treatmentPlanLogoName => get("txplan_logo_nm_").value;
+  bool get googleCalendarSyncEnabled => get("gcal_enabled___").value == "1";
+  String get googleCalendarClientId => get("gcal_client_id_").value;
+  String get googleCalendarId => get("gcal_calendar_id").value;
+  String get googleCalendarDirection => get("gcal_direction_").value;
+  String get googleCalendarTitleMode => get("gcal_title_mode").value;
 
   // Windows-only feature: directory/directories where the Xray software
   // stores `.dcm` files. Supports multiple directories separated by `;`.
@@ -92,6 +97,13 @@ class GlobalSettings extends Store<Setting> {
         "Ich wurde über den vorgeschlagenen Behandlungsplan, die Alternativen und die voraussichtlichen Kosten informiert.",
     "txplan_logo_b64": "",
     "txplan_logo_nm_": "treatment_plan_logo.gif",
+    // Google OAuth client IDs are public configuration. OAuth access and
+    // refresh tokens are intentionally not stored in global settings.
+    "gcal_enabled___": "0",
+    "gcal_client_id_": "",
+    "gcal_calendar_id": "primary",
+    "gcal_direction_": "twoWay",
+    "gcal_title_mode": "generic",
   };
 
   @override
@@ -198,6 +210,9 @@ class LocalSettings extends ObservablePersistingObject {
   DateTime? aiTokenExpiry;
   EventsViewMode calendarEventsViewMode = EventsViewMode.agenda;
   String lastSeenVersion = "";
+  String googleCalendarSyncToken = "";
+  DateTime? googleCalendarLastSync;
+  String googleCalendarLastError = "";
 
   // ── DICOM viewer preferences
   // JSON string: {"windowCenter": double, "windowWidth": double,
@@ -252,6 +267,14 @@ class LocalSettings extends ObservablePersistingObject {
         EventsViewMode.values[json["calendarEventsViewMode"] ?? 0];
     lastSeenVersion = json["lastSeenVersion"] ?? lastSeenVersion;
     dicomViewerPrefs = json["dicomViewerPrefs"] as String? ?? "";
+    googleCalendarSyncToken = json["googleCalendarSyncToken"] as String? ?? "";
+    googleCalendarLastSync = json["googleCalendarLastSync"] == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(
+            json["googleCalendarLastSync"] as int,
+            isUtc: true,
+          );
+    googleCalendarLastError = json["googleCalendarLastError"] as String? ?? "";
   }
 
   @override
@@ -266,6 +289,11 @@ class LocalSettings extends ObservablePersistingObject {
       "lastSeenVersion": lastSeenVersion,
       "calendarEventsViewMode": calendarEventsViewMode.index,
       "dicomViewerPrefs": dicomViewerPrefs,
+      "googleCalendarSyncToken": googleCalendarSyncToken,
+      "googleCalendarLastError": googleCalendarLastError,
+      if (googleCalendarLastSync != null)
+        "googleCalendarLastSync":
+            googleCalendarLastSync!.millisecondsSinceEpoch,
       if (aiToken != null) "aiToken": aiToken,
       if (aiTokenExpiry != null)
         "aiTokenExpiry": aiTokenExpiry!.millisecondsSinceEpoch,

@@ -29,6 +29,12 @@ void main() {
         'dcmImgs': ['scan.dcm'],
         'drawings': {'11': 'outline'},
         'therapyGroup': 'filling',
+        'googleCalendarEventId': 'apecal123',
+        'googleCalendarId': 'primary',
+        'googleCalendarEtag': 'etag-1',
+        'googleCalendarUpdatedAt': '2026-08-31T07:00:00.000Z',
+        'googleCalendarHtmlLink': 'https://calendar.google.com/event?eid=1',
+        'googleCalendarSyncFingerprint': 'fingerprint-1',
       });
 
       expect(appt.id, 'abc123');
@@ -50,6 +56,13 @@ void main() {
       expect(appt.dcmImgs, ['scan.dcm']);
       expect(appt.drawings, {'11': 'outline'});
       expect(appt.therapyGroup, 'filling');
+      expect(appt.googleCalendarEventId, 'apecal123');
+      expect(appt.googleCalendarId, 'primary');
+      expect(appt.googleCalendarEtag, 'etag-1');
+      expect(appt.googleCalendarUpdatedAt, DateTime.utc(2026, 8, 31, 7));
+      expect(appt.googleCalendarHtmlLink,
+          'https://calendar.google.com/event?eid=1');
+      expect(appt.googleCalendarSyncFingerprint, 'fingerprint-1');
     });
 
     test('handles missing optional fields with defaults', () {
@@ -64,6 +77,8 @@ void main() {
       expect(appt.dcmImgs, isEmpty);
       expect(appt.duration, 15);
       expect(appt.therapyGroup, isEmpty);
+      expect(appt.googleCalendarEventId, isEmpty);
+      expect(appt.googleCalendarSyncFingerprint, isEmpty);
     });
 
     test('date is in minutes (millisecondsSinceEpoch / 60000)', () {
@@ -126,6 +141,27 @@ void main() {
 
       final restored = Appointment.fromJson(original.toJson());
       expect(restored.therapyGroup, 'implant');
+    });
+
+    test('Google Calendar metadata survives a JSON round-trip', () {
+      final original = Appointment.fromJson({
+        'id': 'calendar-round-trip',
+        'googleCalendarEventId': 'apecal123',
+        'googleCalendarId': 'clinic@example.com',
+        'googleCalendarEtag': 'etag',
+        'googleCalendarUpdatedAt': '2026-08-31T07:00:00.000Z',
+        'googleCalendarHtmlLink': 'https://calendar.google.com/event',
+        'googleCalendarSyncFingerprint': 'fingerprint',
+      });
+
+      final restored = Appointment.fromJson(original.toJson());
+      expect(restored.googleCalendarEventId, 'apecal123');
+      expect(restored.googleCalendarId, 'clinic@example.com');
+      expect(restored.googleCalendarEtag, 'etag');
+      expect(restored.googleCalendarUpdatedAt, DateTime.utc(2026, 8, 31, 7));
+      expect(
+          restored.googleCalendarHtmlLink, 'https://calendar.google.com/event');
+      expect(restored.googleCalendarSyncFingerprint, 'fingerprint');
     });
   });
 

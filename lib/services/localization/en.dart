@@ -1031,6 +1031,27 @@ class En {
     "processingDentalHistory": "processing dental history audio",
     "processingPostOpNotes": "processing post-op notes audio",
 
+    // Google Calendar
+    "googleCalendarClientId": "Google Calendar OAuth client ID",
+    "googleCalendarClientId_desc":
+        "Public OAuth configuration from Google Cloud. Never enter a client secret here.",
+    "googleCalendarFoundationStatus": "Safe sync foundation installed",
+    "googleCalendarPrivacyNotice":
+        "Live connection remains off until OAuth is completed. Apexo-managed events use a generic title by default and do not export clinical notes, phone numbers, treatments, or prices.",
+    "googleCalendarId": "Google calendar ID",
+    "googleCalendarId_desc":
+        "Use primary for the account's main calendar, or enter a dedicated calendar ID.",
+    "googleCalendarDirection": "Google Calendar sync direction",
+    "googleCalendarDirection_desc":
+        "Choose whether Google time changes return to Apexo or Apexo only publishes appointments.",
+    "googleCalendarTwoWay": "Two-way appointment times",
+    "googleCalendarOneWay": "Apexo to Google only",
+    "googleCalendarTitleMode": "Google event privacy",
+    "googleCalendarTitleMode_desc":
+        "A generic event title protects patient identity. Patient names require an explicit opt-in.",
+    "googleCalendarGenericTitle": "Generic: Dental appointment",
+    "googleCalendarPatientTitle": "Include patient name",
+
     // calendar system
     "calendarSystem": "Calendar system",
     "calendarSystem_desc":

@@ -180,6 +180,84 @@ class SettingsScreen extends StatelessWidget {
               localSettings.notifyAndPersist();
             },
           ),
+          if (login.isAdmin)
+            SettingsItem(
+              title: txt("googleCalendarClientId"),
+              identifier: "gcal_client_id_",
+              description: txt("googleCalendarClientId_desc"),
+              icon: FluentIcons.calendar,
+              inputType: InputType.text,
+              scope: Scope.app,
+              initValue: globalSettings.googleCalendarClientId,
+              apply: (newVal) => globalSettings.set(Setting.fromJson(
+                  {"id": "gcal_client_id_", "value": newVal.trim()})),
+              footer: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: InfoBar(
+                  severity: InfoBarSeverity.info,
+                  title: Txt(txt("googleCalendarFoundationStatus")),
+                  content: Txt(txt("googleCalendarPrivacyNotice")),
+                ),
+              ),
+            ),
+          if (login.isAdmin)
+            SettingsItem(
+              title: txt("googleCalendarId"),
+              identifier: "gcal_calendar_id",
+              description: txt("googleCalendarId_desc"),
+              icon: FluentIcons.calendar,
+              inputType: InputType.text,
+              scope: Scope.app,
+              initValue: globalSettings.googleCalendarId,
+              apply: (newVal) => globalSettings.set(Setting.fromJson({
+                "id": "gcal_calendar_id",
+                "value": newVal.trim().isEmpty ? "primary" : newVal.trim(),
+              })),
+            ),
+          if (login.isAdmin)
+            SettingsItem(
+              title: txt("googleCalendarDirection"),
+              identifier: "gcal_direction_",
+              description: txt("googleCalendarDirection_desc"),
+              icon: FluentIcons.sync,
+              inputType: InputType.dropDown,
+              scope: Scope.app,
+              options: [
+                ComboBoxItem(
+                  value: "twoWay",
+                  child: Txt(txt("googleCalendarTwoWay")),
+                ),
+                ComboBoxItem(
+                  value: "apexoToGoogle",
+                  child: Txt(txt("googleCalendarOneWay")),
+                ),
+              ],
+              initValue: globalSettings.googleCalendarDirection,
+              apply: (newVal) => globalSettings.set(
+                  Setting.fromJson({"id": "gcal_direction_", "value": newVal})),
+            ),
+          if (login.isAdmin)
+            SettingsItem(
+              title: txt("googleCalendarTitleMode"),
+              identifier: "gcal_title_mode",
+              description: txt("googleCalendarTitleMode_desc"),
+              icon: FluentIcons.protection_center_logo32,
+              inputType: InputType.dropDown,
+              scope: Scope.app,
+              options: [
+                ComboBoxItem(
+                  value: "generic",
+                  child: Txt(txt("googleCalendarGenericTitle")),
+                ),
+                ComboBoxItem(
+                  value: "patientName",
+                  child: Txt(txt("googleCalendarPatientTitle")),
+                ),
+              ],
+              initValue: globalSettings.googleCalendarTitleMode,
+              apply: (newVal) => globalSettings.set(
+                  Setting.fromJson({"id": "gcal_title_mode", "value": newVal})),
+            ),
           SettingsItem(
             title: txt("calendarSystem"),
             identifier: "calendarSystem",

@@ -1050,6 +1050,28 @@ class El implements En {
     "processingDentalHistory": "επεξεργασία ήχου οδοντιατρικού ιστορικού",
     "processingPostOpNotes": "επεξεργασία ήχου μετεγχειρητικών σημειώσεων",
 
+    // Google Calendar
+    "googleCalendarClientId": "OAuth client ID του Google Calendar",
+    "googleCalendarClientId_desc":
+        "Δημόσια ρύθμιση OAuth από το Google Cloud. Μην εισάγετε ποτέ client secret εδώ.",
+    "googleCalendarFoundationStatus":
+        "Εγκαταστάθηκε η ασφαλής βάση συγχρονισμού",
+    "googleCalendarPrivacyNotice":
+        "Η ζωντανή σύνδεση παραμένει ανενεργή μέχρι να ολοκληρωθεί το OAuth. Από προεπιλογή, τα συμβάντα του Apexo έχουν γενικό τίτλο και δεν εξάγουν κλινικές σημειώσεις, τηλέφωνα, θεραπείες ή τιμές.",
+    "googleCalendarId": "Αναγνωριστικό ημερολογίου Google",
+    "googleCalendarId_desc":
+        "Χρησιμοποιήστε primary για το κύριο ημερολόγιο του λογαριασμού ή εισάγετε το ID ενός ξεχωριστού ημερολογίου.",
+    "googleCalendarDirection": "Κατεύθυνση συγχρονισμού Google Calendar",
+    "googleCalendarDirection_desc":
+        "Επιλέξτε αν οι αλλαγές ώρας στο Google επιστρέφουν στο Apexo ή αν το Apexo δημοσιεύει μόνο ραντεβού.",
+    "googleCalendarTwoWay": "Αμφίδρομος συγχρονισμός ωρών",
+    "googleCalendarOneWay": "Μόνο από Apexo προς Google",
+    "googleCalendarTitleMode": "Απόρρητο συμβάντων Google",
+    "googleCalendarTitleMode_desc":
+        "Ο γενικός τίτλος προστατεύει την ταυτότητα του ασθενούς. Η χρήση ονόματος απαιτεί ρητή επιλογή.",
+    "googleCalendarGenericTitle": "Γενικός τίτλος: Οδοντιατρικό ραντεβού",
+    "googleCalendarPatientTitle": "Να εμφανίζεται το όνομα ασθενούς",
+
     // calendar system
     "calendarSystem": "Σύστημα ημερολογίου",
     "calendarSystem_desc":

@@ -1027,6 +1027,27 @@ class Fa implements En {
     "processingDentalHistory": "پردازش صوت سابقه دندانپزشکی",
     "processingPostOpNotes": "پردازش صوت یادداشت‌های بعد از عمل",
 
+    // Google Calendar
+    "googleCalendarClientId": "شناسه مشتری OAuth تقویم Google",
+    "googleCalendarClientId_desc":
+        "پیکربندی عمومی OAuth از Google Cloud. هرگز راز مشتری را اینجا وارد نکنید.",
+    "googleCalendarFoundationStatus": "پایه همگام‌سازی امن نصب شد",
+    "googleCalendarPrivacyNotice":
+        "اتصال زنده تا تکمیل OAuth خاموش می‌ماند. رویدادهای Apexo به‌طور پیش‌فرض عنوان عمومی دارند و یادداشت بالینی، تلفن، درمان یا قیمت را صادر نمی‌کنند.",
+    "googleCalendarId": "شناسه تقویم Google",
+    "googleCalendarId_desc":
+        "برای تقویم اصلی از primary استفاده کنید یا شناسه یک تقویم اختصاصی را وارد کنید.",
+    "googleCalendarDirection": "جهت همگام‌سازی تقویم Google",
+    "googleCalendarDirection_desc":
+        "انتخاب کنید تغییر ساعت در Google به Apexo بازگردد یا Apexo فقط نوبت‌ها را منتشر کند.",
+    "googleCalendarTwoWay": "همگام‌سازی دوطرفه زمان",
+    "googleCalendarOneWay": "فقط از Apexo به Google",
+    "googleCalendarTitleMode": "حریم خصوصی رویداد Google",
+    "googleCalendarTitleMode_desc":
+        "عنوان عمومی از هویت بیمار محافظت می‌کند. نمایش نام بیمار نیازمند فعال‌سازی صریح است.",
+    "googleCalendarGenericTitle": "عمومی: نوبت دندانپزشکی",
+    "googleCalendarPatientTitle": "نمایش نام بیمار",
+
     // calendar system
     "calendarSystem": "سیستم تقویم",
     "calendarSystem_desc":

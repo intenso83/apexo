@@ -23,6 +23,11 @@ void main() {
       expect(settings.isoCountryCode, isEmpty);
       expect(settings.aiServicesEnabled, isFalse);
       expect(settings.dicomAutoImport, isTrue);
+      expect(settings.googleCalendarSyncEnabled, isFalse);
+      expect(settings.googleCalendarClientId, isEmpty);
+      expect(settings.googleCalendarId, 'primary');
+      expect(settings.googleCalendarDirection, 'twoWay');
+      expect(settings.googleCalendarTitleMode, 'generic');
     });
 
     test('DICOM directory setter trims, filters, and persists directories', () {
@@ -90,6 +95,9 @@ void main() {
       expect(globalSettings.defaults, contains('ai_services_ena'));
       expect(globalSettings.defaults, contains('dicom_watch_dir'));
       expect(globalSettings.defaults, contains('dicom_auto_imp_'));
+      expect(globalSettings.defaults, contains('gcal_enabled___'));
+      expect(globalSettings.defaults, contains('gcal_client_id_'));
+      expect(globalSettings.defaults, contains('gcal_calendar_id'));
     });
 
     test('currency getter returns non-null string', () {
@@ -220,6 +228,9 @@ void main() {
         'calendarEventsViewMode': EventsViewMode.timeline.index,
         'lastSeenVersion': '1.2.3',
         'dicomViewerPrefs': '{"invert":true}',
+        'googleCalendarSyncToken': 'sync-token',
+        'googleCalendarLastSync': expiry.millisecondsSinceEpoch,
+        'googleCalendarLastError': 'none',
       });
 
       expect(localSettings.selectedLocale, 2);
@@ -234,6 +245,9 @@ void main() {
       expect(localSettings.calendarEventsViewMode, EventsViewMode.timeline);
       expect(localSettings.lastSeenVersion, '1.2.3');
       expect(localSettings.dicomViewerPrefs, '{"invert":true}');
+      expect(localSettings.googleCalendarSyncToken, 'sync-token');
+      expect(localSettings.googleCalendarLastSync, expiry);
+      expect(localSettings.googleCalendarLastError, 'none');
     });
 
     test('toJson omits absent AI credentials and serializes active values', () {

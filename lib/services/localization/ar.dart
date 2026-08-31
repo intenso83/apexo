@@ -1019,6 +1019,27 @@ class Ar implements En {
     "processingDentalHistory": "معالجة الصوت لاستخراج تاريخ الأسنان",
     "processingPostOpNotes": "معالجة الصوت لاستخراج ملاحظات ما بعد العملية",
 
+    // Google Calendar
+    "googleCalendarClientId": "معرّف عميل OAuth لتقويم Google",
+    "googleCalendarClientId_desc":
+        "إعداد OAuth عام من Google Cloud. لا تُدخل سر العميل هنا أبداً.",
+    "googleCalendarFoundationStatus": "تم تثبيت أساس المزامنة الآمنة",
+    "googleCalendarPrivacyNotice":
+        "تبقى المزامنة المباشرة متوقفة حتى إكمال OAuth. تستخدم أحداث Apexo عنواناً عاماً افتراضياً ولا تصدّر الملاحظات السريرية أو أرقام الهاتف أو العلاجات أو الأسعار.",
+    "googleCalendarId": "معرّف تقويم Google",
+    "googleCalendarId_desc":
+        "استخدم primary للتقويم الرئيسي أو أدخل معرّف تقويم مخصص.",
+    "googleCalendarDirection": "اتجاه مزامنة تقويم Google",
+    "googleCalendarDirection_desc":
+        "اختر ما إذا كانت تغييرات الوقت في Google تعود إلى Apexo أم ينشر Apexo المواعيد فقط.",
+    "googleCalendarTwoWay": "مزامنة الوقت باتجاهين",
+    "googleCalendarOneWay": "من Apexo إلى Google فقط",
+    "googleCalendarTitleMode": "خصوصية حدث Google",
+    "googleCalendarTitleMode_desc":
+        "يحمي العنوان العام هوية المريض. تتطلب أسماء المرضى موافقة صريحة.",
+    "googleCalendarGenericTitle": "عام: موعد أسنان",
+    "googleCalendarPatientTitle": "تضمين اسم المريض",
+
     // calendar system
     "calendarSystem": "نظام التقويم",
     "calendarSystem_desc": "اختر نظام التقويم لعرض التواريخ في عرض التقويم",
