@@ -184,6 +184,81 @@ class Patient extends Model {
     ];
   }
 
+  List<String> get appointmentPhoneNumbers {
+    final mobileValues =
+        appointmentMobileNumbers.map((value) => value.toLowerCase()).toSet();
+    final structured = _uniqueContactValues(
+      contacts
+          .where((contact) =>
+              PatientContactType.isTelephone(contact.type) &&
+              contact.type != PatientContactType.mobile)
+          .map(_contactValue)
+          .where((value) => !mobileValues.contains(value.toLowerCase())),
+    );
+    if (structured.isNotEmpty) return structured;
+    return _uniqueContactValues(
+      phone
+          .map((number) => number.e164)
+          .where((value) => !mobileValues.contains(value.toLowerCase())),
+    );
+  }
+
+  List<String> get appointmentMobileNumbers => _uniqueContactValues(
+        contacts
+            .where((contact) => contact.type == PatientContactType.mobile)
+            .map(_contactValue),
+      );
+
+  List<String> get appointmentEmailAddresses {
+    final structured = _uniqueContactValues(
+      contacts
+          .where((contact) => contact.type == PatientContactType.email)
+          .map(_contactValue),
+    );
+    if (structured.isNotEmpty) return structured;
+    return _uniqueContactValues([email]);
+  }
+
+  String get appointmentAddress {
+    final parts = _uniqueContactValues([
+      prototypeAddressLine,
+      area,
+      city,
+      postalCode,
+      countryCode,
+    ]);
+    return parts.join(', ');
+  }
+
+  String get appointmentSearchText => [
+        prototypeDisplayName,
+        surname,
+        firstName,
+        legacyFullName,
+        registrationNumber,
+        legacyFolderNumber,
+        ...appointmentPhoneNumbers,
+        ...appointmentMobileNumbers,
+        ...appointmentEmailAddresses,
+        appointmentAddress,
+      ].where((value) => value.trim().isNotEmpty).join(' • ');
+
+  static String _contactValue(PatientContact contact) {
+    final raw = contact.rawValue.trim();
+    return raw.isNotEmpty ? raw : contact.normalizedValue.trim();
+  }
+
+  static List<String> _uniqueContactValues(Iterable<String> values) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final value in values) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty || !seen.add(trimmed.toLowerCase())) continue;
+      result.add(trimmed);
+    }
+    return result;
+  }
+
   double get paymentsMade {
     return doneAppointments.fold(0.0, (value, element) => value + element.paid);
   }

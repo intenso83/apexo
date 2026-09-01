@@ -1,4 +1,4 @@
-﻿import 'package:apexo/app/routes.dart';
+import 'package:apexo/app/routes.dart';
 import 'package:apexo/common_widgets/contact_buttons.dart';
 import 'package:apexo/common_widgets/item_title.dart';
 import 'package:apexo/common_widgets/screen_command_bar.dart';
@@ -24,6 +24,7 @@ class AgendaListView<Item extends Appointment> extends StatelessWidget {
   final List<Item> items;
   final bool showPayments;
   final void Function(Item item) onSelect;
+  final void Function(Item item) onEdit;
   final void Function(Item item) onSetTime;
 
   const AgendaListView({
@@ -31,6 +32,7 @@ class AgendaListView<Item extends Appointment> extends StatelessWidget {
     required this.items,
     required this.showPayments,
     required this.onSelect,
+    required this.onEdit,
     required this.onSetTime,
   });
 
@@ -64,6 +66,7 @@ class AgendaListView<Item extends Appointment> extends StatelessWidget {
             showPayments: showPayments,
             item: item,
             onSelect: onSelect,
+            onEdit: onEdit,
             onSetTime: onSetTime,
           ),
         );
@@ -79,6 +82,7 @@ class AppointmentCalendarTile<Item extends Appointment>
   final Item item;
   final void Function(Item item) onSetTime;
   final void Function(Item item) onSelect;
+  final void Function(Item item) onEdit;
   final bool showPayments;
   const AppointmentCalendarTile({
     super.key,
@@ -86,6 +90,7 @@ class AppointmentCalendarTile<Item extends Appointment>
     required this.item,
     required this.onSetTime,
     required this.onSelect,
+    required this.onEdit,
     required this.showPayments,
   });
 
@@ -143,6 +148,13 @@ class AppointmentCalendarTile<Item extends Appointment>
             ? Txt(item.subtitleLine1, overflow: TextOverflow.ellipsis)
             : null,
         leading: Row(children: [
+          Tooltip(
+            message: txt('edit'),
+            child: IconButton(
+              icon: const Icon(FluentIcons.edit),
+              onPressed: () => onEdit(item),
+            ),
+          ),
           routes.panels().where((p) => p.item.id == item.id).isNotEmpty
               ? IconButton(
                   icon: const Icon(FluentIcons.open_in_new_tab),

@@ -1087,6 +1087,12 @@ class Es implements En {
         "Un título genérico protege la identidad del paciente. Los nombres requieren activación explícita.",
     "googleCalendarGenericTitle": "Genérico: Cita dental",
     "googleCalendarPatientTitle": "Incluir nombre del paciente",
+    "googleCalendarIncludePhone": "Incluir teléfono en las notas de Google",
+    "googleCalendarIncludeMobile": "Incluir móvil en las notas de Google",
+    "googleCalendarIncludeEmail": "Incluir email en las notas de Google",
+    "googleCalendarIncludeAddress": "Incluir dirección en las notas de Google",
+    "googleCalendarContactPrivacy_desc":
+        "Elija qué datos de contacto se copian a Google Calendar. Las notas clínicas, tratamientos y precios nunca se exportan.",
     "googleCalendarConnect": "Conectar cuenta de Google",
     "googleCalendarReconnect": "Volver a conectar Google",
     "googleCalendarDisconnect": "Desconectar",

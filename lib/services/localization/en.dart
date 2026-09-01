@@ -1064,6 +1064,12 @@ class En {
         "A generic event title protects patient identity. Patient names require an explicit opt-in.",
     "googleCalendarGenericTitle": "Generic: Dental appointment",
     "googleCalendarPatientTitle": "Include patient name",
+    "googleCalendarIncludePhone": "Include phone in Google notes",
+    "googleCalendarIncludeMobile": "Include mobile in Google notes",
+    "googleCalendarIncludeEmail": "Include email in Google notes",
+    "googleCalendarIncludeAddress": "Include address in Google notes",
+    "googleCalendarContactPrivacy_desc":
+        "Choose which contact fields are copied to Google Calendar. Clinical notes, treatments and prices are never exported.",
     "googleCalendarConnect": "Connect Google account",
     "googleCalendarReconnect": "Reconnect Google account",
     "googleCalendarDisconnect": "Disconnect",

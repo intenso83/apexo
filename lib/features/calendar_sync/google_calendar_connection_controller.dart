@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 
 import 'google_calendar_authorization.dart';
 import 'google_calendar_gateway.dart';
+import 'google_calendar_contact_notes.dart';
 import 'google_calendar_models.dart';
 import 'google_calendar_sync_engine.dart';
 
@@ -215,6 +216,10 @@ class GoogleCalendarConnectionController {
           accountId: accountId,
           direction: settings.direction,
           titleMode: settings.titleMode,
+          includePhone: settings.includePhone,
+          includeMobile: settings.includeMobile,
+          includeEmail: settings.includeEmail,
+          includeAddress: settings.includeAddress,
         ),
         state: GoogleCalendarSyncState(
           syncToken: settings.syncToken,
@@ -223,7 +228,13 @@ class GoogleCalendarConnectionController {
         saveAppointment: (appointment) async {
           appointments.set(appointment);
         },
-        patientName: (appointment) => appointment.title,
+        patientName: (appointment) =>
+            appointment.patient?.prototypeDisplayName ?? appointment.title,
+        description: (appointment, preferences) =>
+            GoogleCalendarContactNotes().forPatient(
+          appointment.patient,
+          preferences,
+        ),
       );
       final result = GoogleCalendarSyncResult(
         created: engineResult.created,

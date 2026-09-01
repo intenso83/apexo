@@ -25,6 +25,7 @@ class CalendarTimelineView extends StatefulWidget {
   final bool showPayments;
   final DateTime selectedDate;
   final void Function(Appointment item) onSelect;
+  final void Function(Appointment item) onEdit;
   final void Function(Appointment item) onSetTime;
   final void Function(DateTime date) onAddNew;
 
@@ -34,6 +35,7 @@ class CalendarTimelineView extends StatefulWidget {
     required this.showPayments,
     required this.selectedDate,
     required this.onSelect,
+    required this.onEdit,
     required this.onSetTime,
     required this.onAddNew,
   });
@@ -608,6 +610,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
             setState(() => _frontAppId = app.id);
             widget.onSelect(app);
           },
+          onEdit: () => widget.onEdit(app),
           onLongPressStart: (d) => _onDragStart(app, d),
           onLongPressMove: (d) => _onDragUpdate(d),
           onLongPressEnd: _onDragEnd,
@@ -750,6 +753,7 @@ class TimelineChip extends StatefulWidget {
   final Color color;
   final bool showPayments;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final void Function(LongPressStartDetails) onLongPressStart;
   final void Function(LongPressMoveUpdateDetails) onLongPressMove;
   final VoidCallback onLongPressEnd;
@@ -760,6 +764,7 @@ class TimelineChip extends StatefulWidget {
     required this.color,
     required this.showPayments,
     required this.onTap,
+    required this.onEdit,
     required this.onLongPressStart,
     required this.onLongPressMove,
     required this.onLongPressEnd,
@@ -833,6 +838,17 @@ class _TimelineChipState extends State<TimelineChip> {
                   ? _buildBringToFrontButton()
                   : _buildDoneCheckBox(context),
               const Divider(direction: Axis.vertical),
+              Tooltip(
+                message: txt('edit'),
+                child: IconButton(
+                  onPressed: widget.onEdit,
+                  style: const ButtonStyle(
+                    padding: WidgetStatePropertyAll(EdgeInsets.all(4)),
+                    iconSize: WidgetStatePropertyAll(13),
+                  ),
+                  icon: const Icon(FluentIcons.edit),
+                ),
+              ),
               Flexible(
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

@@ -18,6 +18,7 @@ class WorkWeekCalendarView extends StatefulWidget {
   final DateTime selectedDate;
   final bool showPayments;
   final void Function(Appointment item) onSelect;
+  final void Function(Appointment item) onEdit;
   final void Function(Appointment item) onSetTime;
   final void Function(DateTime date) onAddNew;
 
@@ -27,6 +28,7 @@ class WorkWeekCalendarView extends StatefulWidget {
     required this.selectedDate,
     required this.showPayments,
     required this.onSelect,
+    required this.onEdit,
     required this.onSetTime,
     required this.onAddNew,
   });
@@ -537,6 +539,22 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
                     ),
                   ),
                 ),
+                if (height >= 30)
+                  Positioned(
+                    right: 3,
+                    top: 2,
+                    child: Tooltip(
+                      message: txt('edit'),
+                      child: IconButton(
+                        onPressed: () => widget.onEdit(item),
+                        style: const ButtonStyle(
+                          padding: WidgetStatePropertyAll(EdgeInsets.all(3)),
+                          iconSize: WidgetStatePropertyAll(12),
+                        ),
+                        icon: const Icon(FluentIcons.edit),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   left: 8,
                   right: 4,

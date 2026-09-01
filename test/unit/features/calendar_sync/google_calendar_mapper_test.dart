@@ -88,6 +88,24 @@ void main() {
     expect(event.summary, 'Jane Doe');
   });
 
+  test('description changes are part of the sync fingerprint', () {
+    final mapper = GoogleCalendarMapper();
+    final appointment = testAppointment(id: 'contact-fingerprint');
+
+    final first = mapper.fingerprint(
+      appointment,
+      summary: GoogleCalendarMapper.genericSummary,
+      description: 'Phone: 111',
+    );
+    final second = mapper.fingerprint(
+      appointment,
+      summary: GoogleCalendarMapper.genericSummary,
+      description: 'Phone: 222',
+    );
+
+    expect(first, isNot(second));
+  });
+
   test('remote times update appointment start and duration', () {
     final appointment = testAppointment(
       id: 'remote-time',

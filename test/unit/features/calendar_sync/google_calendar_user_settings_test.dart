@@ -11,6 +11,10 @@ void main() {
       calendarId: 'clinic-calendar@group.calendar.google.com',
       direction: GoogleCalendarSyncDirection.apexoToGoogle,
       titleMode: GoogleCalendarTitleMode.patientName,
+      includePhone: false,
+      includeMobile: true,
+      includeEmail: false,
+      includeAddress: true,
       syncToken: 'calendar-sync-token',
       lastSuccessfulSync: lastSync,
       lastError: 'none',
@@ -25,6 +29,10 @@ void main() {
     expect(restored.calendarId, 'clinic-calendar@group.calendar.google.com');
     expect(restored.direction, GoogleCalendarSyncDirection.apexoToGoogle);
     expect(restored.titleMode, GoogleCalendarTitleMode.patientName);
+    expect(restored.includePhone, isFalse);
+    expect(restored.includeMobile, isTrue);
+    expect(restored.includeEmail, isFalse);
+    expect(restored.includeAddress, isTrue);
     expect(restored.syncToken, 'calendar-sync-token');
     expect(restored.lastSuccessfulSync, lastSync);
     expect(json.keys, isNot(contains('accessToken')));
@@ -39,6 +47,8 @@ void main() {
       calendarId: 'dedicated-calendar',
       direction: GoogleCalendarSyncDirection.apexoToGoogle,
       titleMode: GoogleCalendarTitleMode.patientName,
+      includePhone: false,
+      includeAddress: true,
       syncToken: 'sync-token',
       lastError: 'error',
     );
@@ -54,5 +64,7 @@ void main() {
     expect(disconnected.calendarId, 'dedicated-calendar');
     expect(disconnected.direction, GoogleCalendarSyncDirection.apexoToGoogle);
     expect(disconnected.titleMode, GoogleCalendarTitleMode.patientName);
+    expect(disconnected.includePhone, isFalse);
+    expect(disconnected.includeAddress, isTrue);
   });
 }

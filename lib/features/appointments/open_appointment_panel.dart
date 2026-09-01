@@ -405,6 +405,8 @@ class _AppointmentDetailsState extends State<_AppointmentDetails> {
                   )
               ]),
         ),
+        if (widget.appointment.patient != null)
+          _AppointmentPatientContactCard(widget.appointment.patient!),
         InfoLabel(
           label: "${txt("doctors")}:",
           child: OperatorsPicker(
@@ -516,6 +518,83 @@ class _AppointmentDetailsState extends State<_AppointmentDetails> {
           ),
         )
       ].map((e) => [e, const SizedBox(height: 10)]).expand((e) => e).toList(),
+    );
+  }
+}
+
+class _AppointmentPatientContactCard extends StatelessWidget {
+  final Patient patient;
+
+  const _AppointmentPatientContactCard(this.patient);
+
+  @override
+  Widget build(BuildContext context) {
+    final details = <({IconData icon, String label, String value})>[
+      if (patient.appointmentPhoneNumbers.isNotEmpty)
+        (
+          icon: FluentIcons.phone,
+          label: txt('phone'),
+          value: patient.appointmentPhoneNumbers.join(' · '),
+        ),
+      if (patient.appointmentMobileNumbers.isNotEmpty)
+        (
+          icon: FluentIcons.cell_phone,
+          label: txt('mobilePhone'),
+          value: patient.appointmentMobileNumbers.join(' · '),
+        ),
+      if (patient.appointmentEmailAddresses.isNotEmpty)
+        (
+          icon: FluentIcons.mail,
+          label: txt('email'),
+          value: patient.appointmentEmailAddresses.join(' · '),
+        ),
+      if (patient.appointmentAddress.isNotEmpty)
+        (
+          icon: FluentIcons.map_pin,
+          label: txt('address'),
+          value: patient.appointmentAddress,
+        ),
+    ];
+    if (details.isEmpty) return const SizedBox.shrink();
+
+    final theme = FluentTheme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: theme.accentColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: theme.accentColor.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var index = 0; index < details.length; index++) ...[
+            if (index > 0) const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    details[index].icon,
+                    size: 14,
+                    color: theme.accentColor,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${details[index].label}: ',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Expanded(child: SelectableText(details[index].value)),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

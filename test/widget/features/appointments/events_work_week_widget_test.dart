@@ -14,6 +14,7 @@ void main() {
           selectedDate: DateTime(2026, 8, 25),
           showPayments: false,
           onSelect: (_) {},
+          onEdit: (_) {},
           onSetTime: onSet,
           onAddNew: (_) {},
         ),

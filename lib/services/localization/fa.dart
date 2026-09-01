@@ -1060,6 +1060,12 @@ class Fa implements En {
         "عنوان عمومی از هویت بیمار محافظت می‌کند. نمایش نام بیمار نیازمند فعال‌سازی صریح است.",
     "googleCalendarGenericTitle": "عمومی: نوبت دندانپزشکی",
     "googleCalendarPatientTitle": "نمایش نام بیمار",
+    "googleCalendarIncludePhone": "افزودن تلفن به یادداشت Google",
+    "googleCalendarIncludeMobile": "افزودن موبایل به یادداشت Google",
+    "googleCalendarIncludeEmail": "افزودن ایمیل به یادداشت Google",
+    "googleCalendarIncludeAddress": "افزودن نشانی به یادداشت Google",
+    "googleCalendarContactPrivacy_desc":
+        "مشخص کنید کدام اطلاعات تماس به Google Calendar کپی شود. یادداشت‌های بالینی، درمان‌ها و قیمت‌ها هرگز صادر نمی‌شوند.",
     "googleCalendarConnect": "اتصال حساب Google",
     "googleCalendarReconnect": "اتصال دوباره حساب Google",
     "googleCalendarDisconnect": "قطع اتصال",

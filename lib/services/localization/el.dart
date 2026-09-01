@@ -1084,6 +1084,12 @@ class El implements En {
         "Ο γενικός τίτλος προστατεύει την ταυτότητα του ασθενούς. Η χρήση ονόματος απαιτεί ρητή επιλογή.",
     "googleCalendarGenericTitle": "Γενικός τίτλος: Οδοντιατρικό ραντεβού",
     "googleCalendarPatientTitle": "Να εμφανίζεται το όνομα ασθενούς",
+    "googleCalendarIncludePhone": "Τηλέφωνο στις σημειώσεις Google",
+    "googleCalendarIncludeMobile": "Κινητό στις σημειώσεις Google",
+    "googleCalendarIncludeEmail": "Email στις σημειώσεις Google",
+    "googleCalendarIncludeAddress": "Διεύθυνση στις σημειώσεις Google",
+    "googleCalendarContactPrivacy_desc":
+        "Επιλέξτε ποια στοιχεία επικοινωνίας αντιγράφονται στο Google Calendar. Κλινικές σημειώσεις, θεραπείες και τιμές δεν εξάγονται ποτέ.",
     "googleCalendarConnect": "Σύνδεση λογαριασμού Google",
     "googleCalendarReconnect": "Επανασύνδεση λογαριασμού Google",
     "googleCalendarDisconnect": "Αποσύνδεση",

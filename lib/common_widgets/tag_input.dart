@@ -4,7 +4,13 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 
 class TagInputItem extends AutoSuggestBoxItem<String> {
-  TagInputItem({required super.value, required super.label});
+  final String searchText;
+
+  TagInputItem({
+    required super.value,
+    required super.label,
+    String? searchText,
+  }) : searchText = searchText ?? label;
 }
 
 class TagInputWidget extends StatefulWidget {
@@ -51,8 +57,19 @@ class _TagInputWidgetState extends State<TagInputWidget> {
   }
 
   void _onSuggestionSelected(AutoSuggestBoxItem<String> suggestion) {
+    final selected = _suggestions.firstWhere(
+      (item) => item.value == suggestion.value,
+      orElse: () => TagInputItem(
+        value: suggestion.value,
+        label: suggestion.label,
+      ),
+    );
     setState(() {
-      _tags.add(TagInputItem(value: suggestion.value, label: suggestion.label));
+      _tags.add(TagInputItem(
+        value: selected.value,
+        label: selected.label,
+        searchText: selected.searchText,
+      ));
       _controller.clear();
     });
 
@@ -334,7 +351,7 @@ class _TagInputWidgetState extends State<TagInputWidget> {
             .map(
               (s) => AutoSuggestBoxItem(
                 value: s.value,
-                label: s.label,
+                label: s.searchText,
               ),
             )
             .toList(),

@@ -8,6 +8,7 @@ import 'google_calendar_models.dart';
 
 class GoogleCalendarMapper {
   static const genericSummary = 'Dental appointment';
+  static const managedDescription = 'Managed by Apexo.';
 
   String eventIdFor({
     required String clinicId,
@@ -25,11 +26,13 @@ class GoogleCalendarMapper {
   String fingerprint(
     Appointment appointment, {
     required String summary,
+    String description = managedDescription,
   }) {
     final canonical = jsonEncode({
       'start': appointment.date.toUtc().toIso8601String(),
       'end': appointment.endDate.toUtc().toIso8601String(),
       'summary': summary,
+      'description': description,
       'archived': appointment.archived == true,
     });
     return sha256.convert(utf8.encode(canonical)).toString();
@@ -39,6 +42,7 @@ class GoogleCalendarMapper {
     required Appointment appointment,
     required GoogleCalendarSyncPreferences preferences,
     required String patientName,
+    String description = managedDescription,
   }) {
     final summary = preferences.titleMode == GoogleCalendarTitleMode.patientName
         ? _safePatientName(patientName)
@@ -54,7 +58,7 @@ class GoogleCalendarMapper {
             ),
       status: 'confirmed',
       summary: summary,
-      description: 'Managed by Apexo.',
+      description: description,
       start: appointment.date,
       end: appointment.endDate,
       privateProperties: {

@@ -1052,6 +1052,12 @@ class Ar implements En {
         "يحمي العنوان العام هوية المريض. تتطلب أسماء المرضى موافقة صريحة.",
     "googleCalendarGenericTitle": "عام: موعد أسنان",
     "googleCalendarPatientTitle": "تضمين اسم المريض",
+    "googleCalendarIncludePhone": "تضمين الهاتف في ملاحظات Google",
+    "googleCalendarIncludeMobile": "تضمين المحمول في ملاحظات Google",
+    "googleCalendarIncludeEmail": "تضمين البريد الإلكتروني في ملاحظات Google",
+    "googleCalendarIncludeAddress": "تضمين العنوان في ملاحظات Google",
+    "googleCalendarContactPrivacy_desc":
+        "اختر بيانات الاتصال التي تُنسخ إلى Google Calendar. لا يتم تصدير الملاحظات السريرية أو العلاجات أو الأسعار.",
     "googleCalendarConnect": "ربط حساب Google",
     "googleCalendarReconnect": "إعادة ربط حساب Google",
     "googleCalendarDisconnect": "قطع الاتصال",

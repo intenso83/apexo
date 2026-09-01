@@ -3,6 +3,7 @@ import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/appointments/open_appointment_panel.dart';
+import 'package:apexo/features/patients/open_patient_panel.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/utils/constants.dart';
@@ -53,7 +54,15 @@ class CalendarScreen extends StatelessWidget {
             onSetTime: (item) {
               appointments.set(item);
             },
-            onSelect: openAppointment,
+            onSelect: (item) {
+              final patient = item.patient;
+              if (patient == null) {
+                openAppointment(item);
+              } else {
+                openPatient(patient);
+              }
+            },
+            onEdit: openAppointment,
             onAddNew: (selectedDate) {
               openAppointment(Appointment.fromJson({
                 "date": selectedDate.millisecondsSinceEpoch / 60000,

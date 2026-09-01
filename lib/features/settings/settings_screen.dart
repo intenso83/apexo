@@ -326,6 +326,86 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           SettingsItem(
+            key: ValueKey("gcal_contact_phone_$googleCalendarAccountId"),
+            title: txt("googleCalendarIncludePhone"),
+            identifier: "gcal_contact_phone_$googleCalendarAccountId",
+            description: txt("googleCalendarContactPrivacy_desc"),
+            icon: FluentIcons.phone,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(value: "1", child: Txt(txt("on"))),
+              ComboBoxItem(value: "0", child: Txt(txt("off"))),
+            ],
+            initValue: googleCalendarUserSettings().includePhone ? "1" : "0",
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                includePhone: newVal == "1",
+              ),
+            ),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_contact_mobile_$googleCalendarAccountId"),
+            title: txt("googleCalendarIncludeMobile"),
+            identifier: "gcal_contact_mobile_$googleCalendarAccountId",
+            description: txt("googleCalendarContactPrivacy_desc"),
+            icon: FluentIcons.cell_phone,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(value: "1", child: Txt(txt("on"))),
+              ComboBoxItem(value: "0", child: Txt(txt("off"))),
+            ],
+            initValue: googleCalendarUserSettings().includeMobile ? "1" : "0",
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                includeMobile: newVal == "1",
+              ),
+            ),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_contact_email_$googleCalendarAccountId"),
+            title: txt("googleCalendarIncludeEmail"),
+            identifier: "gcal_contact_email_$googleCalendarAccountId",
+            description: txt("googleCalendarContactPrivacy_desc"),
+            icon: FluentIcons.mail,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(value: "1", child: Txt(txt("on"))),
+              ComboBoxItem(value: "0", child: Txt(txt("off"))),
+            ],
+            initValue: googleCalendarUserSettings().includeEmail ? "1" : "0",
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                includeEmail: newVal == "1",
+              ),
+            ),
+          ),
+          SettingsItem(
+            key: ValueKey("gcal_contact_address_$googleCalendarAccountId"),
+            title: txt("googleCalendarIncludeAddress"),
+            identifier: "gcal_contact_address_$googleCalendarAccountId",
+            description: txt("googleCalendarContactPrivacy_desc"),
+            icon: FluentIcons.map_pin,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(value: "1", child: Txt(txt("on"))),
+              ComboBoxItem(value: "0", child: Txt(txt("off"))),
+            ],
+            initValue: googleCalendarUserSettings().includeAddress ? "1" : "0",
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                includeAddress: newVal == "1",
+              ),
+            ),
+          ),
+          SettingsItem(
             title: txt("calendarSystem"),
             identifier: "calendarSystem",
             description: txt("calendarSystem_desc"),

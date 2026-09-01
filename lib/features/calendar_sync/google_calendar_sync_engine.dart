@@ -7,6 +7,10 @@ import 'google_calendar_models.dart';
 
 typedef SaveSyncedAppointment = Future<void> Function(Appointment appointment);
 typedef AppointmentPatientName = String Function(Appointment appointment);
+typedef AppointmentGoogleDescription = String Function(
+  Appointment appointment,
+  GoogleCalendarSyncPreferences preferences,
+);
 
 /// Reconciles Apexo appointments with only the Google events carrying Apexo's
 /// private ownership markers. It never imports arbitrary personal events.
@@ -28,6 +32,7 @@ class GoogleCalendarSyncEngine {
     required GoogleCalendarSyncState state,
     required SaveSyncedAppointment saveAppointment,
     required AppointmentPatientName patientName,
+    AppointmentGoogleDescription? description,
   }) async {
     if (!preferences.enabled) return const GoogleCalendarSyncResult();
     var fullResync = state.syncToken == null || state.syncToken!.isEmpty;
@@ -82,14 +87,18 @@ class GoogleCalendarSyncEngine {
     for (final appointment in appointments) {
       final link = appointment.googleCalendarLinkFor(preferences.accountId);
       final remote = remoteByAppointmentId[appointment.id];
+      final desiredDescription = description?.call(appointment, preferences) ??
+          GoogleCalendarMapper.managedDescription;
       final desired = mapper.fromAppointment(
         appointment: appointment,
         preferences: preferences,
         patientName: patientName(appointment),
+        description: desiredDescription,
       );
       final localFingerprint = mapper.fingerprint(
         appointment,
         summary: desired.summary,
+        description: desired.description,
       );
       final hasSyncMetadata = link.isLinked;
       final localChanged = hasSyncMetadata &&

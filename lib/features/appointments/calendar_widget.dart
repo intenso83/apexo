@@ -43,6 +43,7 @@ class WeekAgendaCalendar<Item extends Appointment> extends StatefulWidget {
   final void Function(DateTime date) onAddNew;
   final void Function(Item item) onSetTime;
   final void Function(Item item) onSelect;
+  final void Function(Item item) onEdit;
 
   const WeekAgendaCalendar({
     super.key,
@@ -52,6 +53,7 @@ class WeekAgendaCalendar<Item extends Appointment> extends StatefulWidget {
     required this.onAddNew,
     required this.onSetTime,
     required this.onSelect,
+    required this.onEdit,
     this.actions,
   });
 
@@ -138,6 +140,7 @@ class WeekAgendaCalendarState<Item extends Appointment>
                       items: itemsForSelectedDay,
                       showPayments: showPayments,
                       onSelect: widget.onSelect,
+                      onEdit: widget.onEdit,
                       onSetTime: widget.onSetTime,
                     ),
                   EventsViewMode.timeline => CalendarTimelineView(
@@ -146,6 +149,8 @@ class WeekAgendaCalendarState<Item extends Appointment>
                       selectedDate: selectedDate,
                       onSelect: (appointment) =>
                           widget.onSelect(appointment as Item),
+                      onEdit: (appointment) =>
+                          widget.onEdit(appointment as Item),
                       onSetTime: (appointment) =>
                           widget.onSetTime(appointment as Item),
                       onAddNew: widget.onAddNew,
@@ -156,6 +161,8 @@ class WeekAgendaCalendarState<Item extends Appointment>
                       selectedDate: selectedDate,
                       onSelect: (appointment) =>
                           widget.onSelect(appointment as Item),
+                      onEdit: (appointment) =>
+                          widget.onEdit(appointment as Item),
                       onSetTime: (appointment) =>
                           widget.onSetTime(appointment as Item),
                       onAddNew: widget.onAddNew,

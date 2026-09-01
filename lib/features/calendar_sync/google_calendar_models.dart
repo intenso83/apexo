@@ -27,6 +27,10 @@ class GoogleCalendarSyncPreferences {
   final String accountId;
   final GoogleCalendarSyncDirection direction;
   final GoogleCalendarTitleMode titleMode;
+  final bool includePhone;
+  final bool includeMobile;
+  final bool includeEmail;
+  final bool includeAddress;
   final int pastDays;
   final int futureDays;
 
@@ -37,6 +41,10 @@ class GoogleCalendarSyncPreferences {
     required this.accountId,
     this.direction = GoogleCalendarSyncDirection.twoWay,
     this.titleMode = GoogleCalendarTitleMode.generic,
+    this.includePhone = true,
+    this.includeMobile = true,
+    this.includeEmail = true,
+    this.includeAddress = false,
     this.pastDays = 90,
     this.futureDays = 365,
   });
@@ -54,6 +62,10 @@ class GoogleCalendarUserSettings {
   final String calendarId;
   final GoogleCalendarSyncDirection direction;
   final GoogleCalendarTitleMode titleMode;
+  final bool includePhone;
+  final bool includeMobile;
+  final bool includeEmail;
+  final bool includeAddress;
   final String syncToken;
   final DateTime? lastSuccessfulSync;
   final String lastError;
@@ -65,6 +77,10 @@ class GoogleCalendarUserSettings {
     this.calendarId = 'primary',
     this.direction = GoogleCalendarSyncDirection.twoWay,
     this.titleMode = GoogleCalendarTitleMode.generic,
+    this.includePhone = true,
+    this.includeMobile = true,
+    this.includeEmail = true,
+    this.includeAddress = false,
     this.syncToken = '',
     this.lastSuccessfulSync,
     this.lastError = '',
@@ -85,6 +101,10 @@ class GoogleCalendarUserSettings {
         titleMode: GoogleCalendarTitleMode.parse(
           json['titleMode']?.toString() ?? '',
         ),
+        includePhone: json['includePhone'] != false,
+        includeMobile: json['includeMobile'] != false,
+        includeEmail: json['includeEmail'] != false,
+        includeAddress: json['includeAddress'] == true,
         syncToken: json['syncToken']?.toString() ?? '',
         lastSuccessfulSync: DateTime.tryParse(
           json['lastSuccessfulSync']?.toString() ?? '',
@@ -101,6 +121,10 @@ class GoogleCalendarUserSettings {
         'calendarId': calendarId,
         'direction': direction.name,
         'titleMode': titleMode.name,
+        'includePhone': includePhone,
+        'includeMobile': includeMobile,
+        'includeEmail': includeEmail,
+        'includeAddress': includeAddress,
         if (syncToken.isNotEmpty) 'syncToken': syncToken,
         if (lastSuccessfulSync != null)
           'lastSuccessfulSync': lastSuccessfulSync!.toUtc().toIso8601String(),
@@ -114,6 +138,10 @@ class GoogleCalendarUserSettings {
     String? calendarId,
     GoogleCalendarSyncDirection? direction,
     GoogleCalendarTitleMode? titleMode,
+    bool? includePhone,
+    bool? includeMobile,
+    bool? includeEmail,
+    bool? includeAddress,
     String? syncToken,
     DateTime? lastSuccessfulSync,
     String? lastError,
@@ -125,6 +153,10 @@ class GoogleCalendarUserSettings {
         calendarId: calendarId ?? this.calendarId,
         direction: direction ?? this.direction,
         titleMode: titleMode ?? this.titleMode,
+        includePhone: includePhone ?? this.includePhone,
+        includeMobile: includeMobile ?? this.includeMobile,
+        includeEmail: includeEmail ?? this.includeEmail,
+        includeAddress: includeAddress ?? this.includeAddress,
         syncToken: syncToken ?? this.syncToken,
         lastSuccessfulSync: lastSuccessfulSync ?? this.lastSuccessfulSync,
         lastError: lastError ?? this.lastError,
@@ -134,6 +166,10 @@ class GoogleCalendarUserSettings {
         calendarId: calendarId,
         direction: direction,
         titleMode: titleMode,
+        includePhone: includePhone,
+        includeMobile: includeMobile,
+        includeEmail: includeEmail,
+        includeAddress: includeAddress,
       );
 }
 
