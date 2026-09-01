@@ -37,6 +37,7 @@ enum EventsViewMode {
 
 class WeekAgendaCalendar<Item extends Appointment> extends StatefulWidget {
   final List<Item> items;
+  final List<Widget>? commandButtons;
   final List<Widget>? actions;
   final StartingDayOfWeek startDay;
   final int initiallySelectedDay;
@@ -54,6 +55,7 @@ class WeekAgendaCalendar<Item extends Appointment> extends StatefulWidget {
     required this.onSetTime,
     required this.onSelect,
     required this.onEdit,
+    this.commandButtons,
     this.actions,
   });
 
@@ -183,6 +185,7 @@ class WeekAgendaCalendarState<Item extends Appointment>
         onPressed: () => widget.onAddNew(selectedDate),
         icon: ButtonContent(FluentIcons.add, txt("newAppointment")),
       ),
+      otherButtons: widget.commandButtons ?? [],
       farItems: widget.actions ?? [],
     );
   }

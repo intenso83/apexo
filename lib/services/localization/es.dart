@@ -1105,6 +1105,8 @@ class Es implements En {
         "Elija la cuenta de Google que pertenece a este usuario de Apexo.",
     "googleCalendarAssignedOnly":
         "Solo se sincronizan las citas asignadas a este usuario de Apexo ({count} visibles actualmente).",
+    "googleCalendarUnassignedWarning":
+        "{count} cita(s) no tienen un dentista asignado y no pueden enviarse al Google Calendar de este usuario. Abra la cita y seleccione primero un dentista.",
     "googleCalendarLastSync": "Última sincronización correcta",
     "googleCalendarSetupRequired": "Se requiere configurar Google Cloud",
     "googleCalendarSetupRequired_desc":

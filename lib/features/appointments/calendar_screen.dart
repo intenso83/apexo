@@ -1,5 +1,6 @@
 import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
+import 'package:apexo/features/appointments/calendar_google_sync_button.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/appointments/open_appointment_panel.dart';
@@ -25,6 +26,7 @@ class CalendarScreen extends StatelessWidget {
         builder: (context, snapshot) {
           return WeekAgendaCalendar(
             items: appointments.filtered.values.toList(),
+            commandButtons: const [CalendarGoogleSyncButton()],
             actions: [
               ComboBox<String>(
                 style: const TextStyle(overflow: TextOverflow.ellipsis),

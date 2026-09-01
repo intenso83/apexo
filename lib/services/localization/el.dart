@@ -1102,6 +1102,8 @@ class El implements En {
         "Επιλέξτε τον λογαριασμό Google που ανήκει σε αυτόν τον χρήστη Apexo.",
     "googleCalendarAssignedOnly":
         "Συγχρονίζονται μόνο τα ραντεβού που έχουν ανατεθεί σε αυτόν τον χρήστη Apexo ({count} ορατά τώρα).",
+    "googleCalendarUnassignedWarning":
+        "{count} ραντεβού δεν έχει ανατεθεί σε γιατρό και δεν μπορεί να σταλεί στο Google Calendar αυτού του χρήστη. Ανοίξτε το ραντεβού και επιλέξτε πρώτα γιατρό.",
     "googleCalendarLastSync": "Τελευταίος επιτυχής συγχρονισμός",
     "googleCalendarSetupRequired": "Απαιτείται ρύθμιση Google Cloud",
     "googleCalendarSetupRequired_desc":

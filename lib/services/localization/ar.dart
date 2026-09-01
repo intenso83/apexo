@@ -1068,6 +1068,8 @@ class Ar implements En {
     "googleCalendarConnectReady": "اختر حساب Google الخاص بمستخدم Apexo هذا.",
     "googleCalendarAssignedOnly":
         "تتم مزامنة المواعيد المسندة إلى مستخدم Apexo هذا فقط ({count} ظاهرة حالياً).",
+    "googleCalendarUnassignedWarning":
+        "هناك {count} موعد بلا طبيب معيّن ولا يمكن إرساله إلى تقويم Google لهذا المستخدم. افتح الموعد واختر طبيبًا أولًا.",
     "googleCalendarLastSync": "آخر مزامنة ناجحة",
     "googleCalendarSetupRequired": "يلزم إعداد Google Cloud",
     "googleCalendarSetupRequired_desc":

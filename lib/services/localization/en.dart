@@ -1082,6 +1082,8 @@ class En {
         "Choose the Google account that belongs to this Apexo user.",
     "googleCalendarAssignedOnly":
         "Only appointments assigned to this Apexo user are synchronized ({count} currently visible).",
+    "googleCalendarUnassignedWarning":
+        "{count} appointment(s) have no doctor assigned and cannot be sent to this user's Google Calendar. Open the appointment and select a doctor first.",
     "googleCalendarLastSync": "Last successful sync",
     "googleCalendarSetupRequired": "Google Cloud setup required",
     "googleCalendarSetupRequired_desc":

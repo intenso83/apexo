@@ -1077,6 +1077,8 @@ class Fa implements En {
         "حساب Google متعلق به این کاربر Apexo را انتخاب کنید.",
     "googleCalendarAssignedOnly":
         "فقط نوبت‌های اختصاص‌یافته به این کاربر Apexo همگام می‌شوند ({count} مورد اکنون قابل مشاهده است).",
+    "googleCalendarUnassignedWarning":
+        "{count} نوبت پزشک تعیین‌شده ندارد و نمی‌تواند به Google Calendar این کاربر ارسال شود. ابتدا نوبت را باز کرده و پزشک را انتخاب کنید.",
     "googleCalendarLastSync": "آخرین همگام‌سازی موفق",
     "googleCalendarSetupRequired": "تنظیم Google Cloud لازم است",
     "googleCalendarSetupRequired_desc":
