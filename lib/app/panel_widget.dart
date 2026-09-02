@@ -275,9 +275,10 @@ class _PanelScreenState extends State<PanelScreen> {
     return StreamBuilder<bool>(
         stream: widget.panel.hasUnsavedChanges.stream,
         builder: (context, _) {
+          final canSave = isNew || widget.panel.hasUnsavedChanges();
           return IconButton(
             onPressed: () {
-              if (widget.panel.hasUnsavedChanges()) {
+              if (canSave) {
                 if (widget.panel.onSave != null) {
                   widget.panel.onSave!();
                 } else {
@@ -298,9 +299,7 @@ class _PanelScreenState extends State<PanelScreen> {
             style: greyButtonStyle.copyWith(
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 13)),
               backgroundColor: WidgetStatePropertyAll(
-                  widget.panel.hasUnsavedChanges()
-                      ? Colors.blue
-                      : Colors.grey.withValues(alpha: 0.25)),
+                  canSave ? Colors.blue : Colors.grey.withValues(alpha: 0.25)),
             ),
             icon: ButtonContent(WindowsIcons.save, txt("save")),
           );

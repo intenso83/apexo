@@ -497,6 +497,9 @@ class Es implements En {
     "time": "Hora",
     "preOperativeNotes": "Notas preoperatorias",
     "selectDoctors": "Seleccionar doctores",
+    "appointmentNoDoctorsConfigured": "Cita de la clínica — sin asignar",
+    "appointmentNoDoctorsConfigured_desc":
+        "No hay cuentas de doctores configuradas. Puede guardar esta cita sin seleccionar un doctor.",
     "selectPatient": "Seleccionar paciente",
     "operativeDetails": "Detalles operativos",
     "postOperativeNotes": "Notas postoperatorias",
@@ -1103,6 +1106,14 @@ class Es implements En {
         "Cuenta recordada. Vuelva a conectar después de reiniciar el navegador antes de sincronizar.",
     "googleCalendarConnectReady":
         "Elija la cuenta de Google que pertenece a este usuario de Apexo.",
+    "googleCalendarAppointmentScope": "Citas que se sincronizan",
+    "googleCalendarAppointmentScope_desc":
+        "Elija si esta cuenta de Google recibe todo el calendario de la clínica o solo las citas asignadas a este usuario de Apexo.",
+    "googleCalendarScopeAutomatic": "Automático (todas para administradores)",
+    "googleCalendarScopeAssigned": "Solo citas asignadas a mí",
+    "googleCalendarScopeAll": "Todas las citas de la clínica",
+    "googleCalendarAllAppointments":
+        "Se sincronizan todas las citas de la clínica ({count} visibles actualmente).",
     "googleCalendarAssignedOnly":
         "Solo se sincronizan las citas asignadas a este usuario de Apexo ({count} visibles actualmente).",
     "googleCalendarUnassignedWarning":

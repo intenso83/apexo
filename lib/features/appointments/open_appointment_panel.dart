@@ -9,6 +9,7 @@ import 'package:apexo/common_widgets/money_display.dart';
 import 'package:apexo/common_widgets/teeth_selector/teeth_selector.dart';
 import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/core/observable.dart';
+import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/features/labwork/open_labwork_panel.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/services/ai_services/post_op_notes.dart';
@@ -407,14 +408,21 @@ class _AppointmentDetailsState extends State<_AppointmentDetails> {
         ),
         if (widget.appointment.patient != null)
           _AppointmentPatientContactCard(widget.appointment.patient!),
-        InfoLabel(
-          label: "${txt("doctors")}:",
-          child: OperatorsPicker(
-              value: widget.appointment.operatorsIDs,
-              onChanged: (s) {
-                widget.appointment.operatorsIDs = s;
-              }),
-        ),
+        if (accounts.operators.isEmpty)
+          InfoBar(
+            severity: InfoBarSeverity.info,
+            title: Txt(txt("appointmentNoDoctorsConfigured")),
+            content: Txt(txt("appointmentNoDoctorsConfigured_desc")),
+          )
+        else
+          InfoLabel(
+            label: "${txt("doctors")}:",
+            child: OperatorsPicker(
+                value: widget.appointment.operatorsIDs,
+                onChanged: (s) {
+                  widget.appointment.operatorsIDs = s;
+                }),
+          ),
         InfoLabel(
           label: "${txt("date")}:",
           child: DateTimePicker(

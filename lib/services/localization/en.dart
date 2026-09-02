@@ -483,6 +483,9 @@ class En {
     "time": "Time",
     "preOperativeNotes": "Pre-operative notes",
     "selectDoctors": "Select Doctors",
+    "appointmentNoDoctorsConfigured": "Clinic appointment — unassigned",
+    "appointmentNoDoctorsConfigured_desc":
+        "No doctor accounts are configured. You can save this appointment without selecting a doctor.",
     "selectPatient": "Select Patient",
     "operativeDetails": "Operative Details",
     "postOperativeNotes": "Post-operative notes",
@@ -1080,6 +1083,14 @@ class En {
         "Account remembered. Reconnect after a browser restart before syncing.",
     "googleCalendarConnectReady":
         "Choose the Google account that belongs to this Apexo user.",
+    "googleCalendarAppointmentScope": "Appointments synchronized",
+    "googleCalendarAppointmentScope_desc":
+        "Choose whether this Google account receives the whole practice calendar or only appointments assigned to this Apexo user.",
+    "googleCalendarScopeAutomatic": "Automatic (all for administrators)",
+    "googleCalendarScopeAssigned": "Only appointments assigned to me",
+    "googleCalendarScopeAll": "All practice appointments",
+    "googleCalendarAllAppointments":
+        "All practice appointments are synchronized ({count} currently visible).",
     "googleCalendarAssignedOnly":
         "Only appointments assigned to this Apexo user are synchronized ({count} currently visible).",
     "googleCalendarUnassignedWarning":

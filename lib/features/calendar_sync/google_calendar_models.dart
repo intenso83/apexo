@@ -9,6 +9,18 @@ enum GoogleCalendarSyncDirection {
       );
 }
 
+enum GoogleCalendarAppointmentScope {
+  automatic,
+  assignedToMe,
+  allAppointments;
+
+  static GoogleCalendarAppointmentScope parse(String value) =>
+      GoogleCalendarAppointmentScope.values.firstWhere(
+        (item) => item.name == value,
+        orElse: () => GoogleCalendarAppointmentScope.automatic,
+      );
+}
+
 enum GoogleCalendarTitleMode {
   generic,
   patientName;
@@ -61,6 +73,7 @@ class GoogleCalendarUserSettings {
   final String credentialReference;
   final String calendarId;
   final GoogleCalendarSyncDirection direction;
+  final GoogleCalendarAppointmentScope appointmentScope;
   final GoogleCalendarTitleMode titleMode;
   final bool includePhone;
   final bool includeMobile;
@@ -76,6 +89,7 @@ class GoogleCalendarUserSettings {
     this.credentialReference = '',
     this.calendarId = 'primary',
     this.direction = GoogleCalendarSyncDirection.twoWay,
+    this.appointmentScope = GoogleCalendarAppointmentScope.automatic,
     this.titleMode = GoogleCalendarTitleMode.generic,
     this.includePhone = true,
     this.includeMobile = true,
@@ -97,6 +111,9 @@ class GoogleCalendarUserSettings {
         calendarId: json['calendarId']?.toString() ?? 'primary',
         direction: GoogleCalendarSyncDirection.parse(
           json['direction']?.toString() ?? '',
+        ),
+        appointmentScope: GoogleCalendarAppointmentScope.parse(
+          json['appointmentScope']?.toString() ?? '',
         ),
         titleMode: GoogleCalendarTitleMode.parse(
           json['titleMode']?.toString() ?? '',
@@ -120,6 +137,7 @@ class GoogleCalendarUserSettings {
           'credentialReference': credentialReference,
         'calendarId': calendarId,
         'direction': direction.name,
+        'appointmentScope': appointmentScope.name,
         'titleMode': titleMode.name,
         'includePhone': includePhone,
         'includeMobile': includeMobile,
@@ -137,6 +155,7 @@ class GoogleCalendarUserSettings {
     String? credentialReference,
     String? calendarId,
     GoogleCalendarSyncDirection? direction,
+    GoogleCalendarAppointmentScope? appointmentScope,
     GoogleCalendarTitleMode? titleMode,
     bool? includePhone,
     bool? includeMobile,
@@ -152,6 +171,7 @@ class GoogleCalendarUserSettings {
         credentialReference: credentialReference ?? this.credentialReference,
         calendarId: calendarId ?? this.calendarId,
         direction: direction ?? this.direction,
+        appointmentScope: appointmentScope ?? this.appointmentScope,
         titleMode: titleMode ?? this.titleMode,
         includePhone: includePhone ?? this.includePhone,
         includeMobile: includeMobile ?? this.includeMobile,
@@ -165,6 +185,7 @@ class GoogleCalendarUserSettings {
   GoogleCalendarUserSettings disconnected() => GoogleCalendarUserSettings(
         calendarId: calendarId,
         direction: direction,
+        appointmentScope: appointmentScope,
         titleMode: titleMode,
         includePhone: includePhone,
         includeMobile: includeMobile,

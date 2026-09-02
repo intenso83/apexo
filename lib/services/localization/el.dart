@@ -486,6 +486,9 @@ class El implements En {
     "time": "Ώρα",
     "preOperativeNotes": "Προεγχειρητικές σημειώσεις",
     "selectDoctors": "Επιλογή ιατρών",
+    "appointmentNoDoctorsConfigured": "Ραντεβού ιατρείου — χωρίς ανάθεση",
+    "appointmentNoDoctorsConfigured_desc":
+        "Δεν έχουν δημιουργηθεί λογαριασμοί ιατρών. Μπορείτε να αποθηκεύσετε το ραντεβού χωρίς επιλογή ιατρού.",
     "selectPatient": "Επιλογή ασθενή",
     "operativeDetails": "Λεπτομέρειες επέμβασης",
     "postOperativeNotes": "Μετεγχειρητικές σημειώσεις",
@@ -1100,6 +1103,14 @@ class El implements En {
         "Ο λογαριασμός έχει αποθηκευτεί. Μετά από επανεκκίνηση του browser απαιτείται επανασύνδεση πριν από τον συγχρονισμό.",
     "googleCalendarConnectReady":
         "Επιλέξτε τον λογαριασμό Google που ανήκει σε αυτόν τον χρήστη Apexo.",
+    "googleCalendarAppointmentScope": "Ραντεβού προς συγχρονισμό",
+    "googleCalendarAppointmentScope_desc":
+        "Επιλέξτε αν αυτός ο λογαριασμός Google λαμβάνει όλο το ημερολόγιο του ιατρείου ή μόνο τα ραντεβού που έχουν ανατεθεί σε αυτόν τον χρήστη Apexo.",
+    "googleCalendarScopeAutomatic": "Αυτόματα (όλα για διαχειριστές)",
+    "googleCalendarScopeAssigned": "Μόνο τα ραντεβού που μου έχουν ανατεθεί",
+    "googleCalendarScopeAll": "Όλα τα ραντεβού του ιατρείου",
+    "googleCalendarAllAppointments":
+        "Συγχρονίζονται όλα τα ραντεβού του ιατρείου ({count} ορατά τώρα).",
     "googleCalendarAssignedOnly":
         "Συγχρονίζονται μόνο τα ραντεβού που έχουν ανατεθεί σε αυτόν τον χρήστη Apexo ({count} ορατά τώρα).",
     "googleCalendarUnassignedWarning":

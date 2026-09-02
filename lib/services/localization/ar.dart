@@ -475,6 +475,9 @@ class Ar implements En {
     "time": "الوقت",
     "preOperativeNotes": "ملاحظات ما قبل العملية",
     "selectDoctors": "اختيار الأطباء",
+    "appointmentNoDoctorsConfigured": "موعد العيادة — غير مسند",
+    "appointmentNoDoctorsConfigured_desc":
+        "لم يتم إعداد حسابات أطباء. يمكنك حفظ هذا الموعد دون اختيار طبيب.",
     "selectPatient": "اختيار المريض",
     "operativeDetails": "تفاصيل العملية",
     "postOperativeNotes": "ملاحظات ما بعد العملية",
@@ -1066,6 +1069,14 @@ class Ar implements En {
     "googleCalendarReconnectRequired":
         "تم تذكر الحساب. أعد الاتصال بعد إعادة تشغيل المتصفح قبل المزامنة.",
     "googleCalendarConnectReady": "اختر حساب Google الخاص بمستخدم Apexo هذا.",
+    "googleCalendarAppointmentScope": "المواعيد التي تتم مزامنتها",
+    "googleCalendarAppointmentScope_desc":
+        "اختر ما إذا كان حساب Google هذا يستقبل تقويم العيادة بالكامل أو المواعيد المسندة إلى مستخدم Apexo هذا فقط.",
+    "googleCalendarScopeAutomatic": "تلقائي (الكل للمسؤولين)",
+    "googleCalendarScopeAssigned": "المواعيد المسندة إليّ فقط",
+    "googleCalendarScopeAll": "جميع مواعيد العيادة",
+    "googleCalendarAllAppointments":
+        "تتم مزامنة جميع مواعيد العيادة ({count} ظاهرة حالياً).",
     "googleCalendarAssignedOnly":
         "تتم مزامنة المواعيد المسندة إلى مستخدم Apexo هذا فقط ({count} ظاهرة حالياً).",
     "googleCalendarUnassignedWarning":

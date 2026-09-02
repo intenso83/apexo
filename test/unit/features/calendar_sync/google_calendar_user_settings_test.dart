@@ -10,6 +10,7 @@ void main() {
       credentialReference: 'secure:apexo-user-1',
       calendarId: 'clinic-calendar@group.calendar.google.com',
       direction: GoogleCalendarSyncDirection.apexoToGoogle,
+      appointmentScope: GoogleCalendarAppointmentScope.allAppointments,
       titleMode: GoogleCalendarTitleMode.patientName,
       includePhone: false,
       includeMobile: true,
@@ -28,6 +29,10 @@ void main() {
     expect(restored.credentialReference, 'secure:apexo-user-1');
     expect(restored.calendarId, 'clinic-calendar@group.calendar.google.com');
     expect(restored.direction, GoogleCalendarSyncDirection.apexoToGoogle);
+    expect(
+      restored.appointmentScope,
+      GoogleCalendarAppointmentScope.allAppointments,
+    );
     expect(restored.titleMode, GoogleCalendarTitleMode.patientName);
     expect(restored.includePhone, isFalse);
     expect(restored.includeMobile, isTrue);
@@ -46,6 +51,7 @@ void main() {
       credentialReference: 'secure:apexo-user-1',
       calendarId: 'dedicated-calendar',
       direction: GoogleCalendarSyncDirection.apexoToGoogle,
+      appointmentScope: GoogleCalendarAppointmentScope.assignedToMe,
       titleMode: GoogleCalendarTitleMode.patientName,
       includePhone: false,
       includeAddress: true,
@@ -63,8 +69,21 @@ void main() {
     expect(disconnected.lastError, isEmpty);
     expect(disconnected.calendarId, 'dedicated-calendar');
     expect(disconnected.direction, GoogleCalendarSyncDirection.apexoToGoogle);
+    expect(
+      disconnected.appointmentScope,
+      GoogleCalendarAppointmentScope.assignedToMe,
+    );
     expect(disconnected.titleMode, GoogleCalendarTitleMode.patientName);
     expect(disconnected.includePhone, isFalse);
     expect(disconnected.includeAddress, isTrue);
+  });
+
+  test('legacy settings default to automatic appointment scope', () {
+    final restored = GoogleCalendarUserSettings.fromJson(const {});
+
+    expect(
+      restored.appointmentScope,
+      GoogleCalendarAppointmentScope.automatic,
+    );
   });
 }

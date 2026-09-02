@@ -25,12 +25,14 @@ class CalendarGoogleSyncButton extends StatelessWidget {
         final busy = runtime.accountId == accountId && runtime.isBusy;
         final configured = globalSettings.googleCalendarSyncEnabled &&
             globalSettings.googleCalendarClientId.trim().isNotEmpty;
-        final assignedCount = googleCalendarConnectionController
-            .assignedAppointmentCount(accountId);
+        final syncsAll =
+            googleCalendarConnectionController.syncsAllAppointments(accountId);
+        final eligibleCount =
+            googleCalendarConnectionController.syncAppointmentCount(accountId);
         final unassignedCount = appointments.present.values
             .where((appointment) => appointment.operatorsIDs.isEmpty)
             .length;
-        final warning = assignedCount == 0 && unassignedCount > 0
+        final warning = !syncsAll && eligibleCount == 0 && unassignedCount > 0
             ? txt('googleCalendarUnassignedWarning')
                 .replaceAll('{count}', unassignedCount.toString())
             : '';
@@ -40,8 +42,10 @@ class CalendarGoogleSyncButton extends StatelessWidget {
                 ? txt('googleCalendarUserEnabled_desc')
                 : warning.isNotEmpty
                     ? warning
-                    : txt('googleCalendarAssignedOnly')
-                        .replaceAll('{count}', assignedCount.toString());
+                    : txt(syncsAll
+                            ? 'googleCalendarAllAppointments'
+                            : 'googleCalendarAssignedOnly')
+                        .replaceAll('{count}', eligibleCount.toString());
 
         return Tooltip(
           message: tooltip,
@@ -52,7 +56,7 @@ class CalendarGoogleSyncButton extends StatelessWidget {
                 : () => _sync(
                       context,
                       accountId: accountId,
-                      assignedCount: assignedCount,
+                      eligibleCount: eligibleCount,
                       warning: warning,
                     ),
             child: Row(
@@ -79,7 +83,7 @@ class CalendarGoogleSyncButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    assignedCount.toString(),
+                    eligibleCount.toString(),
                     style: const TextStyle(fontSize: 11),
                   ),
                 ),
@@ -94,7 +98,7 @@ class CalendarGoogleSyncButton extends StatelessWidget {
   Future<void> _sync(
     BuildContext context, {
     required String accountId,
-    required int assignedCount,
+    required int eligibleCount,
     required String warning,
   }) async {
     await googleCalendarConnectionController.syncNow(
@@ -115,7 +119,7 @@ class CalendarGoogleSyncButton extends StatelessWidget {
         title: Txt(
           isError
               ? txt('error')
-              : '${txt('googleCalendarSyncNow')} ($assignedCount)',
+              : '${txt('googleCalendarSyncNow')} ($eligibleCount)',
         ),
         content: Text(content),
         severity: isError

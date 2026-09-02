@@ -300,6 +300,36 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           SettingsItem(
+            key: ValueKey("gcal_scope_$googleCalendarAccountId"),
+            title: txt("googleCalendarAppointmentScope"),
+            identifier: "gcal_scope_$googleCalendarAccountId",
+            description: txt("googleCalendarAppointmentScope_desc"),
+            icon: FluentIcons.people,
+            inputType: InputType.dropDown,
+            scope: Scope.device,
+            options: [
+              ComboBoxItem(
+                value: "automatic",
+                child: Txt(txt("googleCalendarScopeAutomatic")),
+              ),
+              ComboBoxItem(
+                value: "assignedToMe",
+                child: Txt(txt("googleCalendarScopeAssigned")),
+              ),
+              ComboBoxItem(
+                value: "allAppointments",
+                child: Txt(txt("googleCalendarScopeAll")),
+              ),
+            ],
+            initValue: googleCalendarUserSettings().appointmentScope.name,
+            apply: (newVal) => localSettings.setGoogleCalendarForUser(
+              googleCalendarAccountId,
+              googleCalendarUserSettings().copyWith(
+                appointmentScope: GoogleCalendarAppointmentScope.parse(newVal),
+              ),
+            ),
+          ),
+          SettingsItem(
             key: ValueKey("gcal_title_$googleCalendarAccountId"),
             title: txt("googleCalendarTitleMode"),
             identifier: "gcal_title_$googleCalendarAccountId",
@@ -602,8 +632,10 @@ class GoogleCalendarConnectionPanel extends StatelessWidget {
         final busy = isCurrentRuntime && runtime.isBusy;
         final configured = globalSettings.googleCalendarSyncEnabled &&
             globalSettings.googleCalendarClientId.trim().isNotEmpty;
-        final assignedCount = googleCalendarConnectionController
-            .assignedAppointmentCount(accountId);
+        final syncsAll =
+            googleCalendarConnectionController.syncsAllAppointments(accountId);
+        final eligibleCount =
+            googleCalendarConnectionController.syncAppointmentCount(accountId);
         final message = isCurrentRuntime && runtime.message.isNotEmpty
             ? runtime.message
             : saved.isConnected
@@ -709,8 +741,10 @@ class GoogleCalendarConnectionPanel extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Txt(
-              txt("googleCalendarAssignedOnly")
-                  .replaceAll("{count}", assignedCount.toString()),
+              txt(syncsAll
+                      ? "googleCalendarAllAppointments"
+                      : "googleCalendarAssignedOnly")
+                  .replaceAll("{count}", eligibleCount.toString()),
               style: const TextStyle(fontSize: 12),
             ),
             if (saved.lastSuccessfulSync != null) ...[

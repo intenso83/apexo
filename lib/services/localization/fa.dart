@@ -479,6 +479,9 @@ class Fa implements En {
     "time": "زمان",
     "preOperativeNotes": "یادداشت‌های قبل از عمل",
     "selectDoctors": "انتخاب پزشکان",
+    "appointmentNoDoctorsConfigured": "نوبت مطب — اختصاص‌نیافته",
+    "appointmentNoDoctorsConfigured_desc":
+        "هیچ حساب پزشکی تنظیم نشده است. می‌توانید این نوبت را بدون انتخاب پزشک ذخیره کنید.",
     "selectPatient": "انتخاب بیمار",
     "operativeDetails": "جزئیات عمل",
     "postOperativeNotes": "یادداشت‌های بعد از عمل",
@@ -1075,6 +1078,14 @@ class Fa implements En {
         "حساب به خاطر سپرده شده است. پس از راه‌اندازی مجدد مرورگر، پیش از همگام‌سازی دوباره متصل شوید.",
     "googleCalendarConnectReady":
         "حساب Google متعلق به این کاربر Apexo را انتخاب کنید.",
+    "googleCalendarAppointmentScope": "نوبت‌های همگام‌شونده",
+    "googleCalendarAppointmentScope_desc":
+        "انتخاب کنید این حساب Google تمام تقویم مطب را دریافت کند یا فقط نوبت‌های اختصاص‌یافته به این کاربر Apexo را.",
+    "googleCalendarScopeAutomatic": "خودکار (همه برای مدیران)",
+    "googleCalendarScopeAssigned": "فقط نوبت‌های اختصاص‌یافته به من",
+    "googleCalendarScopeAll": "همه نوبت‌های مطب",
+    "googleCalendarAllAppointments":
+        "همه نوبت‌های مطب همگام می‌شوند ({count} مورد اکنون قابل مشاهده است).",
     "googleCalendarAssignedOnly":
         "فقط نوبت‌های اختصاص‌یافته به این کاربر Apexo همگام می‌شوند ({count} مورد اکنون قابل مشاهده است).",
     "googleCalendarUnassignedWarning":

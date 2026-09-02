@@ -59,6 +59,20 @@ class GoogleCalendarConnectionController {
   int assignedAppointmentCount(String accountId) =>
       assignedAppointments(appointments.present.values, accountId).length;
 
+  bool syncsAllAppointments(String accountId) {
+    final scope =
+        localSettings.googleCalendarForUser(accountId).appointmentScope;
+    return scope == GoogleCalendarAppointmentScope.allAppointments ||
+        (scope == GoogleCalendarAppointmentScope.automatic && login.isAdmin);
+  }
+
+  int syncAppointmentCount(String accountId) => appointmentsForSync(
+        appointments.present.values,
+        accountId,
+        scope: localSettings.googleCalendarForUser(accountId).appointmentScope,
+        isAdmin: login.isAdmin,
+      ).length;
+
   static List<Appointment> assignedAppointments(
     Iterable<Appointment> source,
     String accountId,
@@ -68,6 +82,18 @@ class GoogleCalendarConnectionController {
               accountId.isNotEmpty &&
               appointment.operatorsIDs.contains(accountId))
           .toList(growable: false);
+
+  static List<Appointment> appointmentsForSync(
+    Iterable<Appointment> source,
+    String accountId, {
+    required GoogleCalendarAppointmentScope scope,
+    required bool isAdmin,
+  }) {
+    final syncAll = scope == GoogleCalendarAppointmentScope.allAppointments ||
+        (scope == GoogleCalendarAppointmentScope.automatic && isAdmin);
+    if (syncAll) return source.toList(growable: false);
+    return assignedAppointments(source, accountId);
+  }
 
   Future<void> connect({
     required String accountId,
@@ -171,7 +197,7 @@ class GoogleCalendarConnectionController {
       state(GoogleCalendarRuntimeState(
         accountId: accountId,
         phase: GoogleCalendarConnectionPhase.syncing,
-        message: 'Synchronizing assigned appointments…',
+        message: 'Synchronizing appointments…',
       ));
       final gateway = GoogleCalendarHttpGateway(
         client: httpClient,
@@ -185,13 +211,16 @@ class GoogleCalendarConnectionController {
           return current!.accessToken;
         },
       );
-      final assigned = assignedAppointments(
+      final eligible = appointmentsForSync(
         appointments.docs.values,
         accountId,
+        scope: settings.appointmentScope,
+        isAdmin: login.isAdmin,
       );
+      final eligibleIds = eligible.map((appointment) => appointment.id).toSet();
       final removedAssignments = appointments.docs.values
           .where((appointment) =>
-              !appointment.operatorsIDs.contains(accountId) &&
+              !eligibleIds.contains(appointment.id) &&
               appointment.googleCalendarLinkFor(accountId).isLinked)
           .toList(growable: false);
       var removedFromGoogle = 0;
@@ -208,7 +237,7 @@ class GoogleCalendarConnectionController {
       }
       final engineResult =
           await GoogleCalendarSyncEngine(gateway: gateway).sync(
-        appointments: assigned,
+        appointments: eligible,
         preferences: GoogleCalendarSyncPreferences(
           enabled: true,
           calendarId: settings.calendarId,
@@ -262,7 +291,7 @@ class GoogleCalendarConnectionController {
       state(GoogleCalendarRuntimeState(
         accountId: accountId,
         phase: GoogleCalendarConnectionPhase.connected,
-        message: _resultMessage(result, assigned.length),
+        message: _resultMessage(result, eligible.length),
         lastResult: result,
       ));
     } catch (error) {
@@ -326,12 +355,12 @@ class GoogleCalendarConnectionController {
     ));
   }
 
-  String _resultMessage(GoogleCalendarSyncResult result, int assignedCount) {
+  String _resultMessage(GoogleCalendarSyncResult result, int eligibleCount) {
     final changed = result.created +
         result.updatedInGoogle +
         result.updatedInApexo +
         result.deletedFromGoogle;
-    return 'Checked $assignedCount assigned appointment(s); '
+    return 'Checked $eligibleCount synchronized appointment(s); '
         '$changed change(s), ${result.issues.length} item(s) to review.';
   }
 }
