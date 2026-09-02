@@ -14,6 +14,7 @@ import 'package:apexo/features/patients/open_patient_panel.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/patients/patients_store.dart';
+import 'package:apexo/features/patient_intake/patient_intake_dialog.dart';
 import 'package:apexo/utils/parsed_phone_number.dart';
 import 'package:apexo/utils/search_normalization.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -207,6 +208,13 @@ class _PatientsPageState extends State<_PatientsPage> {
         },
       ),
       otherButtons: [
+        IconButton(
+          icon: const ButtonContent(
+            FluentIcons.clipboard_list,
+            'Patient intake',
+          ),
+          onPressed: () => showPatientIntakeDialog(context),
+        ),
         IconButton(
             icon: ButtonContent(WindowsIcons.copy, txt("import")),
             onPressed: () {

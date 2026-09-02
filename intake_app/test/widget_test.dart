@@ -1,0 +1,119 @@
+import 'package:apexo_patient_intake/intake_schema.dart';
+import 'package:apexo_patient_intake/main.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('starts in staff preparation without an Apexo login', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const PracticeIntakeApp());
+
+    expect(find.text('Staff preparation'), findsOneWidget);
+    expect(find.text('Test the form'), findsOneWidget);
+    expect(find.textContaining('Apexo login'), findsOneWidget);
+    expect(find.text('Log in'), findsNothing);
+  });
+
+  test('questionnaire keeps the canonical version and stable unique IDs', () {
+    expect(questionnaireVersion, 'practice-medical-history-2026-09-02-v1');
+    final ids = intakeQuestions.map((question) => question.id).toList();
+    expect(ids.toSet().length, ids.length);
+    expect(
+      ids,
+      containsAll(<String>[
+        'allergies',
+        'cardiovascular_disease',
+        'antiresorptive_therapy',
+        'adverse_dental_reaction',
+      ]),
+    );
+  });
+
+  testWidgets('completes the entire intake on a phone-sized screen', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(const PracticeIntakeApp());
+    await tester.tap(find.text('Test the form'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byType(Checkbox));
+    await tester.tap(find.byType(Checkbox));
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('field_family_name')),
+      'Test',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('field_given_name')),
+      'Patient',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('field_date_of_birth')),
+      '01/01/1990',
+    );
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('field_mobile')),
+      '6900000000',
+    );
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    for (final question in intakeQuestions) {
+      final key = ValueKey('answer_${question.id}_no');
+      final finder = find.byKey(key);
+      if (finder.evaluate().isEmpty) continue;
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    for (final question in intakeQuestions) {
+      final finder = find.byKey(ValueKey('answer_${question.id}_no'));
+      if (finder.evaluate().isEmpty) continue;
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    for (final question in intakeQuestions) {
+      final finder = find.byKey(ValueKey('answer_${question.id}_no'));
+      if (finder.evaluate().isEmpty) continue;
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byType(Checkbox));
+    await tester.tap(find.byType(Checkbox));
+    await tester.enterText(
+      find.byKey(const ValueKey('field_signed_name')),
+      'Test Patient',
+    );
+    await tester.tap(find.byKey(const ValueKey('next_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Test completed'), findsOneWidget);
+    expect(
+      find.text('This testing build did not save or send the answers.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+}
