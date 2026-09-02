@@ -1093,6 +1093,21 @@ class Es implements En {
     "processingPostOpNotes": "procesando notas post-operatorias",
 
     // Google Calendar
+    "calendarSettingsGroup": "Calendario",
+    "calendarSettingsGroup_desc":
+        "Ajustes de visualización, programación, conexión de Google, privacidad y sincronización automática.",
+    "googleCalendarAutoSync": "Sincronización automática de Google",
+    "googleCalendarAutoSync_desc":
+        "Se ejecuta una vez cuando terminan los cambios de citas. No son consultas continuas; varias ediciones rápidas generan un solo lote.",
+    "googleCalendarAutoSyncOff": "Desactivada — usar Sincronizar ahora",
+    "googleCalendarAutoSync5": "5 segundos tras el último cambio",
+    "googleCalendarAutoSync15": "15 segundos tras el último cambio",
+    "googleCalendarAutoSync30": "30 segundos tras el último cambio",
+    "googleCalendarBusyBlocks": "Mostrar eventos solo de Google",
+    "googleCalendarBusyBlocks_desc":
+        "Muestra otros eventos de Google como bloques ocupados de solo lectura. Nunca se convierten en pacientes ni citas de Apexo.",
+    "googleCalendarBusyBlock": "Google Calendar — ocupado",
+    "googleCalendarOpenPatient": "Abrir paciente en Apexo",
     "googleCalendarAvailable": "Integración con Google Calendar",
     "googleCalendarAvailable_desc":
         "Disponibilidad para toda la clínica. Cada usuario de Apexo conecta y controla una cuenta de Google independiente.",

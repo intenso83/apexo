@@ -120,4 +120,42 @@ void main() {
 
     expect(result.map((item) => item.id), ['other', 'unassigned']);
   });
+
+  test('Google-only opaque events become busy blocks, managed events do not',
+      () {
+    final blocks = GoogleCalendarConnectionController.busyBlocksFromEvents([
+      GoogleCalendarEvent(
+        id: 'external-busy',
+        status: 'confirmed',
+        summary: 'Practice administration',
+        description: '',
+        start: DateTime(2026, 9, 2, 10),
+        end: DateTime(2026, 9, 2, 11),
+        htmlLink: 'https://calendar.google.com/event/external-busy',
+      ),
+      GoogleCalendarEvent(
+        id: 'external-free',
+        status: 'confirmed',
+        summary: 'Available',
+        description: '',
+        start: DateTime(2026, 9, 2, 12),
+        end: DateTime(2026, 9, 2, 13),
+        transparency: 'transparent',
+      ),
+      GoogleCalendarEvent(
+        id: 'managed',
+        status: 'confirmed',
+        summary: 'Dental appointment',
+        description: '',
+        start: DateTime(2026, 9, 2, 14),
+        end: DateTime(2026, 9, 2, 15),
+        privateProperties: const {'apexoManaged': '1'},
+      ),
+    ]);
+
+    expect(blocks, hasLength(1));
+    expect(blocks.single.id, 'external-busy');
+    expect(blocks.single.title, 'Practice administration');
+    expect(blocks.single.durationMinutes, 60);
+  });
 }

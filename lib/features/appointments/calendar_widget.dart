@@ -6,6 +6,7 @@ import 'package:apexo/common_widgets/screen_command_bar.dart';
 import 'package:apexo/common_widgets/swipe_detector.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/services/perm.dart';
@@ -37,6 +38,7 @@ enum EventsViewMode {
 
 class WeekAgendaCalendar<Item extends Appointment> extends StatefulWidget {
   final List<Item> items;
+  final List<GoogleCalendarBusyBlock> googleBusyBlocks;
   final List<Widget>? commandButtons;
   final List<Widget>? actions;
   final StartingDayOfWeek startDay;
@@ -49,6 +51,7 @@ class WeekAgendaCalendar<Item extends Appointment> extends StatefulWidget {
   const WeekAgendaCalendar({
     super.key,
     required this.items,
+    this.googleBusyBlocks = const [],
     required this.startDay,
     required this.initiallySelectedDay,
     required this.onAddNew,
@@ -147,6 +150,7 @@ class WeekAgendaCalendarState<Item extends Appointment>
                     ),
                   EventsViewMode.timeline => CalendarTimelineView(
                       items: itemsForSelectedDay.cast<Appointment>().toList(),
+                      googleBusyBlocks: widget.googleBusyBlocks,
                       showPayments: showPayments,
                       selectedDate: selectedDate,
                       onSelect: (appointment) =>
@@ -159,6 +163,7 @@ class WeekAgendaCalendarState<Item extends Appointment>
                     ),
                   EventsViewMode.workWeek => WorkWeekCalendarView(
                       items: widget.items.cast<Appointment>().toList(),
+                      googleBusyBlocks: widget.googleBusyBlocks,
                       showPayments: showPayments,
                       selectedDate: selectedDate,
                       onSelect: (appointment) =>

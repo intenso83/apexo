@@ -6,12 +6,14 @@ import 'package:apexo/common_widgets/duration_pill.dart';
 import 'package:apexo/common_widgets/money_display.dart';
 import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:fluent_ui/fluent_ui.dart' hide Card;
 import 'package:intl/intl.dart' as intl;
 import 'package:table_calendar/table_calendar.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/colors_without_yellow.dart';
 import 'appointments_store.dart';
 
@@ -22,6 +24,7 @@ import 'appointments_store.dart';
 /// Self-contained time-grid view that positions appointments by duration.
 class CalendarTimelineView extends StatefulWidget {
   final List<Appointment> items;
+  final List<GoogleCalendarBusyBlock> googleBusyBlocks;
   final bool showPayments;
   final DateTime selectedDate;
   final void Function(Appointment item) onSelect;
@@ -32,6 +35,7 @@ class CalendarTimelineView extends StatefulWidget {
   const CalendarTimelineView({
     super.key,
     required this.items,
+    this.googleBusyBlocks = const [],
     required this.showPayments,
     required this.selectedDate,
     required this.onSelect,
@@ -146,12 +150,32 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
   List<double> _slotHeights = [];
   double _totalH = 0;
 
-  void _computeSlotHeights(List<Appointment> visibleApps) {
+  void _computeSlotHeights(
+    List<Appointment> visibleApps,
+    List<GoogleCalendarBusyBlock> visibleBusyBlocks,
+  ) {
     _slotHeights = List.filled(_endHour - _startHour + 1, _emptyHourHeight);
     for (final a in visibleApps) {
       final startH = a.date.hour.clamp(_startHour, _endHour);
       final endH = (a.endDate.hour + (a.endDate.minute > 0 ? 1 : 0))
           .clamp(_startHour, _endHour);
+      for (int h = startH; h < endH; h++) {
+        _slotHeights[h - _startHour] = _hourHeight;
+      }
+    }
+    final dayStart = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    for (final block in visibleBusyBlocks) {
+      final start = block.start.isBefore(dayStart) ? dayStart : block.start;
+      final end = block.end.isAfter(dayEnd) ? dayEnd : block.end;
+      final startH = start.hour.clamp(_startHour, _endHour);
+      final endH = end == dayEnd
+          ? 24
+          : (end.hour + (end.minute > 0 ? 1 : 0)).clamp(_startHour, _endHour);
       for (int h = startH; h < endH; h++) {
         _slotHeights[h - _startHour] = _hourHeight;
       }
@@ -317,17 +341,31 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
     }).toList();
   }
 
+  List<GoogleCalendarBusyBlock> _visibleBusyBlocks() {
+    final dayStart = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    return widget.googleBusyBlocks
+        .where((block) =>
+            block.start.isBefore(dayEnd) && block.end.isAfter(dayStart))
+        .toList(growable: false);
+  }
+
   // ─── Build ─────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final visibleApps = _visibleApps();
+    final visibleBusyBlocks = _visibleBusyBlocks();
 
     final layout = _layoutApps(visibleApps);
     final maxOverlap = layout.groupSizes.values.isEmpty
         ? 1
         : layout.groupSizes.values.reduce(max).clamp(1, 20);
 
-    _computeSlotHeights(visibleApps);
+    _computeSlotHeights(visibleApps, visibleBusyBlocks);
     final totalH = _totalH;
 
     final availW = MediaQuery.of(context).size.width - _timeGutterW - 16;
@@ -350,7 +388,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
 
     return Stack(children: [
       _buildScrollableArea(neededW, gridW, totalH, gx, gw, stroke, showNow,
-          nowY, visibleApps, layout, needsHorizScroll),
+          nowY, visibleApps, visibleBusyBlocks, layout, needsHorizScroll),
       _buildGutterOverlay(rtl, bg.withAlpha(100), timeGutter),
     ]);
   }
@@ -470,6 +508,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
       bool showNow,
       double nowY,
       List<Appointment> visibleApps,
+      List<GoogleCalendarBusyBlock> visibleBusyBlocks,
       ({Map<String, int> columns, Map<String, int> groupSizes}) layout,
       bool needsHorizScroll) {
     final content = SizedBox(
@@ -478,6 +517,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
       child: Stack(children: [
         ..._buildGridLines(gx, gw, stroke),
         if (showNow && nowY >= 0 && nowY <= totalH) _buildNowLine(gx, gw, nowY),
+        ..._buildGoogleBusyBlocks(gridW, visibleBusyBlocks),
         ..._buildBlocks(gridW, visibleApps, layout),
         if (_dragging && _dragItem != null) _buildDragPrev(),
       ]),
@@ -510,6 +550,76 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
       },
       child: scrollable,
     );
+  }
+
+  List<Widget> _buildGoogleBusyBlocks(
+    double gridW,
+    List<GoogleCalendarBusyBlock> blocks,
+  ) {
+    final dayStart = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    final color = Colors.orange;
+    final theme = FluentTheme.of(context);
+    return blocks.map((block) {
+      final start = block.start.isBefore(dayStart) ? dayStart : block.start;
+      final end = block.end.isAfter(dayEnd) ? dayEnd : block.end;
+      final top = _timeToY(start);
+      final bottom = end == dayEnd ? _slotTops[24] : _timeToY(end);
+      return Positioned(
+        left: _gridX(gridW) + 2,
+        top: top + 1,
+        width: _gridW(gridW) - 4,
+        height: max(24, bottom - top - 2),
+        child: Tooltip(
+          message:
+              '${txt('googleCalendarBusyBlock')}: ${block.title}\n${intl.DateFormat('HH:mm', locale.s.$code).format(block.start)}–${intl.DateFormat('HH:mm', locale.s.$code).format(block.end)}',
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: block.htmlLink.isEmpty
+                ? null
+                : () => launchUrl(Uri.parse(block.htmlLink)),
+            child: Container(
+              key: ValueKey('timeline-google-calendar-busy-${block.id}'),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: Color.lerp(
+                  theme.resources.solidBackgroundFillColorBase,
+                  color,
+                  0.12,
+                ),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.65),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(FluentIcons.calendar, size: 13, color: color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      block.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }).toList(growable: false);
   }
 
   List<Widget> _buildGridLines(double gx, double gw, Color stroke) {

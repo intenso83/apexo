@@ -237,6 +237,8 @@ void main() {
             'calendarId': 'primary',
             'direction': 'twoWay',
             'titleMode': 'generic',
+            'showGoogleBusyBlocks': false,
+            'autoSyncDelaySeconds': 15,
             'syncToken': 'sync-token',
             'lastSuccessfulSync': expiry.toIso8601String(),
             'lastError': 'none',
@@ -260,6 +262,8 @@ void main() {
       expect(google.syncEnabled, isTrue);
       expect(google.googleAccountEmail, 'dentist.a@gmail.com');
       expect(google.credentialReference, 'secure:user-a');
+      expect(google.showGoogleBusyBlocks, isFalse);
+      expect(google.autoSyncDelaySeconds, 15);
       expect(google.syncToken, 'sync-token');
       expect(google.lastSuccessfulSync, expiry);
       expect(google.lastError, 'none');

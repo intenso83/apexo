@@ -1090,6 +1090,21 @@ class El implements En {
     "processingPostOpNotes": "επεξεργασία ήχου μετεγχειρητικών σημειώσεων",
 
     // Google Calendar
+    "calendarSettingsGroup": "Ημερολόγιο",
+    "calendarSettingsGroup_desc":
+        "Ρυθμίσεις προβολής, προγραμματισμού, σύνδεσης Google, απορρήτου και αυτόματου συγχρονισμού.",
+    "googleCalendarAutoSync": "Αυτόματος συγχρονισμός Google",
+    "googleCalendarAutoSync_desc":
+        "Εκτελείται μία φορά όταν ολοκληρωθούν οι αλλαγές στα ραντεβού. Δεν γίνεται συνεχής έλεγχος, ώστε πολλές γρήγορες αλλαγές να στέλνονται μαζί.",
+    "googleCalendarAutoSyncOff": "Ανενεργό — χρήση Συγχρονισμός τώρα",
+    "googleCalendarAutoSync5": "5 δευτερόλεπτα μετά την τελευταία αλλαγή",
+    "googleCalendarAutoSync15": "15 δευτερόλεπτα μετά την τελευταία αλλαγή",
+    "googleCalendarAutoSync30": "30 δευτερόλεπτα μετά την τελευταία αλλαγή",
+    "googleCalendarBusyBlocks": "Εμφάνιση συμβάντων μόνο από Google",
+    "googleCalendarBusyBlocks_desc":
+        "Τα άλλα συμβάντα Google εμφανίζονται ως μη επεξεργάσιμες δεσμεύσεις χρόνου. Δεν γίνονται ποτέ ασθενείς ή ραντεβού Apexo.",
+    "googleCalendarBusyBlock": "Google Calendar — δεσμευμένο",
+    "googleCalendarOpenPatient": "Άνοιγμα ασθενούς στο Apexo",
     "googleCalendarAvailable": "Ενσωμάτωση Google Calendar",
     "googleCalendarAvailable_desc":
         "Διαθεσιμότητα για όλο το ιατρείο. Κάθε χρήστης του Apexo συνδέει και ελέγχει ξεχωριστό λογαριασμό Google.",

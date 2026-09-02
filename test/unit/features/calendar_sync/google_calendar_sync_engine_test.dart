@@ -331,6 +331,7 @@ class _FakeGateway implements GoogleCalendarGateway {
   Future<GoogleCalendarEventPage> listEvents({
     required String calendarId,
     required String clinicId,
+    bool managedOnly = true,
     String? syncToken,
     String? pageToken,
     DateTime? timeMin,
@@ -388,6 +389,7 @@ class _FakeGateway implements GoogleCalendarGateway {
         etag: etag,
         updatedAt: DateTime.utc(2026, 8, 31, 8),
         htmlLink: 'https://calendar.google.com/event/${event.id}',
+        transparency: event.transparency,
         privateProperties: event.privateProperties,
       );
 }

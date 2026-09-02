@@ -10,6 +10,7 @@ import 'package:apexo/common_widgets/dialogs/first_launch_dialog.dart';
 import 'package:apexo/common_widgets/dialogs/new_version_dialog.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/network_actions/network_actions_widget.dart';
+import 'package:apexo/features/calendar_sync/calendar_patient_deep_link.dart';
 import 'package:apexo/features/patient_side/patient_side_screen.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/launch.dart';
@@ -42,6 +43,7 @@ class ApexoApp extends StatelessWidget {
   @override
   StatelessElement createElement() {
     PatientSide.fromHref();
+    calendarPatientDeepLink.start();
     Future.delayed(const Duration(milliseconds: 1000), () {
       showDialogsIfNeeded();
     });

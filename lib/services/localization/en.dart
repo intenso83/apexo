@@ -1070,6 +1070,21 @@ class En {
     "processingPostOpNotes": "processing post-op notes audio",
 
     // Google Calendar
+    "calendarSettingsGroup": "Calendar",
+    "calendarSettingsGroup_desc":
+        "Calendar display, scheduling, Google connection, privacy and automatic synchronization settings.",
+    "googleCalendarAutoSync": "Automatic Google synchronization",
+    "googleCalendarAutoSync_desc":
+        "Runs once after appointment changes settle. This is a debounce, not continuous polling, so several quick edits produce one request batch.",
+    "googleCalendarAutoSyncOff": "Off — use Sync now",
+    "googleCalendarAutoSync5": "5 seconds after the last change",
+    "googleCalendarAutoSync15": "15 seconds after the last change",
+    "googleCalendarAutoSync30": "30 seconds after the last change",
+    "googleCalendarBusyBlocks": "Show Google-only events",
+    "googleCalendarBusyBlocks_desc":
+        "Display unrelated Google events as read-only busy blocks. They never become patients or Apexo appointments.",
+    "googleCalendarBusyBlock": "Google Calendar — busy",
+    "googleCalendarOpenPatient": "Open patient in Apexo",
     "googleCalendarAvailable": "Google Calendar integration",
     "googleCalendarAvailable_desc":
         "Clinic-wide availability. Each Apexo user still connects and controls a separate Google account.",

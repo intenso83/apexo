@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/login.dart';
+import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/utils/hash.dart';
 import 'package:http/http.dart' as http;
 
@@ -44,6 +47,9 @@ class GoogleCalendarConnectionController {
   final GoogleCalendarAuthorization authorization;
   final http.Client httpClient;
   final Map<String, GoogleCalendarAuthorizationSession> _sessions = {};
+  final Map<String, List<GoogleCalendarBusyBlock>> _busyBlocks = {};
+  Timer? _automaticSyncTimer;
+  bool _watchingAppointments = false;
 
   GoogleCalendarConnectionController({
     GoogleCalendarAuthorization? authorization,
@@ -53,8 +59,86 @@ class GoogleCalendarConnectionController {
 
   final state = ObservableState(const GoogleCalendarRuntimeState());
 
+  List<GoogleCalendarBusyBlock> busyBlocksFor(String accountId) =>
+      List.unmodifiable(_busyBlocks[accountId] ?? const []);
+
   bool hasActiveSession(String accountId) =>
       _sessions[accountId]?.isValid == true;
+
+  /// Refreshes Google changes when the calendar is opened, but only when a
+  /// valid in-memory session already exists. It never opens a sign-in popup.
+  Future<void> syncIfActive({
+    Duration minimumInterval = const Duration(seconds: 15),
+  }) async {
+    final accountId = login.currentAccountID.isNotEmpty
+        ? login.currentAccountID
+        : login.email;
+    if (accountId.isEmpty || state().isBusy || !hasActiveSession(accountId)) {
+      return;
+    }
+    final settings = localSettings.googleCalendarForUser(accountId);
+    final lastSync = settings.lastSuccessfulSync;
+    if (!settings.syncEnabled ||
+        settings.autoSyncDelaySeconds <= 0 ||
+        !globalSettings.googleCalendarSyncEnabled ||
+        globalSettings.googleCalendarClientId.trim().isEmpty ||
+        (lastSync != null &&
+            DateTime.now().toUtc().difference(lastSync) < minimumInterval)) {
+      return;
+    }
+    await syncNow(
+      accountId: accountId,
+      clientId: globalSettings.googleCalendarClientId,
+    );
+  }
+
+  /// Watches saved appointment changes and batches a burst of edits into one
+  /// Google request after the user's configured quiet period. This is not a
+  /// polling loop and never opens an OAuth window automatically.
+  void startWatchingAppointments() {
+    if (_watchingAppointments) return;
+    _watchingAppointments = true;
+    appointments.observableMap.observe(_scheduleAutomaticSync);
+  }
+
+  void _scheduleAutomaticSync(List<DictEvent> events) {
+    final hasAppointmentChange = events.any((event) =>
+        event.id != '__ignore_view__' &&
+        event.id != '__removed_all__' &&
+        event.document is Appointment);
+    if (!hasAppointmentChange || state().isBusy) return;
+
+    final accountId = login.currentAccountID.isNotEmpty
+        ? login.currentAccountID
+        : login.email;
+    final settings = localSettings.googleCalendarForUser(accountId);
+    final delay = settings.autoSyncDelaySeconds;
+    final configured = globalSettings.googleCalendarSyncEnabled &&
+        globalSettings.googleCalendarClientId.trim().isNotEmpty;
+    if (accountId.isEmpty ||
+        delay <= 0 ||
+        !configured ||
+        !settings.syncEnabled ||
+        !hasActiveSession(accountId)) {
+      return;
+    }
+
+    _automaticSyncTimer?.cancel();
+    _automaticSyncTimer = Timer(Duration(seconds: delay), () async {
+      final latest = localSettings.googleCalendarForUser(accountId);
+      if (state().isBusy ||
+          latest.autoSyncDelaySeconds <= 0 ||
+          !latest.syncEnabled ||
+          !hasActiveSession(accountId)) {
+        return;
+      }
+      await syncNow(
+        accountId: accountId,
+        clientId: globalSettings.googleCalendarClientId,
+        refreshBusyBlocks: false,
+      );
+    });
+  }
 
   int assignedAppointmentCount(String accountId) =>
       assignedAppointments(appointments.present.values, accountId).length;
@@ -142,6 +226,7 @@ class GoogleCalendarConnectionController {
   }
 
   Future<void> disconnect(String accountId) async {
+    _automaticSyncTimer?.cancel();
     final session = _sessions.remove(accountId);
     try {
       if (session != null) await authorization.revoke(session);
@@ -149,6 +234,7 @@ class GoogleCalendarConnectionController {
       // Local disconnect must still succeed if Google cannot be reached.
     }
     localSettings.disconnectGoogleCalendarForUser(accountId);
+    _busyBlocks.remove(accountId);
     state(GoogleCalendarRuntimeState(
       accountId: accountId,
       phase: GoogleCalendarConnectionPhase.idle,
@@ -159,6 +245,7 @@ class GoogleCalendarConnectionController {
   Future<void> syncNow({
     required String accountId,
     required String clientId,
+    bool refreshBusyBlocks = true,
   }) async {
     if (!_validateConfiguration(accountId, clientId)) return;
     final settings = localSettings.googleCalendarForUser(accountId);
@@ -263,8 +350,20 @@ class GoogleCalendarConnectionController {
             GoogleCalendarContactNotes().forPatient(
           appointment.patient,
           preferences,
+          patientUrl: _patientUrl(appointment.patientID),
+          openPatientLabel: txt('googleCalendarOpenPatient'),
         ),
       );
+      final googleBusyBlocks = settings.showGoogleBusyBlocks
+          ? refreshBusyBlocks
+              ? await _loadBusyBlocks(
+                  gateway: gateway,
+                  calendarId: settings.calendarId,
+                  clinicId: simpleHash(login.url),
+                )
+              : _busyBlocks[accountId] ?? const <GoogleCalendarBusyBlock>[]
+          : const <GoogleCalendarBusyBlock>[];
+      _busyBlocks[accountId] = googleBusyBlocks;
       final result = GoogleCalendarSyncResult(
         created: engineResult.created,
         updatedInGoogle: engineResult.updatedInGoogle,
@@ -291,12 +390,71 @@ class GoogleCalendarConnectionController {
       state(GoogleCalendarRuntimeState(
         accountId: accountId,
         phase: GoogleCalendarConnectionPhase.connected,
-        message: _resultMessage(result, eligible.length),
+        message: _resultMessage(
+          result,
+          eligible.length,
+          googleBusyBlocks.length,
+        ),
         lastResult: result,
       ));
     } catch (error) {
       _setError(accountId, error);
     }
+  }
+
+  Future<List<GoogleCalendarBusyBlock>> _loadBusyBlocks({
+    required GoogleCalendarGateway gateway,
+    required String calendarId,
+    required String clinicId,
+  }) async {
+    final events = <GoogleCalendarEvent>[];
+    String? pageToken;
+    final current = DateTime.now();
+    do {
+      final page = await gateway.listEvents(
+        calendarId: calendarId,
+        clinicId: clinicId,
+        managedOnly: false,
+        pageToken: pageToken,
+        timeMin: current.subtract(const Duration(days: 90)),
+        timeMax: current.add(const Duration(days: 365)),
+      );
+      events.addAll(page.events);
+      pageToken = page.nextPageToken;
+    } while (pageToken != null);
+
+    return busyBlocksFromEvents(events);
+  }
+
+  static List<GoogleCalendarBusyBlock> busyBlocksFromEvents(
+    Iterable<GoogleCalendarEvent> events,
+  ) {
+    return events
+        .where((event) =>
+            !event.isCancelled &&
+            event.transparency != 'transparent' &&
+            event.privateProperties['apexoManaged'] != '1' &&
+            event.start != null &&
+            event.end != null &&
+            event.end!.isAfter(event.start!))
+        .map((event) => GoogleCalendarBusyBlock(
+              id: event.id,
+              title: event.summary.trim().isEmpty
+                  ? txt('googleCalendarBusyBlock')
+                  : event.summary.trim(),
+              start: event.start!.toLocal(),
+              end: event.end!.toLocal(),
+              htmlLink: event.htmlLink,
+            ))
+        .toList(growable: false);
+  }
+
+  String _patientUrl(String? patientId) {
+    if (patientId == null || patientId.isEmpty) return '';
+    return Uri.base.replace(
+      queryParameters: {'openPatient': patientId},
+      fragment: '',
+    ).toString();
   }
 
   bool _validateConfiguration(String accountId, String clientId) {
@@ -355,14 +513,20 @@ class GoogleCalendarConnectionController {
     ));
   }
 
-  String _resultMessage(GoogleCalendarSyncResult result, int eligibleCount) {
+  String _resultMessage(
+    GoogleCalendarSyncResult result,
+    int eligibleCount,
+    int busyBlockCount,
+  ) {
     final changed = result.created +
         result.updatedInGoogle +
         result.updatedInApexo +
         result.deletedFromGoogle;
     return 'Checked $eligibleCount synchronized appointment(s); '
-        '$changed change(s), ${result.issues.length} item(s) to review.';
+        '$changed change(s), ${result.issues.length} item(s) to review; '
+        '$busyBlockCount Google busy block(s).';
   }
 }
 
-final googleCalendarConnectionController = GoogleCalendarConnectionController();
+final googleCalendarConnectionController = GoogleCalendarConnectionController()
+  ..startWatchingAppointments();

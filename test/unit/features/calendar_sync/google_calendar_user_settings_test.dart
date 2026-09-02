@@ -16,6 +16,8 @@ void main() {
       includeMobile: true,
       includeEmail: false,
       includeAddress: true,
+      showGoogleBusyBlocks: false,
+      autoSyncDelaySeconds: 15,
       syncToken: 'calendar-sync-token',
       lastSuccessfulSync: lastSync,
       lastError: 'none',
@@ -38,6 +40,8 @@ void main() {
     expect(restored.includeMobile, isTrue);
     expect(restored.includeEmail, isFalse);
     expect(restored.includeAddress, isTrue);
+    expect(restored.showGoogleBusyBlocks, isFalse);
+    expect(restored.autoSyncDelaySeconds, 15);
     expect(restored.syncToken, 'calendar-sync-token');
     expect(restored.lastSuccessfulSync, lastSync);
     expect(json.keys, isNot(contains('accessToken')));
@@ -55,6 +59,8 @@ void main() {
       titleMode: GoogleCalendarTitleMode.patientName,
       includePhone: false,
       includeAddress: true,
+      showGoogleBusyBlocks: false,
+      autoSyncDelaySeconds: 30,
       syncToken: 'sync-token',
       lastError: 'error',
     );
@@ -76,6 +82,8 @@ void main() {
     expect(disconnected.titleMode, GoogleCalendarTitleMode.patientName);
     expect(disconnected.includePhone, isFalse);
     expect(disconnected.includeAddress, isTrue);
+    expect(disconnected.showGoogleBusyBlocks, isFalse);
+    expect(disconnected.autoSyncDelaySeconds, 30);
   });
 
   test('legacy settings default to automatic appointment scope', () {
@@ -85,5 +93,7 @@ void main() {
       restored.appointmentScope,
       GoogleCalendarAppointmentScope.automatic,
     );
+    expect(restored.showGoogleBusyBlocks, isTrue);
+    expect(restored.autoSyncDelaySeconds, 5);
   });
 }

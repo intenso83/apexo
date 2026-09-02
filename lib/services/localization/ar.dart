@@ -1056,6 +1056,21 @@ class Ar implements En {
     "processingPostOpNotes": "معالجة الصوت لاستخراج ملاحظات ما بعد العملية",
 
     // Google Calendar
+    "calendarSettingsGroup": "التقويم",
+    "calendarSettingsGroup_desc":
+        "إعدادات العرض والجدولة واتصال Google والخصوصية والمزامنة التلقائية.",
+    "googleCalendarAutoSync": "مزامنة Google التلقائية",
+    "googleCalendarAutoSync_desc":
+        "تعمل مرة واحدة بعد انتهاء تغييرات المواعيد. لا يوجد استعلام مستمر، لذلك تُرسل التعديلات السريعة في دفعة واحدة.",
+    "googleCalendarAutoSyncOff": "متوقفة — استخدم المزامنة الآن",
+    "googleCalendarAutoSync5": "بعد 5 ثوانٍ من آخر تغيير",
+    "googleCalendarAutoSync15": "بعد 15 ثانية من آخر تغيير",
+    "googleCalendarAutoSync30": "بعد 30 ثانية من آخر تغيير",
+    "googleCalendarBusyBlocks": "إظهار أحداث Google فقط",
+    "googleCalendarBusyBlocks_desc":
+        "عرض أحداث Google الأخرى كفترات مشغولة للقراءة فقط. لا تتحول أبداً إلى مرضى أو مواعيد Apexo.",
+    "googleCalendarBusyBlock": "تقويم Google — مشغول",
+    "googleCalendarOpenPatient": "فتح المريض في Apexo",
     "googleCalendarAvailable": "تكامل تقويم Google",
     "googleCalendarAvailable_desc":
         "إتاحة على مستوى العيادة. يربط كل مستخدم في Apexo حساب Google منفصلاً ويتحكم فيه.",

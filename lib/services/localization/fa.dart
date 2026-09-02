@@ -1066,6 +1066,21 @@ class Fa implements En {
     "processingPostOpNotes": "پردازش صوت یادداشت‌های بعد از عمل",
 
     // Google Calendar
+    "calendarSettingsGroup": "تقویم",
+    "calendarSettingsGroup_desc":
+        "تنظیمات نمایش، زمان‌بندی، اتصال Google، حریم خصوصی و همگام‌سازی خودکار.",
+    "googleCalendarAutoSync": "همگام‌سازی خودکار Google",
+    "googleCalendarAutoSync_desc":
+        "پس از پایان تغییرات نوبت یک بار اجرا می‌شود. بررسی مداوم نیست، بنابراین چند ویرایش سریع در یک درخواست ارسال می‌شوند.",
+    "googleCalendarAutoSyncOff": "خاموش — استفاده از همگام‌سازی اکنون",
+    "googleCalendarAutoSync5": "۵ ثانیه پس از آخرین تغییر",
+    "googleCalendarAutoSync15": "۱۵ ثانیه پس از آخرین تغییر",
+    "googleCalendarAutoSync30": "۳۰ ثانیه پس از آخرین تغییر",
+    "googleCalendarBusyBlocks": "نمایش رویدادهای فقط Google",
+    "googleCalendarBusyBlocks_desc":
+        "رویدادهای دیگر Google را به صورت زمان‌های اشغال و فقط‌خواندنی نمایش می‌دهد. هرگز به بیمار یا نوبت Apexo تبدیل نمی‌شوند.",
+    "googleCalendarBusyBlock": "تقویم Google — مشغول",
+    "googleCalendarOpenPatient": "باز کردن بیمار در Apexo",
     "googleCalendarAvailable": "یکپارچه‌سازی تقویم Google",
     "googleCalendarAvailable_desc":
         "دسترسی در سطح درمانگاه. هر کاربر Apexo یک حساب Google جداگانه را متصل و کنترل می‌کند.",

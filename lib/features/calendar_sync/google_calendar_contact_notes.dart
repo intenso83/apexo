@@ -7,8 +7,10 @@ class GoogleCalendarContactNotes {
 
   String forPatient(
     Patient? patient,
-    GoogleCalendarSyncPreferences preferences,
-  ) {
+    GoogleCalendarSyncPreferences preferences, {
+    String patientUrl = '',
+    String openPatientLabel = 'Open patient in Apexo',
+  }) {
     if (patient == null) return managedByApexo;
     final lines = <String>[];
     if (preferences.includePhone &&
@@ -25,6 +27,10 @@ class GoogleCalendarContactNotes {
     }
     if (preferences.includeAddress && patient.appointmentAddress.isNotEmpty) {
       lines.add('Address: ${patient.appointmentAddress}');
+    }
+    if (patientUrl.isNotEmpty) {
+      if (lines.isNotEmpty) lines.add('');
+      lines.add('$openPatientLabel: $patientUrl');
     }
     return [...lines, managedByApexo].join('\n');
   }

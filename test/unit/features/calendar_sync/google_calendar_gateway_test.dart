@@ -63,4 +63,34 @@ void main() {
     expect(requested.queryParameters, isNot(contains('timeMin')));
     expect(requested.queryParameters, isNot(contains('timeMax')));
   });
+
+  test('busy-block listing deliberately omits the Apexo ownership filter',
+      () async {
+    late Uri requested;
+    final gateway = GoogleCalendarHttpGateway(
+      client: MockClient((request) async {
+        requested = request.url;
+        return http.Response(
+          jsonEncode({'items': [], 'nextSyncToken': 'n'}),
+          200,
+        );
+      }),
+      accessTokenProvider: () async => 'token',
+    );
+
+    await gateway.listEvents(
+      calendarId: 'primary',
+      clinicId: 'clinic-1',
+      managedOnly: false,
+      timeMin: DateTime.utc(2026, 1, 1),
+      timeMax: DateTime.utc(2027, 1, 1),
+    );
+
+    expect(
+      requested.queryParameters,
+      isNot(contains('privateExtendedProperty')),
+    );
+    expect(requested.queryParameters, contains('timeMin'));
+    expect(requested.queryParameters, contains('timeMax'));
+  });
 }

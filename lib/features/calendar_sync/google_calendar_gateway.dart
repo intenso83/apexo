@@ -8,6 +8,7 @@ abstract class GoogleCalendarGateway {
   Future<GoogleCalendarEventPage> listEvents({
     required String calendarId,
     required String clinicId,
+    bool managedOnly = true,
     String? syncToken,
     String? pageToken,
     DateTime? timeMin,
@@ -50,6 +51,7 @@ class GoogleCalendarHttpGateway implements GoogleCalendarGateway {
   Future<GoogleCalendarEventPage> listEvents({
     required String calendarId,
     required String clinicId,
+    bool managedOnly = true,
     String? syncToken,
     String? pageToken,
     DateTime? timeMin,
@@ -59,7 +61,7 @@ class GoogleCalendarHttpGateway implements GoogleCalendarGateway {
       'showDeleted': 'true',
       'singleEvents': 'true',
       'maxResults': '2500',
-      if (syncToken == null || syncToken.isEmpty)
+      if (managedOnly && (syncToken == null || syncToken.isEmpty))
         'privateExtendedProperty': 'apexoClinicId=$clinicId',
       if (syncToken != null && syncToken.isNotEmpty) 'syncToken': syncToken,
       if (pageToken != null && pageToken.isNotEmpty) 'pageToken': pageToken,

@@ -4,17 +4,20 @@ import 'dart:math';
 import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/appointments/work_week_layout.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/utils/colors_without_yellow.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// A five-day clinical calendar for desktop use.
 ///
 /// Appointments can be moved across the week and resized in 15-minute steps.
 class WorkWeekCalendarView extends StatefulWidget {
   final List<Appointment> items;
+  final List<GoogleCalendarBusyBlock> googleBusyBlocks;
   final DateTime selectedDate;
   final bool showPayments;
   final void Function(Appointment item) onSelect;
@@ -25,6 +28,7 @@ class WorkWeekCalendarView extends StatefulWidget {
   const WorkWeekCalendarView({
     super.key,
     required this.items,
+    this.googleBusyBlocks = const [],
     required this.selectedDate,
     required this.showPayments,
     required this.onSelect,
@@ -304,6 +308,7 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
                       ..._buildDayBackgrounds(days, dayWidth, theme, now),
                       ..._buildGridLines(canvasWidth, theme),
                       ..._buildEmptySlotTargets(days, dayWidth),
+                      ..._buildGoogleBusyBlocks(days, dayWidth, theme),
                       ..._buildAppointmentCards(days, dayWidth, theme),
                       ..._buildCurrentTimeLine(days, dayWidth, now),
                     ],
@@ -400,6 +405,120 @@ class _WorkWeekCalendarViewState extends State<WorkWeekCalendarView> {
           ),
         ),
     ];
+  }
+
+  List<Widget> _buildGoogleBusyBlocks(
+      List<DateTime> days, double dayWidth, FluentThemeData theme) {
+    final widgets = <Widget>[];
+    const rangeStart = _startHour * 60;
+    const rangeEnd = _endHour * 60;
+    final color = Colors.orange;
+
+    for (var dayIndex = 0; dayIndex < days.length; dayIndex++) {
+      final dayStart = DateTime(
+        days[dayIndex].year,
+        days[dayIndex].month,
+        days[dayIndex].day,
+      );
+      final dayEnd = dayStart.add(const Duration(days: 1));
+      for (final block in widget.googleBusyBlocks.where((block) =>
+          block.start.isBefore(dayEnd) && block.end.isAfter(dayStart))) {
+        final visibleStart =
+            block.start.isBefore(dayStart) ? dayStart : block.start;
+        final visibleEnd = block.end.isAfter(dayEnd) ? dayEnd : block.end;
+        final start = max(
+          rangeStart,
+          visibleStart.hour * 60 + visibleStart.minute,
+        );
+        final rawEnd = visibleEnd == dayEnd
+            ? 24 * 60
+            : visibleEnd.hour * 60 + visibleEnd.minute;
+        final end = min(rangeEnd, rawEnd);
+        if (end <= start) continue;
+
+        final top = (start - rangeStart) / 60 * _hourHeight;
+        final height = max(
+          _minimumCardHeight,
+          (end - start) / 60 * _hourHeight - 2,
+        );
+        widgets.add(Positioned(
+          left: _timeGutterWidth + dayIndex * dayWidth + 2,
+          top: top + 1,
+          width: max(24, dayWidth - 4),
+          height: height,
+          child: Tooltip(
+            message:
+                '${txt('googleCalendarBusyBlock')}: ${block.title}\n${DateFormat('HH:mm', locale.s.$code).format(block.start)}–${DateFormat('HH:mm', locale.s.$code).format(block.end)}',
+            child: MouseRegion(
+              cursor: block.htmlLink.isEmpty
+                  ? MouseCursor.defer
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: block.htmlLink.isEmpty
+                    ? null
+                    : () => launchUrl(Uri.parse(block.htmlLink)),
+                child: Container(
+                  key: ValueKey('google-calendar-busy-${block.id}'),
+                  padding: const EdgeInsets.fromLTRB(8, 5, 6, 5),
+                  decoration: BoxDecoration(
+                    color: Color.lerp(
+                      theme.resources.solidBackgroundFillColorBase,
+                      color,
+                      0.13,
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.65),
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipRect(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              FluentIcons.calendar,
+                              size: 11,
+                              color: color,
+                            ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                block.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (height >= 38)
+                          Text(
+                            '${DateFormat('HH:mm', locale.s.$code).format(block.start)}–${DateFormat('HH:mm', locale.s.$code).format(block.end)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: theme.inactiveColor,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ));
+      }
+    }
+    return widgets;
   }
 
   List<Widget> _buildAppointmentCards(

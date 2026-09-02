@@ -79,6 +79,8 @@ class GoogleCalendarUserSettings {
   final bool includeMobile;
   final bool includeEmail;
   final bool includeAddress;
+  final bool showGoogleBusyBlocks;
+  final int autoSyncDelaySeconds;
   final String syncToken;
   final DateTime? lastSuccessfulSync;
   final String lastError;
@@ -95,6 +97,8 @@ class GoogleCalendarUserSettings {
     this.includeMobile = true,
     this.includeEmail = true,
     this.includeAddress = false,
+    this.showGoogleBusyBlocks = true,
+    this.autoSyncDelaySeconds = 5,
     this.syncToken = '',
     this.lastSuccessfulSync,
     this.lastError = '',
@@ -122,6 +126,9 @@ class GoogleCalendarUserSettings {
         includeMobile: json['includeMobile'] != false,
         includeEmail: json['includeEmail'] != false,
         includeAddress: json['includeAddress'] == true,
+        showGoogleBusyBlocks: json['showGoogleBusyBlocks'] != false,
+        autoSyncDelaySeconds:
+            int.tryParse(json['autoSyncDelaySeconds']?.toString() ?? '') ?? 5,
         syncToken: json['syncToken']?.toString() ?? '',
         lastSuccessfulSync: DateTime.tryParse(
           json['lastSuccessfulSync']?.toString() ?? '',
@@ -143,6 +150,8 @@ class GoogleCalendarUserSettings {
         'includeMobile': includeMobile,
         'includeEmail': includeEmail,
         'includeAddress': includeAddress,
+        'showGoogleBusyBlocks': showGoogleBusyBlocks,
+        'autoSyncDelaySeconds': autoSyncDelaySeconds,
         if (syncToken.isNotEmpty) 'syncToken': syncToken,
         if (lastSuccessfulSync != null)
           'lastSuccessfulSync': lastSuccessfulSync!.toUtc().toIso8601String(),
@@ -161,6 +170,8 @@ class GoogleCalendarUserSettings {
     bool? includeMobile,
     bool? includeEmail,
     bool? includeAddress,
+    bool? showGoogleBusyBlocks,
+    int? autoSyncDelaySeconds,
     String? syncToken,
     DateTime? lastSuccessfulSync,
     String? lastError,
@@ -177,6 +188,8 @@ class GoogleCalendarUserSettings {
         includeMobile: includeMobile ?? this.includeMobile,
         includeEmail: includeEmail ?? this.includeEmail,
         includeAddress: includeAddress ?? this.includeAddress,
+        showGoogleBusyBlocks: showGoogleBusyBlocks ?? this.showGoogleBusyBlocks,
+        autoSyncDelaySeconds: autoSyncDelaySeconds ?? this.autoSyncDelaySeconds,
         syncToken: syncToken ?? this.syncToken,
         lastSuccessfulSync: lastSuccessfulSync ?? this.lastSuccessfulSync,
         lastError: lastError ?? this.lastError,
@@ -191,6 +204,8 @@ class GoogleCalendarUserSettings {
         includeMobile: includeMobile,
         includeEmail: includeEmail,
         includeAddress: includeAddress,
+        showGoogleBusyBlocks: showGoogleBusyBlocks,
+        autoSyncDelaySeconds: autoSyncDelaySeconds,
       );
 }
 
@@ -204,6 +219,7 @@ class GoogleCalendarEvent {
   final String etag;
   final DateTime? updatedAt;
   final String htmlLink;
+  final String transparency;
   final Map<String, String> privateProperties;
 
   const GoogleCalendarEvent({
@@ -216,6 +232,7 @@ class GoogleCalendarEvent {
     this.etag = '',
     this.updatedAt,
     this.htmlLink = '',
+    this.transparency = 'opaque',
     this.privateProperties = const {},
   });
 
@@ -234,6 +251,7 @@ class GoogleCalendarEvent {
       etag: json['etag']?.toString() ?? '',
       updatedAt: DateTime.tryParse(json['updated']?.toString() ?? ''),
       htmlLink: json['htmlLink']?.toString() ?? '',
+      transparency: json['transparency']?.toString() ?? 'opaque',
       privateProperties: private == null
           ? const {}
           : private.map((key, value) => MapEntry(key, value.toString())),
@@ -258,6 +276,27 @@ class GoogleCalendarEvent {
     final date = raw['date'];
     return date == null ? null : DateTime.tryParse(date.toString());
   }
+}
+
+/// A Google-only calendar event shown in Apexo as read-only availability.
+/// It is deliberately not an [Appointment] and can never acquire a patient,
+/// treatment, payment, or clinical record by being displayed.
+class GoogleCalendarBusyBlock {
+  final String id;
+  final String title;
+  final DateTime start;
+  final DateTime end;
+  final String htmlLink;
+
+  const GoogleCalendarBusyBlock({
+    required this.id,
+    required this.title,
+    required this.start,
+    required this.end,
+    this.htmlLink = '',
+  });
+
+  int get durationMinutes => end.difference(start).inMinutes;
 }
 
 class GoogleCalendarEventPage {

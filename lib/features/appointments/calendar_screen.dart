@@ -2,6 +2,7 @@ import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/features/appointments/calendar_google_sync_button.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
+import 'package:apexo/features/calendar_sync/google_calendar_connection_controller.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/appointments/open_appointment_panel.dart';
 import 'package:apexo/features/patients/open_patient_panel.dart';
@@ -13,8 +14,21 @@ import 'package:table_calendar/table_calendar.dart';
 import 'appointment_model.dart';
 import 'appointments_store.dart';
 
-class CalendarScreen extends StatelessWidget {
+class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
+
+  @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      googleCalendarConnectionController.syncIfActive();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +36,16 @@ class CalendarScreen extends StatelessWidget {
         streams: [
           appointments.observableMap.stream,
           appointments.filterByOperatorID.stream,
+          googleCalendarConnectionController.state.stream,
         ],
         builder: (context, snapshot) {
           return WeekAgendaCalendar(
             items: appointments.filtered.values.toList(),
+            googleBusyBlocks: googleCalendarConnectionController.busyBlocksFor(
+              login.currentAccountID.isNotEmpty
+                  ? login.currentAccountID
+                  : login.email,
+            ),
             commandButtons: const [CalendarGoogleSyncButton()],
             actions: [
               ComboBox<String>(

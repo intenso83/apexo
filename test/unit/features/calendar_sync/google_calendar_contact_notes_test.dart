@@ -73,4 +73,28 @@ void main() {
     expect(notes, isNot(contains('Phone:')));
     expect(notes, contains('Mobile: +4917699267148'));
   });
+
+  test('adds a clickable Apexo patient URL without exposing clinical notes',
+      () {
+    final patient = Patient.fromJson({
+      'title': 'Patient Name',
+      'notes': 'Never export this clinical note',
+    });
+
+    final notes = GoogleCalendarContactNotes().forPatient(
+      patient,
+      defaults,
+      patientUrl: 'http://127.0.0.1:61110/?openPatient=patient-1',
+      openPatientLabel: 'Open patient in Apexo',
+    );
+
+    expect(
+      notes,
+      contains(
+        'Open patient in Apexo: '
+        'http://127.0.0.1:61110/?openPatient=patient-1',
+      ),
+    );
+    expect(notes, isNot(contains('Never export')));
+  });
 }
