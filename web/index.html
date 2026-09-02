@@ -208,7 +208,21 @@
 		window.addEventListener('error', reloadIfPathBuilderError, true);
 		window.addEventListener('unhandledrejection', reloadIfPathBuilderError, true);
 	</script>
-	<script src="flutter_bootstrap.js" async></script>
+	<script>
+		// A previously installed Flutter service worker can otherwise keep serving
+		// an old bootstrap file after a local rebuild. A non-resource query string
+		// bypasses that cache on loopback while production keeps normal PWA caching.
+		(function loadFlutterBootstrap() {
+			var bootstrap = document.createElement('script');
+			bootstrap.async = true;
+			var isLoopback = window.location.hostname === '127.0.0.1' ||
+				window.location.hostname === 'localhost';
+			bootstrap.src = isLoopback
+				? 'flutter_bootstrap.js?cachebuster=' + Date.now()
+				: 'flutter_bootstrap.js';
+			document.body.appendChild(bootstrap);
+		})();
+	</script>
 </body>
 
 </html>
