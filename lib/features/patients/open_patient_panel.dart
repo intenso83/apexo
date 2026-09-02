@@ -30,6 +30,7 @@ import 'package:apexo/common_widgets/tag_input.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/financial_overview/financial_overview.dart';
 import 'package:apexo/features/odontogram/patient_odontogram.dart';
+import 'package:apexo/features/medical_history/medical_history_form.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/patients/patient_details_form.dart';
 import 'package:apexo/features/patients/patient_fields_prototype.dart';
@@ -86,6 +87,12 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
         title: txt("odontogramFoundation"),
         icon: FluentIcons.teeth,
         body: PatientOdontogram(patientID: editingCopy.id),
+        onlyIfSaved: true,
+      ),
+      PanelTab(
+        title: txt("medicalHistory"),
+        icon: FluentIcons.medical,
+        body: PatientMedicalHistory(patientID: editingCopy.id),
         onlyIfSaved: true,
       ),
       PanelTab(

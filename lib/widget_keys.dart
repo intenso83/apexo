@@ -51,6 +51,8 @@ class WK {
   static const fieldPatientTags = Key("fieldPatientTags");
   static const fieldPatientNotes = Key("fieldPatientNotes");
   static const btnAddPatientContact = Key("btnAddPatientContact");
+  static const btnNewMedicalHistory = Key("btnNewMedicalHistory");
+  static const btnSaveMedicalHistory = Key("btnSaveMedicalHistory");
   static const fieldOperators = Key("fieldOperators");
   static const fieldPatient = Key("fieldAppointmentPatient");
   static const fieldAppointmentDate = Key("fieldAppointmentDate");

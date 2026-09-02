@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $script:DwStageFormatVersion = '1.0.0'
-$script:DwMappingVersion = '2026-08-26.phase4'
+$script:DwMappingVersion = '2026-09-02.phase4-medical-v1'
 $script:DwEncryptionIterations = 210000
 $script:DwCriticalTables = @(
     'Customers',
@@ -987,9 +987,13 @@ function Invoke-DwSyntheticDryRun {
                 reason_for_visit = [string](Get-DwProperty -InputObject $row -Name 'aitiaproelesi' -Default '')
                 present_condition = [string](Get-DwProperty -InputObject $row -Name 'parousakatastai' -Default '')
                 medicines_text = [string](Get-DwProperty -InputObject $row -Name 'MEMOS36' -Default '')
+                diseases_surgeries_text = [string](Get-DwProperty -InputObject $row -Name 'MEMOS28' -Default '')
+                pregnancy_text = [string](Get-DwProperty -InputObject $row -Name 'MEMOS29' -Default '')
+                general_notes = [string](Get-DwProperty -InputObject $row -Name 'MEMOS220' -Default '')
                 penicillin_raw = Get-DwProperty -InputObject $row -Name 'penikilinh'
                 latex_raw = Get-DwProperty -InputObject $row -Name 'latex'
                 hypertension_raw = Get-DwProperty -InputObject $row -Name 'ypertasi'
+                cardiovascular_raw = Get-DwProperty -InputObject $row -Name 'kardiaggiaki'
             })
         Add-DwExternalIdentifier -List $externalIdentifiers -Keys $externalKeys -Reviews $reviews -SourceTable 'DentalSchoolIstoriko' -SourceRecordKey $rowKey -TargetEntityType 'medical_history_revision' -TargetStageKey "medical-history:$rowKey" -DatabaseFingerprint $databaseFingerprint
     }

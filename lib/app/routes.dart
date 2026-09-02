@@ -8,6 +8,7 @@ import 'package:apexo/features/dicom/dicom_screen.dart';
 import 'package:apexo/features/dashboard/dashboard_screen.dart';
 import 'package:apexo/features/expenses/expenses_screen.dart';
 import 'package:apexo/features/labwork/labworks_screen.dart';
+import 'package:apexo/features/medical_history/medical_history_store.dart';
 import 'package:apexo/features/notes/notes_screen.dart';
 import 'package:apexo/features/notes/notes_store.dart';
 import 'package:apexo/features/patients/patients_screen.dart';
@@ -201,6 +202,7 @@ class _Routes {
             onSelect: () async {
               await accounts.reloadFromRemote();
               await patients.synchronize();
+              medicalHistoryRevisions.synchronize();
               appointments.synchronize();
             },
           ),

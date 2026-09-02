@@ -79,9 +79,13 @@
         "aitiaproelesi": "Synthetic routine examination",
         "parousakatastai": "Synthetic healthy state",
         "MEMOS36": "No synthetic medicines",
+        "MEMOS28": "Synthetic prior procedure",
+        "MEMOS29": "Synthetic pregnancy source text",
+        "MEMOS220": "Synthetic general medical note",
         "penikilinh": 0,
         "latex": 1,
-        "ypertasi": 0
+        "ypertasi": 0,
+        "kardiaggiaki": 1
       },
       {
         "id": 202,
@@ -90,9 +94,13 @@
         "aitiaproelesi": "Synthetic orphan history",
         "parousakatastai": "",
         "MEMOS36": "",
+        "MEMOS28": "",
+        "MEMOS29": "",
+        "MEMOS220": "",
         "penikilinh": 0,
         "latex": 0,
-        "ypertasi": 0
+        "ypertasi": 0,
+        "kardiaggiaki": 0
       }
     ],
     "Works_Kategories": [

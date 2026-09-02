@@ -155,14 +155,21 @@ try {
     Assert-Equal -Expected 1 -Actual $reportOne.review_reason_counts.ambiguous_or_invalid_tooth -Message 'ambiguous tooth value is retained for review'
 
     $patientsPath = Join-Path $stageOne 'protected/normalized/patients.jsonl.enc.json'
+    $historiesPath = Join-Path $stageOne 'protected/normalized/medical_history_revisions.jsonl.enc.json'
     $eventsPath = Join-Path $stageOne 'protected/normalized/clinical_events_and_plan_items.jsonl.enc.json'
     $reviewsPath = Join-Path $stageOne 'protected/normalized/review_items.jsonl.enc.json'
     $externalPath = Join-Path $stageOne 'protected/normalized/external_identifiers.jsonl.enc.json'
     $patients = @(Read-DwProtectedJsonLines -Path $patientsPath -Passphrase $passphrase)
+    $histories = @(Read-DwProtectedJsonLines -Path $historiesPath -Passphrase $passphrase)
     $events = @(Read-DwProtectedJsonLines -Path $eventsPath -Passphrase $passphrase)
     $reviews = @(Read-DwProtectedJsonLines -Path $reviewsPath -Passphrase $passphrase)
     $external = @(Read-DwProtectedJsonLines -Path $externalPath -Passphrase $passphrase)
     Assert-Equal -Expected 3 -Actual $patients.Count -Message 'protected patient staging decrypts with the correct passphrase'
+    $linkedHistory = $histories | Where-Object stage_key -eq 'medical-history:201'
+    Assert-Equal -Expected 'Synthetic prior procedure' -Actual $linkedHistory.diseases_surgeries_text -Message 'medical-history diseases and surgeries text is preserved'
+    Assert-Equal -Expected 'Synthetic pregnancy source text' -Actual $linkedHistory.pregnancy_text -Message 'medical-history pregnancy text is preserved for review'
+    Assert-Equal -Expected 'Synthetic general medical note' -Actual $linkedHistory.general_notes -Message 'medical-history general notes are preserved'
+    Assert-Equal -Expected 1 -Actual $linkedHistory.cardiovascular_raw -Message 'confirmed cardiovascular source flag is staged raw'
     Assert-Equal -Expected 1 -Actual @($events | Where-Object event_kind -eq 'treatment_plan_item').Count -Message 'treatment-plan membership is preserved'
     Assert-Equal -Expected 16 -Actual $reviews.Count -Message 'protected review rows reconcile with aggregate report'
     Assert-Equal -Expected $external.Count -Actual @($external.external_key | Sort-Object -Unique).Count -Message 'decrypted external keys contain no duplicates'

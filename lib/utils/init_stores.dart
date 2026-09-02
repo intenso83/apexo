@@ -2,6 +2,7 @@ import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/notes/notes_store.dart';
+import 'package:apexo/features/medical_history/medical_history_store.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
@@ -13,6 +14,7 @@ initializeStores() {
   globalSettings.init();
   patients.init();
   appointments.init();
+  medicalHistoryRevisions.init();
   treatmentHistory.init();
   therapyGroups.init();
   procedureCatalog.init();
