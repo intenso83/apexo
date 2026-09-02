@@ -81,6 +81,10 @@ class Panel<T extends Model> {
   /// default [store.set(item)]. Useful when the panel manages multiple items.
   final void Function()? onSave;
 
+  /// Returns a localized error message when Save must be blocked, or null
+  /// when the current working copy is valid.
+  final String? Function()? validateBeforeSave;
+
   Panel({
     required this.item,
     required this.store,
@@ -99,6 +103,7 @@ class Panel<T extends Model> {
     this.archiveButtonReplacement,
     this.checkUnsavedChanges,
     this.onSave,
+    this.validateBeforeSave,
   }) {
     identifier = store.get(item.id) == null
         ? (canNotBeNew ? item.id : "new+${store.local?.name ?? singularName}")

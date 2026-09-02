@@ -165,6 +165,10 @@ class Fa implements En {
 
     // patients
     "patientDetails": "جزئیات بیمار",
+    "patientFormRequiredHint":
+        "فیلدهای علامت‌گذاری‌شده با * برای بیمار جدید الزامی هستند.",
+    "patientNameRequired":
+        "پیش از ذخیره بیمار جدید، نام خانوادگی و نام را وارد کنید.",
     "patientFieldsPrototype": "پیش‌نمایش فیلدهای بیمار",
     "patientFieldsPrototypeDescription":
         "پیش‌نمایش فقط خواندنی مدل تأییدشده بیمار. ویرایش و شماره ثبت تولیدشده توسط سرور پس از آماده شدن پایگاه داده امن فعال می‌شود.",
@@ -183,6 +187,7 @@ class Fa implements En {
     "placeOfOrigin": "محل تولد/اصالت",
     "registrationDate": "تاریخ ثبت",
     "active": "فعال",
+    "inactive": "غیرفعال",
     "contactDetails": "اطلاعات تماس",
     "homePhone": "تلفن منزل",
     "workPhone": "تلفن محل کار",

@@ -169,6 +169,10 @@ class El implements En {
 
     // patients
     "patientDetails": "Στοιχεία ασθενή",
+    "patientFormRequiredHint":
+        "Τα πεδία με * είναι υποχρεωτικά για νέο ασθενή.",
+    "patientNameRequired":
+        "Συμπληρώστε επώνυμο και όνομα πριν αποθηκεύσετε νέο ασθενή.",
     "patientFieldsPrototype": "Προεπισκόπηση νέων στοιχείων",
     "patientFieldsPrototypeDescription":
         "Προεπισκόπηση μόνο για ανάγνωση του εγκεκριμένου μοντέλου ασθενή. Η επεξεργασία και ο αυτόματος αριθμός μητρώου θα ενεργοποιηθούν αφού ολοκληρωθεί η ασφαλής βάση δεδομένων.",
@@ -187,6 +191,7 @@ class El implements En {
     "placeOfOrigin": "Τόπος καταγωγής/γέννησης",
     "registrationDate": "Ημερομηνία εγγραφής",
     "active": "Ενεργός",
+    "inactive": "Ανενεργός",
     "contactDetails": "Στοιχεία επικοινωνίας",
     "homePhone": "Τηλέφωνο οικίας",
     "workPhone": "Τηλέφωνο εργασίας",

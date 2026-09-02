@@ -164,6 +164,8 @@ class Ar implements En {
 
     // patients
     "patientDetails": "تفاصيل المريض",
+    "patientFormRequiredHint": "الحقول المعلّمة بـ * مطلوبة للمريض الجديد.",
+    "patientNameRequired": "أدخل اسم العائلة والاسم الأول قبل حفظ مريض جديد.",
     "patientFieldsPrototype": "معاينة حقول المريض",
     "patientFieldsPrototypeDescription":
         "معاينة للقراءة فقط لنموذج المريض المعتمد. سيتم تفعيل التحرير وأرقام التسجيل التي ينشئها الخادم بعد تجهيز قاعدة البيانات الآمنة.",
@@ -182,6 +184,7 @@ class Ar implements En {
     "placeOfOrigin": "مكان الأصل/الميلاد",
     "registrationDate": "تاريخ التسجيل",
     "active": "نشط",
+    "inactive": "غير نشط",
     "contactDetails": "تفاصيل الاتصال",
     "homePhone": "هاتف المنزل",
     "workPhone": "هاتف العمل",

@@ -167,6 +167,10 @@ class En {
 
     // patients
     "patientDetails": "Patient Details",
+    "patientFormRequiredHint":
+        "Fields marked with * are required for a new patient.",
+    "patientNameRequired":
+        "Enter both surname and first name before saving a new patient.",
     "patientFieldsPrototype": "Patient Fields Preview",
     "patientFieldsPrototypeDescription":
         "Read-only preview of the approved patient model. Editing and server-generated registration numbers will be enabled only after the secure database layer is ready.",
@@ -185,6 +189,7 @@ class En {
     "placeOfOrigin": "Place of origin/birth",
     "registrationDate": "Registration date",
     "active": "Active",
+    "inactive": "Inactive",
     "contactDetails": "Contact details",
     "homePhone": "Home phone",
     "workPhone": "Work phone",

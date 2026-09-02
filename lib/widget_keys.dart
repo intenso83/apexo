@@ -41,6 +41,8 @@ class WK {
   static const fieldDoctorEmail = Key("fieldDoctorEmail");
   static const fieldDoctorName = Key("fieldDoctorName");
   static const fieldPatientName = Key("fieldPatientName");
+  static const fieldPatientSurname = Key("fieldPatientSurname");
+  static const fieldPatientFirstName = Key("fieldPatientFirstName");
   static const fieldPatientEmail = Key("fieldPatientEmail");
   static const fieldPatientPhone = Key("fieldPatientPhone");
   static const fieldPatientAddress = Key("fieldPatientAddress");
@@ -48,6 +50,7 @@ class WK {
   static const fieldPatientYOB = Key("fieldPatientAge");
   static const fieldPatientTags = Key("fieldPatientTags");
   static const fieldPatientNotes = Key("fieldPatientNotes");
+  static const btnAddPatientContact = Key("btnAddPatientContact");
   static const fieldOperators = Key("fieldOperators");
   static const fieldPatient = Key("fieldAppointmentPatient");
   static const fieldAppointmentDate = Key("fieldAppointmentDate");

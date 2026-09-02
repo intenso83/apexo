@@ -279,6 +279,12 @@ class _PanelScreenState extends State<PanelScreen> {
           return IconButton(
             onPressed: () {
               if (canSave) {
+                final validationMessage =
+                    widget.panel.validateBeforeSave?.call();
+                if (validationMessage != null) {
+                  _showValidationMessage(validationMessage);
+                  return;
+                }
                 if (widget.panel.onSave != null) {
                   widget.panel.onSave!();
                 } else {
@@ -304,6 +310,22 @@ class _PanelScreenState extends State<PanelScreen> {
             icon: ButtonContent(WindowsIcons.save, txt("save")),
           );
         });
+  }
+
+  Future<void> _showValidationMessage(String message) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => ContentDialog(
+        title: Text(txt('patientDetails')),
+        content: Text(message),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(txt('close')),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildArchiveButton() {

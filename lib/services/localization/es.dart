@@ -170,6 +170,10 @@ class Es implements En {
 
     // patients
     "patientDetails": "Detalles del paciente",
+    "patientFormRequiredHint":
+        "Los campos marcados con * son obligatorios para un paciente nuevo.",
+    "patientNameRequired":
+        "Introduzca los apellidos y el nombre antes de guardar un paciente nuevo.",
     "patientFieldsPrototype": "Vista previa de campos del paciente",
     "patientFieldsPrototypeDescription":
         "Vista previa de solo lectura del modelo de paciente aprobado. La edición y los números de registro generados por el servidor se habilitarán cuando la base de datos segura esté lista.",
@@ -188,6 +192,7 @@ class Es implements En {
     "placeOfOrigin": "Lugar de origen/nacimiento",
     "registrationDate": "Fecha de registro",
     "active": "Activo",
+    "inactive": "Inactivo",
     "contactDetails": "Datos de contacto",
     "homePhone": "Teléfono de casa",
     "workPhone": "Teléfono del trabajo",

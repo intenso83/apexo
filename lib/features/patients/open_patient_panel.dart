@@ -31,6 +31,7 @@ import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/financial_overview/financial_overview.dart';
 import 'package:apexo/features/odontogram/patient_odontogram.dart';
 import 'package:apexo/features/patients/patient_model.dart';
+import 'package:apexo/features/patients/patient_details_form.dart';
 import 'package:apexo/features/patients/patient_fields_prototype.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
@@ -56,10 +57,24 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
         ? txt("newPatient")
         : editingCopy.title,
     desktopWidthFraction: 0.5,
+    validateBeforeSave: patient == null
+        ? () {
+            if (editingCopy.surname.trim().isEmpty ||
+                editingCopy.firstName.trim().isEmpty) {
+              return txt('patientNameRequired');
+            }
+            return null;
+          }
+        : null,
     tabs: [
       PanelTab(
         title: txt("patientDetails"),
         icon: FluentIcons.medication_admin,
+        body: PatientDetailsForm(patient: editingCopy),
+      ),
+      PanelTab(
+        title: txt("legacyFields"),
+        icon: FluentIcons.edit,
         body: _PatientDetails(editingCopy),
       ),
       PanelTab(
