@@ -1145,6 +1145,33 @@ class Fa implements En {
     "googleCalendarSetupRequired_desc":
         "مدیر باید یکپارچه‌سازی را فعال و یک شناسه عمومی Web OAuth ذخیره کند تا کاربران بتوانند متصل شوند.",
 
+    // periodontal chart
+    "periodontalChart": "چارت پریودنتال",
+    "periodontalChartHistoryDescription":
+        "معاینات تاریخ‌دار شش نقطه‌ای. معاینات ذخیره‌شده برای مقایسه بدون تغییر می‌مانند.",
+    "newPeriodontalExam": "معاینه جدید",
+    "newPeriodontalExamDescription":
+        "برای هر دندان شش نقطه ثبت کنید. PD و GM بر حسب میلی‌متر و CAL خودکار است.",
+    "noPeriodontalExams": "هنوز معاینه پریودنتال ثبت نشده است",
+    "noPeriodontalExamsDescription": "اولین معاینه را برای خط پایه ایجاد کنید.",
+    "savePeriodontalExam": "ذخیره معاینه",
+    "periodontalMeasuredSites": "نقاط اندازه‌گیری‌شده",
+    "periodontalMaxPocket": "بیشترین پاکت",
+    "periodontalPlaque": "پلاک",
+    "periodontalVoiceReady": "زیرساخت ورود صوتی آماده است",
+    "periodontalVoiceReadyDescription":
+        "چارت از ترتیب ثابت دندان‌ها و شش نقطه استفاده می‌کند. ضبط صدا هنوز فعال نیست.",
+    "upperArch": "فک بالا",
+    "lowerArch": "فک پایین",
+    "missingTooth": "غایب",
+    "periodontalImplant": "ایمپلنت",
+    "periodontalMobility": "لقی (0–3)",
+    "periodontalFurcation": "فورکیشن (0–3)",
+    "periodontalBuccal": "باکال",
+    "periodontalPalatal": "پالاتال",
+    "periodontalLingual": "لینگوال",
+    "print": "چاپ",
+
     // calendar system
     "calendarSystem": "سیستم تقویم",
     "calendarSystem_desc":

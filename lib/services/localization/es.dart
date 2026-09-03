@@ -1173,6 +1173,34 @@ class Es implements En {
     "googleCalendarSetupRequired_desc":
         "Un administrador debe activar la integración y guardar un ID de cliente OAuth web público antes de conectar usuarios.",
 
+    // periodontal chart
+    "periodontalChart": "Periodontograma",
+    "periodontalChartHistoryDescription":
+        "Exploraciones periodontales fechadas de seis sitios. Las exploraciones guardadas no se modifican.",
+    "newPeriodontalExam": "Nueva exploración",
+    "newPeriodontalExamDescription":
+        "Registre seis sitios por diente. PD y GM en milímetros; CAL se calcula automáticamente.",
+    "noPeriodontalExams": "Aún no hay exploraciones periodontales",
+    "noPeriodontalExamsDescription":
+        "Cree la primera exploración para establecer la referencia periodontal.",
+    "savePeriodontalExam": "Guardar exploración",
+    "periodontalMeasuredSites": "Sitios medidos",
+    "periodontalMaxPocket": "Bolsa máxima",
+    "periodontalPlaque": "Placa",
+    "periodontalVoiceReady": "Base de entrada por voz preparada",
+    "periodontalVoiceReadyDescription":
+        "El gráfico usa una secuencia fija de dientes y seis sitios. La grabación de voz aún no está activa.",
+    "upperArch": "Arcada superior",
+    "lowerArch": "Arcada inferior",
+    "missingTooth": "Ausente",
+    "periodontalImplant": "Implante",
+    "periodontalMobility": "Movilidad (0–3)",
+    "periodontalFurcation": "Furcación (0–3)",
+    "periodontalBuccal": "Bucal",
+    "periodontalPalatal": "Palatino",
+    "periodontalLingual": "Lingual",
+    "print": "Imprimir",
+
     // calendar system
     "calendarSystem": "Sistema de calendario",
     "calendarSystem_desc":

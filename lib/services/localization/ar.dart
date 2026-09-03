@@ -1134,6 +1134,33 @@ class Ar implements En {
     "googleCalendarSetupRequired_desc":
         "يجب على المسؤول تفعيل التكامل وحفظ معرّف عميل OAuth عام للويب قبل أن يتمكن المستخدمون من الاتصال.",
 
+    // periodontal chart
+    "periodontalChart": "مخطط دواعم السن",
+    "periodontalChartHistoryDescription":
+        "فحوصات دواعم السن مؤرخة بستة مواضع لكل سن. تبقى الفحوصات المحفوظة دون تغيير.",
+    "newPeriodontalExam": "فحص جديد",
+    "newPeriodontalExamDescription":
+        "سجل ستة مواضع لكل سن. PD وGM بالمليمتر، ويُحسب CAL تلقائياً.",
+    "noPeriodontalExams": "لا توجد فحوصات دواعم سن بعد",
+    "noPeriodontalExamsDescription": "أنشئ الفحص الأول لتحديد خط الأساس.",
+    "savePeriodontalExam": "حفظ الفحص",
+    "periodontalMeasuredSites": "المواضع المقاسة",
+    "periodontalMaxPocket": "أعمق جيب",
+    "periodontalPlaque": "اللويحة",
+    "periodontalVoiceReady": "أساس الإدخال الصوتي جاهز",
+    "periodontalVoiceReadyDescription":
+        "يتبع المخطط تسلسلاً ثابتاً للأسنان والمواضع الستة. التسجيل الصوتي غير نشط حالياً.",
+    "upperArch": "الفك العلوي",
+    "lowerArch": "الفك السفلي",
+    "missingTooth": "مفقود",
+    "periodontalImplant": "زرعة",
+    "periodontalMobility": "الحركة (0–3)",
+    "periodontalFurcation": "التفرع (0–3)",
+    "periodontalBuccal": "شدقي",
+    "periodontalPalatal": "حنكي",
+    "periodontalLingual": "لساني",
+    "print": "طباعة",
+
     // calendar system
     "calendarSystem": "نظام التقويم",
     "calendarSystem_desc": "اختر نظام التقويم لعرض التواريخ في عرض التقويم",

@@ -1171,6 +1171,34 @@ class El implements En {
     "googleCalendarSetupRequired_desc":
         "Ο διαχειριστής πρέπει να ενεργοποιήσει την ενσωμάτωση και να αποθηκεύσει ένα δημόσιο Web OAuth client ID πριν συνδεθούν οι χρήστες.",
 
+    // periodontal chart
+    "periodontalChart": "Περιοδοντικό διάγραμμα",
+    "periodontalChartHistoryDescription":
+        "Χρονολογημένες περιοδοντικές εξετάσεις έξι σημείων. Οι αποθηκευμένες εξετάσεις παραμένουν αμετάβλητες για κλινική σύγκριση.",
+    "newPeriodontalExam": "Νέα εξέταση",
+    "newPeriodontalExamDescription":
+        "Καταγράψτε έξι σημεία ανά δόντι. PD και GM σε χιλιοστά· το CAL υπολογίζεται αυτόματα.",
+    "noPeriodontalExams": "Δεν υπάρχουν περιοδοντικές εξετάσεις",
+    "noPeriodontalExamsDescription":
+        "Δημιουργήστε την πρώτη εξέταση για την αρχική περιοδοντική καταγραφή του ασθενούς.",
+    "savePeriodontalExam": "Αποθήκευση εξέτασης",
+    "periodontalMeasuredSites": "Μετρημένα σημεία",
+    "periodontalMaxPocket": "Μέγιστος θύλακος",
+    "periodontalPlaque": "Πλάκα",
+    "periodontalVoiceReady": "Έτοιμη βάση φωνητικής καταχώρησης",
+    "periodontalVoiceReadyDescription":
+        "Το διάγραμμα ακολουθεί σταθερή σειρά δοντιών και έξι σημείων. Η φωνητική εγγραφή δεν είναι ακόμη ενεργή, αλλά μελλοντικά οι αριθμοί από απομαγνητοφώνηση θα χρησιμοποιούν την ίδια ελεγχόμενη ροή.",
+    "upperArch": "Άνω γνάθος",
+    "lowerArch": "Κάτω γνάθος",
+    "missingTooth": "Απόν",
+    "periodontalImplant": "Εμφύτευμα",
+    "periodontalMobility": "Κινητικότητα (0–3)",
+    "periodontalFurcation": "Διχασμός (0–3)",
+    "periodontalBuccal": "Παρειακά",
+    "periodontalPalatal": "Υπερώια",
+    "periodontalLingual": "Γλωσσικά",
+    "print": "Εκτύπωση",
+
     // calendar system
     "calendarSystem": "Σύστημα ημερολογίου",
     "calendarSystem_desc":

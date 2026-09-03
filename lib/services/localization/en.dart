@@ -1150,6 +1150,34 @@ class En {
     "googleCalendarSetupRequired_desc":
         "An administrator must enable the integration and save a public Web OAuth client ID before users can connect.",
 
+    // periodontal chart
+    "periodontalChart": "Periodontal chart",
+    "periodontalChartHistoryDescription":
+        "Dated six-site periodontal examinations. Saved exams remain unchanged for clinical comparison.",
+    "newPeriodontalExam": "New examination",
+    "newPeriodontalExamDescription":
+        "Record six sites per tooth. PD and GM are in millimetres; CAL is calculated automatically.",
+    "noPeriodontalExams": "No periodontal examinations yet",
+    "noPeriodontalExamsDescription":
+        "Create the first examination to establish the patient's periodontal baseline.",
+    "savePeriodontalExam": "Save examination",
+    "periodontalMeasuredSites": "Measured sites",
+    "periodontalMaxPocket": "Maximum pocket",
+    "periodontalPlaque": "Plaque",
+    "periodontalVoiceReady": "Voice-entry foundation ready",
+    "periodontalVoiceReadyDescription":
+        "The chart follows a fixed tooth and six-site sequence. Voice recording is not active yet, but future transcribed numbers can use this same validated entry path.",
+    "upperArch": "Upper arch",
+    "lowerArch": "Lower arch",
+    "missingTooth": "Missing",
+    "periodontalImplant": "Implant",
+    "periodontalMobility": "Mobility (0–3)",
+    "periodontalFurcation": "Furcation (0–3)",
+    "periodontalBuccal": "Buccal",
+    "periodontalPalatal": "Palatal",
+    "periodontalLingual": "Lingual",
+    "print": "Print",
+
     // calendar system
     "calendarSystem": "Calendar system",
     "calendarSystem_desc":

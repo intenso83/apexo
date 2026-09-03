@@ -5,6 +5,7 @@ import 'package:apexo/features/notes/notes_store.dart';
 import 'package:apexo/features/medical_history/medical_history_store.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/patients/patients_store.dart';
+import 'package:apexo/features/periodontal_chart/periodontal_chart_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/treatment_history/treatment_history_store.dart';
@@ -19,6 +20,7 @@ initializeStores() {
   therapyGroups.init();
   procedureCatalog.init();
   odontogramEvents.init();
+  periodontalCharts.init();
   treatmentPlans.init();
 
   appointments.observableMap.observe((events) {
