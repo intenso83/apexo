@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'periodontal_chart_model.dart';
@@ -243,6 +246,7 @@ class PeriodontalChartEditor extends StatefulWidget {
 
 class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
   late final TextEditingController _notesController;
+  late final Map<String, FocusNode> _pdFocusNodes;
 
   PeriodontalChart get chart => widget.chart;
 
@@ -250,11 +254,21 @@ class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
   void initState() {
     super.initState();
     _notesController = TextEditingController(text: chart.notes);
+    _pdFocusNodes = {
+      for (final fdi in allPeriodontalTeeth)
+        for (final site in PeriodontalSite.values)
+          _pdKey(fdi, site): FocusNode(
+            debugLabel: 'periodontal-pd-$fdi-${site.name}',
+          ),
+    };
   }
 
   @override
   void dispose() {
     _notesController.dispose();
+    for (final node in _pdFocusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -275,8 +289,20 @@ class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
         const SizedBox(height: 10),
         InfoBar(
           severity: InfoBarSeverity.info,
-          title: Text(txt('periodontalVoiceReady')),
-          content: Text(txt('periodontalVoiceReadyDescription')),
+          title: Text(txt('periodontalQuickEntry')),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(txt('periodontalQuickEntryDescription')),
+              const SizedBox(height: 3),
+              Text(txt('periodontalGmHelp')),
+              const SizedBox(height: 3),
+              Text(
+                '${txt('periodontalVoiceReady')}: '
+                '${txt('periodontalVoiceReadyDescription')}',
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         _ArchEditor(
@@ -285,6 +311,8 @@ class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
           chart: chart,
           readOnly: widget.readOnly,
           onChanged: _changed,
+          pdFocusNode: _pdFocusNode,
+          onPdAdvance: _advancePdFocus,
         ),
         const SizedBox(height: 14),
         _ArchEditor(
@@ -293,6 +321,8 @@ class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
           chart: chart,
           readOnly: widget.readOnly,
           onChanged: _changed,
+          pdFocusNode: _pdFocusNode,
+          onPdAdvance: _advancePdFocus,
         ),
         const SizedBox(height: 14),
         InfoLabel(
@@ -335,6 +365,26 @@ class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
   }
 
   void _changed() => setState(() {});
+
+  String _pdKey(int fdi, PeriodontalSite site) => '$fdi-${site.name}';
+
+  FocusNode _pdFocusNode(int fdi, PeriodontalSite site) =>
+      _pdFocusNodes[_pdKey(fdi, site)]!;
+
+  void _advancePdFocus(int fdi, PeriodontalSite site) {
+    final targets = <(int, PeriodontalSite)>[
+      for (final toothFdi in allPeriodontalTeeth)
+        for (final toothSite in PeriodontalSite.values) (toothFdi, toothSite),
+    ];
+    final currentIndex = targets.indexOf((fdi, site));
+    for (var index = currentIndex + 1; index < targets.length; index++) {
+      final target = targets[index];
+      if (chart.tooth(target.$1).missing) continue;
+      _pdFocusNode(target.$1, target.$2).requestFocus();
+      return;
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
 }
 
 class _EditorHeader extends StatelessWidget {
@@ -499,6 +549,8 @@ class _ArchEditor extends StatelessWidget {
     required this.chart,
     required this.readOnly,
     required this.onChanged,
+    required this.pdFocusNode,
+    required this.onPdAdvance,
   });
 
   final String label;
@@ -506,6 +558,8 @@ class _ArchEditor extends StatelessWidget {
   final PeriodontalChart chart;
   final bool readOnly;
   final VoidCallback onChanged;
+  final FocusNode Function(int fdi, PeriodontalSite site) pdFocusNode;
+  final void Function(int fdi, PeriodontalSite site) onPdAdvance;
 
   @override
   Widget build(BuildContext context) {
@@ -525,6 +579,8 @@ class _ArchEditor extends StatelessWidget {
                   tooth: chart.tooth(fdi),
                   readOnly: readOnly,
                   onChanged: onChanged,
+                  pdFocusNode: pdFocusNode,
+                  onPdAdvance: onPdAdvance,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -541,11 +597,15 @@ class _ToothEditor extends StatelessWidget {
     required this.tooth,
     required this.readOnly,
     required this.onChanged,
+    required this.pdFocusNode,
+    required this.onPdAdvance,
   });
 
   final PeriodontalTooth tooth;
   final bool readOnly;
   final VoidCallback onChanged;
+  final FocusNode Function(int fdi, PeriodontalSite site) pdFocusNode;
+  final void Function(int fdi, PeriodontalSite site) onPdAdvance;
 
   @override
   Widget build(BuildContext context) {
@@ -638,6 +698,8 @@ class _ToothEditor extends StatelessWidget {
                     tooth: tooth,
                     readOnly: readOnly,
                     onChanged: onChanged,
+                    pdFocusNode: pdFocusNode,
+                    onPdAdvance: onPdAdvance,
                   ),
                   const Divider(size: 13),
                   _SurfaceEditor(
@@ -648,6 +710,8 @@ class _ToothEditor extends StatelessWidget {
                     tooth: tooth,
                     readOnly: readOnly,
                     onChanged: onChanged,
+                    pdFocusNode: pdFocusNode,
+                    onPdAdvance: onPdAdvance,
                   ),
                 ],
               ),
@@ -666,6 +730,8 @@ class _SurfaceEditor extends StatelessWidget {
     required this.tooth,
     required this.readOnly,
     required this.onChanged,
+    required this.pdFocusNode,
+    required this.onPdAdvance,
   });
 
   final String label;
@@ -673,6 +739,8 @@ class _SurfaceEditor extends StatelessWidget {
   final PeriodontalTooth tooth;
   final bool readOnly;
   final VoidCallback onChanged;
+  final FocusNode Function(int fdi, PeriodontalSite site) pdFocusNode;
+  final void Function(int fdi, PeriodontalSite site) onPdAdvance;
 
   @override
   Widget build(BuildContext context) {
@@ -702,17 +770,18 @@ class _SurfaceEditor extends StatelessWidget {
           label: 'PD',
           children: [
             for (final site in sites)
-              _SmallNumber(
+              _PocketDepthInput(
+                key: ValueKey('periodontal-pd-${tooth.fdi}-${site.name}'),
                 tooltip: '${site.abbreviation} · PD',
                 value: tooth.measurement(site).probingDepth,
-                min: 0,
-                max: 15,
                 enabled: !readOnly,
                 alert: (tooth.measurement(site).probingDepth ?? 0) >= 6,
+                focusNode: pdFocusNode(tooth.fdi, site),
                 onChanged: (value) {
                   tooth.measurement(site).probingDepth = value;
                   onChanged();
                 },
+                onAdvance: () => onPdAdvance(tooth.fdi, site),
               ),
           ],
         ),
@@ -817,7 +886,6 @@ class _SmallNumber extends StatelessWidget {
     required this.max,
     required this.enabled,
     required this.onChanged,
-    this.alert = false,
   });
 
   final String tooltip;
@@ -826,26 +894,149 @@ class _SmallNumber extends StatelessWidget {
   final int max;
   final bool enabled;
   final ValueChanged<int?> onChanged;
-  final bool alert;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: Container(
+      child: SizedBox(
         width: 40,
-        decoration: alert
-            ? BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.red.dark),
-              )
-            : null,
         child: NumberBox<int>(
           value: value,
           min: min,
           max: max,
           mode: SpinButtonPlacementMode.none,
           onChanged: enabled ? onChanged : null,
+        ),
+      ),
+    );
+  }
+}
+
+class _PocketDepthInput extends StatefulWidget {
+  const _PocketDepthInput({
+    super.key,
+    required this.tooltip,
+    required this.value,
+    required this.enabled,
+    required this.focusNode,
+    required this.onChanged,
+    required this.onAdvance,
+    this.alert = false,
+  });
+
+  final String tooltip;
+  final int? value;
+  final bool enabled;
+  final FocusNode focusNode;
+  final ValueChanged<int?> onChanged;
+  final VoidCallback onAdvance;
+  final bool alert;
+
+  @override
+  State<_PocketDepthInput> createState() => _PocketDepthInputState();
+}
+
+class _PocketDepthInputState extends State<_PocketDepthInput> {
+  late final TextEditingController _controller;
+  Timer? _advanceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value?.toString() ?? '');
+    widget.focusNode.addListener(_handleFocus);
+  }
+
+  @override
+  void didUpdateWidget(covariant _PocketDepthInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode.removeListener(_handleFocus);
+      widget.focusNode.addListener(_handleFocus);
+    }
+    final expected = widget.value?.toString() ?? '';
+    if (!widget.focusNode.hasFocus && _controller.text != expected) {
+      _controller.text = expected;
+    }
+  }
+
+  @override
+  void dispose() {
+    _advanceTimer?.cancel();
+    widget.focusNode.removeListener(_handleFocus);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleFocus() {
+    if (!widget.focusNode.hasFocus) {
+      _advanceTimer?.cancel();
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.focusNode.hasFocus) return;
+      _controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _controller.text.length,
+      );
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 160),
+        alignment: 0.5,
+      );
+    });
+  }
+
+  void _handleChanged(String text) {
+    _advanceTimer?.cancel();
+    final value = int.tryParse(text);
+    widget.onChanged(value);
+    if (value == null) return;
+
+    // Any single digit except 1 is already complete. A leading 1 waits briefly
+    // so the clinician can enter 10–15; typing the second digit advances at
+    // once. Enter and Tab remain available as explicit alternatives.
+    if (text.length >= 2 || text != '1') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && widget.focusNode.hasFocus) widget.onAdvance();
+      });
+    } else {
+      _advanceTimer = Timer(const Duration(milliseconds: 550), () {
+        if (mounted && widget.focusNode.hasFocus) widget.onAdvance();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: widget.tooltip,
+      child: Container(
+        width: 40,
+        decoration: widget.alert
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.red.dark),
+              )
+            : null,
+        child: TextBox(
+          controller: _controller,
+          focusNode: widget.focusNode,
+          enabled: widget.enabled,
+          textAlign: TextAlign.center,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            TextInputFormatter.withFunction((oldValue, newValue) {
+              if (newValue.text.isEmpty ||
+                  RegExp(r'^(?:[0-9]|1[0-5])$').hasMatch(newValue.text)) {
+                return newValue;
+              }
+              return oldValue;
+            }),
+          ],
+          onChanged: _handleChanged,
+          onSubmitted: (_) => widget.onAdvance(),
         ),
       ),
     );

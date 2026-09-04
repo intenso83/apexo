@@ -1158,6 +1158,11 @@ class Fa implements En {
     "periodontalMeasuredSites": "نقاط اندازه‌گیری‌شده",
     "periodontalMaxPocket": "بیشترین پاکت",
     "periodontalPlaque": "پلاک",
+    "periodontalQuickEntry": "ورود سریع پاکت‌ها",
+    "periodontalQuickEntryDescription":
+        "روی نخستین فیلد PD کلیک کنید و پیوسته عدد وارد کنید. مقادیر 0–9 فوراً جلو می‌روند؛ پس از 1، مکث کوتاه مقدار 1 را ثبت می‌کند یا رقم دوم 10–15 را کامل می‌کند.",
+    "periodontalGmHelp":
+        "GM موقعیت لبه لثه نسبت به CEJ است: مقدار مثبت نشان‌دهنده تحلیل و مقدار منفی نشان‌دهنده افزایش حجم لثه است.",
     "periodontalVoiceReady": "زیرساخت ورود صوتی آماده است",
     "periodontalVoiceReadyDescription":
         "چارت از ترتیب ثابت دندان‌ها و شش نقطه استفاده می‌کند. ضبط صدا هنوز فعال نیست.",

@@ -1164,6 +1164,11 @@ class En {
     "periodontalMeasuredSites": "Measured sites",
     "periodontalMaxPocket": "Maximum pocket",
     "periodontalPlaque": "Plaque",
+    "periodontalQuickEntry": "Rapid pocket entry",
+    "periodontalQuickEntryDescription":
+        "Click the first PD field and type continuously. Values 0–9 move immediately to the next pocket; after typing 1, a short pause accepts 1 or a second digit completes 10–15.",
+    "periodontalGmHelp":
+        "GM is the gingival margin relative to the CEJ: positive values indicate recession and negative values indicate gingival enlargement.",
     "periodontalVoiceReady": "Voice-entry foundation ready",
     "periodontalVoiceReadyDescription":
         "The chart follows a fixed tooth and six-site sequence. Voice recording is not active yet, but future transcribed numbers can use this same validated entry path.",
