@@ -961,6 +961,14 @@ class En {
 
     // login
     "login": "Login",
+    "clinicalBeta": "Clinical beta",
+    "clinicalBetaWelcome":
+        "The new clinical tools are ready to explore. Start with a patient record, not an appointment.",
+    "clinicalBetaLegacyChartHint":
+        "The circular tooth chart inside an appointment is Apexo's original quick-note view. The new odontogram, periodontal chart and treatment plans are in the patient record.",
+    "clinicalBetaPatientWorkspace": "Patient clinical workspace",
+    "clinicalBetaTreatmentPlanningDescription":
+        "Build treatment alternatives, discounts, financial summaries and patient PDFs.",
     "demoMode": "Demo",
     "demoUsesFakeData":
         "Open a safe demo with fake patient data. Nothing is sent to a server.",

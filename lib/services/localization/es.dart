@@ -978,6 +978,14 @@ class Es implements En {
 
     // login
     "login": "Iniciar sesión",
+    "clinicalBeta": "Beta clínica",
+    "clinicalBetaWelcome":
+        "Las nuevas herramientas clínicas están listas para probar. Empiece con la ficha de un paciente, no con una cita.",
+    "clinicalBetaLegacyChartHint":
+        "El odontograma circular de una cita es la vista original de notas rápidas de Apexo. El nuevo odontograma, el periodontograma y los planes de tratamiento están en la ficha del paciente.",
+    "clinicalBetaPatientWorkspace": "Espacio clínico del paciente",
+    "clinicalBetaTreatmentPlanningDescription":
+        "Cree alternativas de tratamiento, descuentos, resúmenes económicos y PDF para el paciente.",
     "demoMode": "Demostración",
     "demoUsesFakeData":
         "Abra una demostración segura con datos de pacientes ficticios. No se envía nada a un servidor.",

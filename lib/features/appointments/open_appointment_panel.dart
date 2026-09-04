@@ -679,6 +679,18 @@ class _OperativeDetailsState extends State<_OperativeDetails> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (patient != null)
+          InfoBar(
+            key: const ValueKey('open-patient-clinical-workspace'),
+            title: Text(txt('clinicalBetaPatientWorkspace')),
+            content: Text(txt('clinicalBetaLegacyChartHint')),
+            severity: InfoBarSeverity.info,
+            action: FilledButton(
+              onPressed: () => openPatient(patient, 3),
+              child: Text(txt('open')),
+            ),
+          ),
+        if (patient != null) const SizedBox(height: 12),
         if (widget.appointment.patient != null)
           InfoLabel(
             label: "${txt("dentalNotes")}:",

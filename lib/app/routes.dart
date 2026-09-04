@@ -6,6 +6,7 @@ import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/features/dicom/dicom_controller.dart';
 import 'package:apexo/features/dicom/dicom_screen.dart';
 import 'package:apexo/features/dashboard/dashboard_screen.dart';
+import 'package:apexo/features/clinical_beta/clinical_beta_screen.dart';
 import 'package:apexo/features/expenses/expenses_screen.dart';
 import 'package:apexo/features/labwork/labworks_screen.dart';
 import 'package:apexo/features/medical_history/medical_history_store.dart';
@@ -19,6 +20,7 @@ import 'package:apexo/features/accounts/accounts_screen.dart';
 import 'package:apexo/services/backups.dart';
 import 'package:apexo/features/stats/charts_controller.dart';
 import 'package:apexo/services/login.dart';
+import 'package:apexo/services/launch.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/services/perm.dart';
@@ -178,6 +180,20 @@ class _Routes {
   final showBottomNav = ObservableState(false);
 
   List<Route> get allRoutes => [
+        if (launch.isLocalDemo)
+          Route(
+            title: txt('clinicalBeta'),
+            identifier: 'clinicalBeta',
+            icon: FluentIcons.health,
+            screen: ClinicalBetaScreen.new,
+            accessible: true,
+            navbarTitle: txt('clinicalBeta'),
+            onSelect: () {
+              patients.synchronize();
+              therapyGroups.synchronize();
+              procedureCatalog.synchronize();
+            },
+          ),
         Route(
           title: txt("dashboard"),
           identifier: "dashboard",
@@ -293,14 +309,14 @@ class _Routes {
             accessible: login.isAdmin,
             onSelect: () {},
           ),
-        if (login.isAdmin)
+        if (login.isAdmin || launch.isLocalDemo)
           Route(
             title: txt("therapyCatalogue"),
             identifier: "therapyCatalogue",
             navbarTitle: txt("therapyCatalogue"),
             icon: FluentIcons.product_catalog,
             screen: TherapyCatalogScreen.new,
-            accessible: login.isAdmin,
+            accessible: login.isAdmin || launch.isLocalDemo,
             onSelect: () {
               therapyGroups.synchronize();
               procedureCatalog.synchronize();

@@ -957,6 +957,14 @@ class Fa implements En {
 
     // login
     "login": "ورود",
+    "clinicalBeta": "نسخه آزمایشی بالینی",
+    "clinicalBetaWelcome":
+        "ابزارهای بالینی جدید آماده آزمایش هستند. از پرونده بیمار شروع کنید، نه از نوبت.",
+    "clinicalBetaLegacyChartHint":
+        "نمودار دایره‌ای دندان در نوبت، نمای اصلی یادداشت سریع Apexo است. ادونتوگرام جدید، چارت پریودنتال و طرح‌های درمان در پرونده بیمار قرار دارند.",
+    "clinicalBetaPatientWorkspace": "فضای بالینی بیمار",
+    "clinicalBetaTreatmentPlanningDescription":
+        "گزینه‌های درمان، تخفیف‌ها، خلاصه‌های مالی و PDF بیمار را ایجاد کنید.",
     "demoMode": "نسخه نمایشی",
     "demoUsesFakeData":
         "یک نسخه نمایشی امن با اطلاعات ساختگی بیماران باز کنید. هیچ چیزی به سرور ارسال نمی‌شود.",

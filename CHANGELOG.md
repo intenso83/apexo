@@ -1,3 +1,10 @@
+### ____0.15.0-beta.2____
+
+- Colleague beta navigation fix
+    - Added a dedicated Clinical Beta home screen in local Demo mode with direct access to the new odontogram, periodontal chart, treatment planning, and therapy catalogue.
+    - Made the complete therapy catalogue visible and editable in local Demo mode.
+    - Added a clear link from the original appointment quick-note tooth wheel to the patient's new clinical workspace.
+
 ### ____0.15.0-beta.1____
 
 - Clinical beta milestone

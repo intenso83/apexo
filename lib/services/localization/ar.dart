@@ -947,6 +947,14 @@ class Ar implements En {
 
     // login
     "login": "تسجيل الدخول",
+    "clinicalBeta": "الإصدار السريري التجريبي",
+    "clinicalBetaWelcome":
+        "الأدوات السريرية الجديدة جاهزة للتجربة. ابدأ بفتح سجل مريض، وليس موعدًا.",
+    "clinicalBetaLegacyChartHint":
+        "مخطط الأسنان الدائري داخل الموعد هو عرض الملاحظات السريع الأصلي في Apexo. مخطط الأسنان الجديد ومخطط دواعم السن وخطط العلاج موجودة في سجل المريض.",
+    "clinicalBetaPatientWorkspace": "مساحة العمل السريرية للمريض",
+    "clinicalBetaTreatmentPlanningDescription":
+        "أنشئ بدائل علاجية وخصومات وملخصات مالية وملفات PDF للمريض.",
     "demoMode": "عرض تجريبي",
     "demoUsesFakeData":
         "افتح عرضًا تجريبيًا آمنًا ببيانات مرضى وهمية. لن يتم إرسال أي شيء إلى الخادم.",

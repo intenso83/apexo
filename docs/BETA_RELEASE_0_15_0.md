@@ -1,4 +1,4 @@
-# Apexo Clinical Beta 0.15.0-beta.1
+# Apexo Clinical Beta 0.15.0-beta.2
 
 This beta packages the clinical work completed through 4 September 2026 for focused colleague feedback. It preserves Apexo's normal patient, calendar, notes, expenses, accounts, offline and PocketBase workflows.
 
@@ -6,7 +6,7 @@ This beta packages the clinical work completed through 4 September 2026 for focu
 
 1. Extract the beta ZIP completely.
 2. Open `Apexo-Windows-Portable/apexo.exe`. Keep the executable beside its `data` and DLL folders.
-3. For a safe first look, choose **Demo**. Demo mode uses fake patients, includes the 279-treatment demonstration catalogue, and never connects to PocketBase.
+3. For a safe first look, choose **Demo**. Apexo now opens a dedicated **Clinical beta** home screen with direct buttons for the new clinical tools. Demo mode uses fake patients, includes the 279-treatment demonstration catalogue, and never connects to PocketBase.
 4. To test with an existing Apexo clinic, first make a PocketBase backup. Then enter the clinic's normal server URL, email and password on the login screen.
 
 The web build is included for a tester who already knows how to serve static web files. Opening `index.html` directly is not supported.
@@ -19,6 +19,7 @@ The web build is included for a tester who already knows how to serve static web
 - **Appointments and Google Calendar:** patient search while creating an appointment, contact details from the patient record, a link back to Apexo, per-user Google authorization, manual sync and low-traffic automatic sync after changes.
 - **Patient record:** responsive demographic/contact fields and immutable, dated medical-history revisions.
 - **Periodontal chart:** six sites per permanent tooth, rapid keyboard entry with automatic advance, PD/GM/CAL, bleeding, plaque, suppuration, mobility, furcation, missing teeth and implants. Lightweight upper/lower pocket-depth graphs and both completed and blank A4 PDF charts are included.
+- **Beta navigation:** Demo opens on a clinical feature launcher. The original circular tooth wheel remains available for quick appointment notes and now links directly to the patient's richer clinical record.
 
 ## Suggested 15-minute feedback pass
 
