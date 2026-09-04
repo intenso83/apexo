@@ -106,6 +106,12 @@ void main() {
       find.byKey(const ValueKey('field_signed_name')),
       'Test Patient',
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('signature_pad')));
+    await tester.drag(
+      find.byKey(const ValueKey('signature_pad')),
+      const Offset(100, 30),
+    );
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('next_button')));
     await tester.pumpAndSettle();
 

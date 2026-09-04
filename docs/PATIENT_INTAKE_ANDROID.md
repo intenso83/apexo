@@ -14,6 +14,10 @@ the PocketBase client SDK.
   patient.
 - Patient answers remain in memory, are sent only from the final confirmation
   screen, and are cleared after a successful response.
+- Form settings are available only from the staff preparation screen, before a
+  patient session starts. They are protected by a local password. The app stores
+  a random salt and a PBKDF2-HMAC-SHA256 verifier, never the password itself,
+  and temporarily locks settings after five incorrect attempts.
 - The server accepts a submission only with a 15-character PocketBase record id
   created by authenticated staff. The id expires after 30 minutes and is marked
   used in the same transaction that stores the submission.
@@ -33,6 +37,31 @@ does not save or transmit answers. The completion screen says this explicitly.
 
 The test build can be installed alongside Apexo because it has a separate
 application id. Android 7.0 (API 24) or newer is required.
+
+## Local form settings
+
+Tap `Form settings` on the staff preparation screen. On first use, create a
+password of at least eight characters. There is intentionally no recovery
+backdoor; if the password is forgotten, clear the app's Android storage and
+configure the form again.
+
+The settings screen allows staff to:
+
+- show or hide every optional personal field and medical-history question;
+- drag entries into a different order or move them to another page;
+- reorder, enable, disable, and rename pages in Greek, English, and German;
+- add custom pages and delete them again after their entries have been moved;
+- change the local settings password or restore the original layout.
+
+Family name, first name, and date of birth are always enabled. At least one of
+mobile, telephone, or email must remain enabled. The welcome/privacy step and
+the review/confirmation/signature step are fixed. A saved configuration takes
+effect on the next patient form and remains on that device until changed or the
+Android app data is cleared.
+
+The final step records both the patient's typed full name and normalized drawn
+signature strokes from a finger or stylus. The server validates drawn points
+before accepting the packet.
 
 ## Server deployment
 

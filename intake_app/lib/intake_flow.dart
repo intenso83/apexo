@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'form_configuration.dart';
 import 'intake_schema.dart';
+import 'intake_settings_store.dart';
+import 'signature_pad.dart';
+import 'staff_settings_screen.dart';
 import 'submission_client.dart';
 
 enum _ShellStage { preparation, intake, complete }
@@ -32,7 +36,9 @@ const _fieldKeys = <String>[
 ];
 
 class IntakeShell extends StatefulWidget {
-  const IntakeShell({super.key});
+  const IntakeShell({super.key, this.settingsStore});
+
+  final IntakeSettingsStore? settingsStore;
 
   @override
   State<IntakeShell> createState() => _IntakeShellState();
@@ -40,6 +46,9 @@ class IntakeShell extends StatefulWidget {
 
 class _IntakeShellState extends State<IntakeShell> {
   final _client = const IntakeSubmissionClient();
+  late final IntakeSettingsStore _settingsStore =
+      widget.settingsStore ?? IntakeSettingsStore();
+  final _signatureController = SignatureController();
   final _sessionController = TextEditingController();
   final _scrollController = ScrollController();
   late final Map<String, TextEditingController> _fields = {
@@ -54,13 +63,31 @@ class _IntakeShellState extends State<IntakeShell> {
   String? _submitError;
   bool _submitting = false;
   bool _testCompletion = false;
+  bool _settingsReady = false;
+  IntakeFormConfiguration _configuration = IntakeFormConfiguration.defaults();
 
-  static const _pageCount = 8;
+  int get _pageCount => _configuration.visiblePages.length + 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    await _settingsStore.load();
+    if (!mounted) return;
+    setState(() {
+      _configuration = _settingsStore.configuration.copy();
+      _settingsReady = true;
+    });
+  }
 
   @override
   void dispose() {
     _sessionController.dispose();
     _scrollController.dispose();
+    _signatureController.dispose();
     for (final controller in _fields.values) {
       controller.dispose();
     }
@@ -80,6 +107,7 @@ class _IntakeShellState extends State<IntakeShell> {
     for (final controller in _fields.values) {
       controller.clear();
     }
+    _signatureController.clear();
     setState(() {
       _draft = IntakeDraft();
       _sessionId = session;
@@ -103,8 +131,17 @@ class _IntakeShellState extends State<IntakeShell> {
   }
 
   void _copyFieldsToDraft() {
-    for (final key in _fieldKeys.take(16)) {
-      _draft.personal[key] = _fields[key]!.text;
+    const medicalFields = {
+      'reason_for_visit',
+      'present_condition',
+      'treating_physician',
+      'diseases_surgeries',
+      'general_notes',
+    };
+    for (final definition in intakeFieldDefinitions) {
+      if (!medicalFields.contains(definition.id)) {
+        _draft.personal[definition.id] = _fields[definition.id]!.text;
+      }
     }
     _draft.reasonForVisit = _fields['reason_for_visit']!.text;
     _draft.presentCondition = _fields['present_condition']!.text;
@@ -112,31 +149,56 @@ class _IntakeShellState extends State<IntakeShell> {
     _draft.diseasesSurgeries = _fields['diseases_surgeries']!.text;
     _draft.generalNotes = _fields['general_notes']!.text;
     _draft.signedName = _fields['signed_name']!.text;
+    _draft.signatureStrokes = _signatureController.toJson();
+    _draft.configurationRevision = _configuration.revision;
+    final visiblePageIds = _configuration.visiblePages
+        .map((page) => page.id)
+        .toSet();
+    _draft.visibleItemIds = _configuration.items
+        .where((item) => item.enabled && visiblePageIds.contains(item.pageId))
+        .map((item) => '${item.kind}:${item.id}')
+        .toList(growable: false);
   }
 
   bool _validatePage() {
     String? error;
     if (_page == 0 && !_draft.privacyAccepted) {
       error = t(_draft.language, 'privacy_required');
-    } else if (_page == 1) {
-      if (_fields['family_name']!.text.trim().isEmpty ||
-          _fields['given_name']!.text.trim().isEmpty ||
-          _fields['date_of_birth']!.text.trim().isEmpty) {
+    } else if (_page > 0 && _page < _pageCount - 1) {
+      final page = _configuration.visiblePages[_page - 1];
+      final items = _configuration.itemsForPage(page.id);
+      if (items.any(
+        (item) => item.mandatory && _fields[item.id]!.text.trim().isEmpty,
+      )) {
         error = t(_draft.language, 'identity_required');
       }
-    } else if (_page == 2) {
-      if (_fields['phone']!.text.trim().isEmpty &&
-          _fields['mobile']!.text.trim().isEmpty &&
-          _fields['email']!.text.trim().isEmpty) {
+      final contactPages = _configuration.visiblePages
+          .where(
+            (candidate) => _configuration
+                .itemsForPage(candidate.id)
+                .any((item) => item.isContactMethod),
+          )
+          .toList();
+      if (error == null &&
+          contactPages.isNotEmpty &&
+          contactPages.last.id == page.id &&
+          contactFieldIds.every(
+            (id) =>
+                !(_configuration.itemById(id)?.enabled ?? false) ||
+                _fields[id]!.text.trim().isEmpty,
+          )) {
         error = t(_draft.language, 'contact_required');
       }
-    } else if (_page >= 4 && _page <= 6) {
-      final questions = _questionsForPage(_page);
-      if (questions.any((q) => _draft.answers[q.id]!.value.isEmpty)) {
+      if (error == null &&
+          items
+              .where((item) => item.isQuestion)
+              .any((item) => _draft.answers[item.id]!.value.isEmpty)) {
         error = t(_draft.language, 'answers_required');
       }
-    } else if (_page == 7) {
-      if (!_draft.confirmed || _fields['signed_name']!.text.trim().isEmpty) {
+    } else if (_page == _pageCount - 1) {
+      if (!_draft.confirmed ||
+          _fields['signed_name']!.text.trim().isEmpty ||
+          _signatureController.isEmpty) {
         error = t(_draft.language, 'signature_required');
       }
     }
@@ -152,9 +214,15 @@ class _IntakeShellState extends State<IntakeShell> {
       _submit();
       return;
     }
+    final enteringReview = _page == _pageCount - 2;
     setState(() {
       _page += 1;
       _pageError = null;
+      if (enteringReview && _fields['signed_name']!.text.trim().isEmpty) {
+        _fields['signed_name']!.text =
+            '${_fields['given_name']!.text} ${_fields['family_name']!.text}'
+                .trim();
+      }
     });
     _scrollToTop();
   }
@@ -195,6 +263,7 @@ class _IntakeShellState extends State<IntakeShell> {
       for (final controller in _fields.values) {
         controller.clear();
       }
+      _signatureController.clear();
       setState(() {
         _draft = IntakeDraft();
         _sessionId = '';
@@ -215,6 +284,20 @@ class _IntakeShellState extends State<IntakeShell> {
         _submitError = t(_draft.language, 'submit_failed');
         _submitting = false;
       });
+    }
+  }
+
+  Future<void> _openSettings() async {
+    if (!_settingsReady) return;
+    final unlocked = await unlockStaffSettings(context, _settingsStore);
+    if (!unlocked || !mounted) return;
+    final result = await Navigator.of(context).push<IntakeFormConfiguration>(
+      MaterialPageRoute(
+        builder: (_) => StaffSettingsScreen(store: _settingsStore),
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _configuration = result);
     }
   }
 
@@ -286,17 +369,36 @@ class _IntakeShellState extends State<IntakeShell> {
                       else
                         const _SecurityNotice(),
                       SizedBox(height: compact ? 18 : 28),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: _startIntake,
-                          icon: const Icon(Icons.tablet_android),
-                          label: Text(
-                            _client.isConfigured
-                                ? 'Start patient intake'
-                                : 'Test the form',
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              key: const ValueKey('staff_settings_button'),
+                              onPressed: _settingsReady ? _openSettings : null,
+                              icon: const Icon(
+                                Icons.admin_panel_settings_outlined,
+                              ),
+                              label: Text(
+                                _settingsReady
+                                    ? 'Form settings'
+                                    : 'Loading settings…',
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: FilledButton.icon(
+                              onPressed: _startIntake,
+                              icon: const Icon(Icons.tablet_android),
+                              label: Text(
+                                _client.isConfigured
+                                    ? 'Start patient intake'
+                                    : 'Test the form',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -406,21 +508,12 @@ class _IntakeShellState extends State<IntakeShell> {
 
   Widget _pageBody(int page) {
     final children = <Widget>[];
-    switch (page) {
-      case 0:
-        children.addAll(_welcomePage());
-      case 1:
-        children.addAll(_identityPage());
-      case 2:
-        children.addAll(_contactPage());
-      case 3:
-        children.addAll(_medicalContextPage());
-      case 4:
-      case 5:
-      case 6:
-        children.addAll(_questionPage(page));
-      case 7:
-        children.addAll(_reviewPage());
+    if (page == 0) {
+      children.addAll(_welcomePage());
+    } else if (page == _pageCount - 1) {
+      children.addAll(_reviewPage());
+    } else {
+      children.addAll(_configuredPage(_configuration.visiblePages[page - 1]));
     }
     if (_pageError != null) {
       children.addAll([
@@ -485,137 +578,29 @@ class _IntakeShellState extends State<IntakeShell> {
     ];
   }
 
-  List<Widget> _identityPage() {
+  List<Widget> _configuredPage(IntakePageConfiguration page) {
     final language = _draft.language;
-    return [
-      _PageTitle(
-        title: t(language, 'identity_title'),
-        subtitle: t(language, 'required_hint'),
-      ),
-      const SizedBox(height: 20),
-      _ResponsiveFields(
-        children: [
-          _field('family_name', t(language, 'family_name'), required: true),
-          _field('given_name', t(language, 'given_name'), required: true),
-          _field('father_name', t(language, 'father_name')),
-          _field(
-            'date_of_birth',
-            t(language, 'date_of_birth'),
-            required: true,
-            keyboardType: TextInputType.datetime,
-            hint: 'DD/MM/YYYY',
-          ),
-          _field('occupation', t(language, 'occupation')),
-          _field('country_of_origin', t(language, 'country_of_origin')),
-        ],
-      ),
-    ];
-  }
-
-  List<Widget> _contactPage() {
-    final language = _draft.language;
-    return [
-      _PageTitle(
-        title: t(language, 'contact_title'),
-        subtitle: t(language, 'contact_hint'),
-      ),
-      const SizedBox(height: 20),
-      _ResponsiveFields(
-        children: [
-          _field(
-            'mobile',
-            t(language, 'mobile'),
-            keyboardType: TextInputType.phone,
-          ),
-          _field(
-            'phone',
-            t(language, 'phone'),
-            keyboardType: TextInputType.phone,
-          ),
-          _field(
-            'email',
-            t(language, 'email'),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          _field('address', t(language, 'address'), wide: true),
-          _field(
-            'postal_code',
-            t(language, 'postal_code'),
-            keyboardType: TextInputType.number,
-          ),
-          _field('city', t(language, 'city')),
-          _field('amka', 'AMKA'),
-          _field('afm', 'ΑΦΜ / Tax number'),
-          _field('doy', 'ΔΟΥ / Tax office'),
-          _field('insurance', t(language, 'insurance')),
-        ],
-      ),
-    ];
-  }
-
-  List<Widget> _medicalContextPage() {
-    final language = _draft.language;
-    return [
-      _PageTitle(
-        title: t(language, 'context_title'),
-        subtitle: t(language, 'context_hint'),
-      ),
-      const SizedBox(height: 20),
-      _field(
-        'reason_for_visit',
-        t(language, 'reason_for_visit'),
-        lines: 2,
-        wide: true,
-      ),
-      const SizedBox(height: 16),
-      _field(
-        'present_condition',
-        t(language, 'present_condition'),
-        lines: 3,
-        wide: true,
-      ),
-      const SizedBox(height: 16),
-      _field(
-        'treating_physician',
-        t(language, 'treating_physician'),
-        wide: true,
-      ),
-      const SizedBox(height: 16),
-      _field(
-        'diseases_surgeries',
-        t(language, 'diseases_surgeries'),
-        lines: 4,
-        wide: true,
-      ),
-    ];
-  }
-
-  List<IntakeQuestion> _questionsForPage(int page) {
-    final groups = switch (page) {
-      4 => {'allergies_and_reactions', 'systemic_conditions'},
-      5 => {'cardiovascular'},
-      _ => {'care_and_medication', 'lifestyle'},
-    };
-    return intakeQuestions.where((q) => groups.contains(q.group)).toList();
-  }
-
-  List<Widget> _questionPage(int page) {
-    final language = _draft.language;
-    final questions = _questionsForPage(page);
-    final titleKey = page == 4
-        ? 'conditions_title'
-        : page == 5
-        ? 'heart_title'
-        : 'care_title';
     final widgets = <Widget>[
       _PageTitle(
-        title: t(language, titleKey),
-        subtitle: t(language, 'answer_every'),
+        title: page.title(language),
+        subtitle: page.subtitle(language),
       ),
       const SizedBox(height: 20),
     ];
     String? lastGroup;
-    for (final question in questions) {
+    for (final item in _configuration.itemsForPage(page.id)) {
+      if (item.isField) {
+        final definition = intakeFieldsById[item.id];
+        if (definition == null) continue;
+        widgets.add(_fieldFromDefinition(definition, language));
+        widgets.add(const SizedBox(height: 14));
+        lastGroup = null;
+        continue;
+      }
+      final question = intakeQuestions
+          .where((candidate) => candidate.id == item.id)
+          .firstOrNull;
+      if (question == null) continue;
       if (question.group != lastGroup) {
         if (lastGroup != null) widgets.add(const SizedBox(height: 18));
         widgets.add(
@@ -640,10 +625,48 @@ class _IntakeShellState extends State<IntakeShell> {
     return widgets;
   }
 
+  Widget _fieldFromDefinition(
+    IntakeFieldDefinition definition,
+    String language,
+  ) {
+    final keyboardType = switch (definition.input) {
+      'date' => TextInputType.datetime,
+      'phone' => TextInputType.phone,
+      'email' => TextInputType.emailAddress,
+      'number' => TextInputType.number,
+      _ => null,
+    };
+    return _field(
+      definition.id,
+      definition.label(language),
+      required: definition.mandatory,
+      wide: definition.wide,
+      lines: definition.lines,
+      keyboardType: keyboardType,
+      hint: definition.input == 'date' ? 'DD/MM/YYYY' : null,
+    );
+  }
+
   List<Widget> _reviewPage() {
     final language = _draft.language;
+    final visiblePageIds = _configuration.visiblePages
+        .map((page) => page.id)
+        .toSet();
+    final visibleQuestionIds = _configuration.items
+        .where(
+          (item) =>
+              item.enabled &&
+              item.isQuestion &&
+              visiblePageIds.contains(item.pageId),
+        )
+        .map((item) => item.id)
+        .toSet();
     final yesQuestions = intakeQuestions
-        .where((question) => _draft.answers[question.id]!.value == 'yes')
+        .where(
+          (question) =>
+              visibleQuestionIds.contains(question.id) &&
+              _draft.answers[question.id]!.value == 'yes',
+        )
         .toList();
     return [
       _PageTitle(
@@ -672,13 +695,6 @@ class _IntakeShellState extends State<IntakeShell> {
             : yesQuestions.map((q) => q.label(language)).toList(),
       ),
       const SizedBox(height: 18),
-      _field(
-        'general_notes',
-        t(language, 'general_notes'),
-        lines: 3,
-        wide: true,
-      ),
-      const SizedBox(height: 20),
       _MessageBox(message: t(language, 'confirmation_text')),
       const SizedBox(height: 14),
       _LargeCheckbox(
@@ -692,6 +708,15 @@ class _IntakeShellState extends State<IntakeShell> {
         t(language, 'signed_name'),
         required: true,
         wide: true,
+      ),
+      const SizedBox(height: 18),
+      SignaturePad(
+        controller: _signatureController,
+        label: t(language, 'draw_signature'),
+        clearLabel: t(language, 'clear_signature'),
+        onChanged: () {
+          if (_pageError != null) setState(() => _pageError = null);
+        },
       ),
       const SizedBox(height: 14),
       Row(
@@ -883,17 +908,6 @@ class _PageTitle extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _ResponsiveFields extends StatelessWidget {
-  const _ResponsiveFields({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(spacing: 16, runSpacing: 16, children: children);
   }
 }
 
@@ -1217,6 +1231,9 @@ const _ui = <String, Map<String, String>>{
     'address': 'Διεύθυνση',
     'postal_code': 'Τ.Κ.',
     'city': 'Πόλη',
+    'amka': 'ΑΜΚΑ',
+    'afm': 'ΑΦΜ',
+    'doy': 'ΔΟΥ',
     'insurance': 'Ασφάλιση',
     'contact_required': 'Συμπληρώστε κινητό, τηλέφωνο ή email.',
     'context_title': 'Γενικές ιατρικές πληροφορίες',
@@ -1247,8 +1264,10 @@ const _ui = <String, Map<String, String>>{
         'Δηλώνω ότι οι παραπάνω πληροφορίες είναι ακριβείς σύμφωνα με όσα γνωρίζω και θα ενημερώσω το ιατρείο για οποιαδήποτε αλλαγή.',
     'confirm_checkbox': 'Επιβεβαιώνω ότι έλεγξα τις απαντήσεις μου.',
     'signed_name': 'Ονοματεπώνυμο ως υπογραφή',
+    'draw_signature': 'Υπογράψτε μέσα στο πλαίσιο με το δάχτυλο ή τη γραφίδα',
+    'clear_signature': 'Καθαρισμός',
     'signature_required':
-        'Επιβεβαιώστε τις απαντήσεις και γράψτε το ονοματεπώνυμό σας.',
+        'Επιβεβαιώστε τις απαντήσεις, γράψτε το ονοματεπώνυμό σας και υπογράψτε στο πλαίσιο.',
     'secure_submit_hint':
         'Μετά την επιτυχή αποστολή, οι απαντήσεις διαγράφονται από τη φόρμα του tablet.',
     'submit_failed':
@@ -1286,6 +1305,9 @@ const _ui = <String, Map<String, String>>{
     'address': 'Address',
     'postal_code': 'Postal code',
     'city': 'City',
+    'amka': 'AMKA',
+    'afm': 'Tax number',
+    'doy': 'Tax office',
     'insurance': 'Insurance',
     'contact_required': 'Enter a mobile, telephone, or email address.',
     'context_title': 'General medical information',
@@ -1315,7 +1337,10 @@ const _ui = <String, Map<String, String>>{
         'I declare that this information is accurate to the best of my knowledge and I will notify the practice of any changes.',
     'confirm_checkbox': 'I confirm that I reviewed my answers.',
     'signed_name': 'Full name as signature',
-    'signature_required': 'Confirm your answers and enter your full name.',
+    'draw_signature': 'Sign inside the box with your finger or stylus',
+    'clear_signature': 'Clear',
+    'signature_required':
+        'Confirm your answers, enter your full name, and sign in the box.',
     'secure_submit_hint':
         'After successful submission, the answers are cleared from the tablet form.',
     'submit_failed':
@@ -1353,6 +1378,9 @@ const _ui = <String, Map<String, String>>{
     'address': 'Anschrift',
     'postal_code': 'Postleitzahl',
     'city': 'Ort',
+    'amka': 'AMKA',
+    'afm': 'Steuernummer',
+    'doy': 'Finanzamt',
     'insurance': 'Versicherung',
     'contact_required': 'Bitte Mobiltelefon, Telefon oder E-Mail angeben.',
     'context_title': 'Allgemeine medizinische Angaben',
@@ -1384,8 +1412,10 @@ const _ui = <String, Map<String, String>>{
         'Ich erkläre, dass diese Angaben nach bestem Wissen richtig sind, und informiere die Praxis über Änderungen.',
     'confirm_checkbox': 'Ich bestätige, dass ich meine Antworten geprüft habe.',
     'signed_name': 'Vollständiger Name als Unterschrift',
+    'draw_signature': 'Unterschreiben Sie im Feld mit Finger oder Stift',
+    'clear_signature': 'Löschen',
     'signature_required':
-        'Bestätigen Sie die Antworten und geben Sie Ihren vollständigen Namen ein.',
+        'Bestätigen Sie die Antworten, geben Sie Ihren Namen ein und unterschreiben Sie im Feld.',
     'secure_submit_hint':
         'Nach erfolgreicher Übermittlung werden die Antworten aus dem Tablet-Formular gelöscht.',
     'submit_failed':

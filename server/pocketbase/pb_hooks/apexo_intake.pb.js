@@ -136,6 +136,31 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
       !isShortText(packet.signature.name, 240)) {
     throw new BadRequestError("The intake form must be confirmed and signed.")
   }
+  if (packet.signature.type === "drawn") {
+    const strokes = packet.signature.strokes
+    if (!Array.isArray(strokes) || strokes.length === 0 || strokes.length > 100) {
+      throw new BadRequestError("The drawn signature is missing or invalid.")
+    }
+    let pointCount = 0
+    for (let strokeIndex = 0; strokeIndex < strokes.length; strokeIndex++) {
+      const stroke = strokes[strokeIndex]
+      if (!Array.isArray(stroke) || stroke.length === 0 || stroke.length > 1000) {
+        throw new BadRequestError("The drawn signature is missing or invalid.")
+      }
+      for (let pointIndex = 0; pointIndex < stroke.length; pointIndex++) {
+        const point = stroke[pointIndex]
+        if (!point || typeof point.x !== "number" || typeof point.y !== "number" ||
+            !isFinite(point.x) || !isFinite(point.y) ||
+            point.x < 0 || point.x > 1 || point.y < 0 || point.y > 1) {
+          throw new BadRequestError("The drawn signature is missing or invalid.")
+        }
+        pointCount += 1
+      }
+    }
+    if (pointCount < 2) {
+      throw new BadRequestError("The drawn signature is missing or invalid.")
+    }
+  }
   const packetJson = JSON.stringify(packet)
   if (!packetJson || packetJson.length > maxPacketBytes) {
     throw new BadRequestError("The intake form is too large.")

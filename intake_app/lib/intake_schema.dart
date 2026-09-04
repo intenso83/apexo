@@ -369,12 +369,19 @@ class IntakeDraft {
   String treatingPhysician = '';
   String diseasesSurgeries = '';
   String generalNotes = '';
+  int configurationRevision = 1;
+  List<String> visibleItemIds = const [];
+  List<List<Map<String, double>>> signatureStrokes = const [];
 
   Map<String, dynamic> toJson() => {
     'packet_version': intakePacketVersion,
     'questionnaire_version': questionnaireVersion,
     'source': 'patient_intake_android',
     'language_code': language,
+    'form_configuration': {
+      'revision': configurationRevision,
+      'visible_item_ids': visibleItemIds,
+    },
     'submitted_at': DateTime.now().toUtc().toIso8601String(),
     'personal': personal.map((key, value) => MapEntry(key, value.trim()))
       ..removeWhere((_, value) => value.isEmpty),
@@ -392,8 +399,9 @@ class IntakeDraft {
     },
     'patient_confirmed': confirmed,
     'signature': {
-      'type': 'typed_name',
+      'type': 'drawn',
       'name': signedName.trim(),
+      'strokes': signatureStrokes,
       'signed_at': DateTime.now().toUtc().toIso8601String(),
     },
   };
