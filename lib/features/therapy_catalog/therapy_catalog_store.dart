@@ -12,6 +12,7 @@ import 'package:apexo/utils/hash.dart';
 
 import 'procedure_catalog_model.dart';
 import 'procedure_handling_classifier.dart';
+import 'therapy_catalog_demo.dart';
 import 'therapy_group_model.dart';
 
 class TherapyGroups extends Store<TherapyGroup> {
@@ -129,7 +130,16 @@ class ProcedureCatalog extends Store<ProcedureCatalogItem> {
   void init() {
     super.init();
     observableMap.observe(_clearCache);
-    _activateStore(this, 'procedure_catalog');
+    _activateStore(
+      this,
+      'procedure_catalog',
+      onLocalDemoActivated: () async {
+        if (therapyGroups.present.isNotEmpty || present.isNotEmpty) return;
+        final demo = await loadDemoTherapyCatalogue();
+        therapyGroups.setAll(demo.groups);
+        setAll(demo.procedures);
+      },
+    );
   }
 }
 
@@ -141,7 +151,11 @@ void _syncEnd() {
   networkActions.isSyncing(networkActions.isSyncing() - 1);
 }
 
-void _activateStore(Store store, String storeName) {
+void _activateStore(
+  Store store,
+  String storeName, {
+  Future<void> Function()? onLocalDemoActivated,
+}) {
   onLogoutCallbacks.add(store.endSession);
   login.activators[storeName] = () async {
     await store.loaded;
@@ -157,6 +171,9 @@ void _activateStore(Store store, String storeName) {
           if (network.isOnline() != current) network.isOnline(current);
         },
       );
+    }
+    if (launch.isLocalDemo && onLocalDemoActivated != null) {
+      await onLocalDemoActivated();
     }
     return () async {
       loginCtrl.loadingIndicator('Synchronizing therapy catalogue');

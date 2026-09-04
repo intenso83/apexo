@@ -1,3 +1,11 @@
+### ____0.15.0-beta.1____
+
+- Clinical beta milestone
+    - Added an editable therapy catalogue with automatic treatment-target workflows and Greek, English, and German treatment names.
+    - Added the permanent-dentition odontogram, treatment alternatives with branded PDF export, rapid periodontal charting with lightweight graphs and A4 reports, and treatment-plan completion into clinical history.
+    - Added patient-aware appointment entry and per-user Google Calendar synchronization with low-traffic automatic updates.
+    - Added a complete, disposable 279-treatment catalogue to local Demo mode for safe colleague evaluation.
+
 ### ____0.14.1____
 
 - New Features & Enhancements

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apexo Clinical Beta 0.15.0-beta.1</title>
+  <style>
+    :root { color-scheme: light; --ink:#18364a; --blue:#2477c9; --soft:#edf7fb; --line:#c8dce8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:16px/1.5 "Segoe UI",Arial,sans-serif; color:#263746; background:#f3f7f9; }
+    main { max-width:980px; margin:32px auto; background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 14px 40px #173c5514; }
+    header { padding:34px 42px 30px; color:#fff; background:linear-gradient(125deg,#123b56,#2477c9); }
+    h1 { margin:0 0 7px; font-size:32px; } header p { margin:0; opacity:.9; }
+    section { padding:26px 42px; border-top:1px solid var(--line); }
+    h2 { margin:0 0 14px; color:var(--ink); font-size:21px; }
+    .notice { background:#fff8de; border-left:5px solid #d9a400; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .card { padding:16px; border-radius:12px; background:var(--soft); }
+    .card strong { display:block; color:var(--ink); margin-bottom:4px; }
+    ol,ul { margin:8px 0 0; padding-left:22px; } li+li { margin-top:7px; }
+    footer { padding:18px 42px 28px; color:#607582; }
+    @media (max-width:700px) { main{margin:0;border-radius:0}.grid{grid-template-columns:1fr}header,section,footer{padding-left:24px;padding-right:24px} }
+  </style>
+</head>
+<body>
+<main>
+  <header><h1>Apexo Clinical Beta</h1><p>Version 0.15.0-beta.1 · colleague feedback build · 4 September 2026</p></header>
+  <section class="notice"><strong>Start safely:</strong> extract the ZIP, open <code>Apexo-Windows-Portable/apexo.exe</code>, and choose <strong>Demo</strong>. Back up PocketBase before testing with real clinic data.</section>
+  <section>
+    <h2>Clinical additions</h2>
+    <div class="grid">
+      <div class="card"><strong>Therapy catalogue</strong>Editable groups, source colours, prices, durations, five automatic workflows and reviewed Greek/English/German names.</div>
+      <div class="card"><strong>Odontogram</strong>Permanent dentition, precise surfaces, bridges and removable prosthetics, plus planned/completed clinical overlays.</div>
+      <div class="card"><strong>Treatment planning</strong>Alternative plans, internal discounts, patient-facing A4 PDFs, consent records and completion into treatment history.</div>
+      <div class="card"><strong>Periodontal chart</strong>Six-site rapid entry, PD/GM/CAL and clinical markers, lightweight graphs, patient PDF and blank handwriting form.</div>
+      <div class="card"><strong>Calendar workflow</strong>Patient search, contact details, patient-file link and per-user Google Calendar synchronization.</div>
+      <div class="card"><strong>Patient record</strong>Responsive contact/demographic data and immutable, dated medical-history revisions.</div>
+    </div>
+  </section>
+  <section>
+    <h2>Suggested feedback pass</h2>
+    <ol>
+      <li>Add a filling and crown to a Demo patient; compare planned and completed overlays.</li>
+      <li>Create two plan alternatives, add a discount and preview another PDF language.</li>
+      <li>Enter consecutive pocket depths without the mouse and print both periodontal PDF modes.</li>
+      <li>On a backed-up clinic only, select a patient while making an appointment and test Google sync after OAuth setup.</li>
+    </ol>
+  </section>
+  <section>
+    <h2>Important beta notes</h2>
+    <ul>
+      <li>Demo uses fake, disposable data and includes the 279-treatment demonstration catalogue.</li>
+      <li>A real clinic keeps its own catalogue; this practice's list is never inserted automatically.</li>
+      <li>Treatment plans remain local to this device in this beta. Completing an item creates the clinical event, never a payment.</li>
+      <li>Periodontal charting currently covers permanent teeth; voice entry is reserved but not enabled.</li>
+    </ul>
+  </section>
+  <footer>For a useful report, include the action, expected result, actual result and a screenshot.</footer>
+</main>
+</body>
+</html>
