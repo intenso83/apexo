@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class SignatureController extends ChangeNotifier {
@@ -56,6 +57,8 @@ class SignaturePad extends StatefulWidget {
 }
 
 class _SignaturePadState extends State<SignaturePad> {
+  int? _activePointer;
+
   @override
   void initState() {
     super.initState();
@@ -124,18 +127,40 @@ class _SignaturePadState extends State<SignaturePad> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final size = Size(constraints.maxWidth, constraints.maxHeight);
-              return GestureDetector(
+              return RawGestureDetector(
                 key: const ValueKey('signature_pad'),
                 behavior: HitTestBehavior.opaque,
-                onPanStart: (details) => widget.controller.start(
-                  _normalized(details.localPosition, size),
-                ),
-                onPanUpdate: (details) => widget.controller.append(
-                  _normalized(details.localPosition, size),
-                ),
-                child: CustomPaint(
-                  painter: _SignaturePainter(widget.controller.strokes),
-                  size: Size.infinite,
+                gestures: {
+                  EagerGestureRecognizer:
+                      GestureRecognizerFactoryWithHandlers<
+                        EagerGestureRecognizer
+                      >(EagerGestureRecognizer.new, (_) {}),
+                },
+                child: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (event) {
+                    if (_activePointer != null) return;
+                    _activePointer = event.pointer;
+                    widget.controller.start(
+                      _normalized(event.localPosition, size),
+                    );
+                  },
+                  onPointerMove: (event) {
+                    if (_activePointer != event.pointer) return;
+                    widget.controller.append(
+                      _normalized(event.localPosition, size),
+                    );
+                  },
+                  onPointerUp: (event) {
+                    if (_activePointer == event.pointer) _activePointer = null;
+                  },
+                  onPointerCancel: (event) {
+                    if (_activePointer == event.pointer) _activePointer = null;
+                  },
+                  child: CustomPaint(
+                    painter: _SignaturePainter(widget.controller.strokes),
+                    size: Size.infinite,
+                  ),
                 ),
               );
             },

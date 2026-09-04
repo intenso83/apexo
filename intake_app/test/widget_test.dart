@@ -30,6 +30,27 @@ void main() {
     );
   });
 
+  testWidgets('navigation buttons rise above the Android keyboard', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpWidget(const PracticeIntakeApp());
+    await tester.tap(find.text('Test the form'));
+    await tester.pumpAndSettle();
+
+    final next = find.byKey(const ValueKey('next_button'));
+    final originalBottom = tester.getBottomLeft(next).dy;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 220));
+    final keyboardBottom = tester.getBottomLeft(next).dy;
+
+    expect(keyboardBottom, lessThan(originalBottom - 250));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('completes the entire intake on a phone-sized screen', (
     tester,
   ) async {
@@ -52,10 +73,9 @@ void main() {
       find.byKey(const ValueKey('field_given_name')),
       'Patient',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('field_date_of_birth')),
-      '01/01/1990',
-    );
+    await tester.enterText(find.byKey(const ValueKey('date_day')), '01');
+    await tester.enterText(find.byKey(const ValueKey('date_month')), '01');
+    await tester.enterText(find.byKey(const ValueKey('date_year')), '1990');
     await tester.tap(find.byKey(const ValueKey('next_button')));
     await tester.pumpAndSettle();
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'date_input_field.dart';
 import 'form_configuration.dart';
 import 'intake_schema.dart';
 import 'intake_settings_store.dart';
@@ -171,6 +172,11 @@ class _IntakeShellState extends State<IntakeShell> {
         (item) => item.mandatory && _fields[item.id]!.text.trim().isEmpty,
       )) {
         error = t(_draft.language, 'identity_required');
+      }
+      if (error == null &&
+          items.any((item) => item.id == 'date_of_birth') &&
+          !isValidIntakeDate(_fields['date_of_birth']!.text.trim())) {
+        error = t(_draft.language, 'date_invalid');
       }
       final contactPages = _configuration.visiblePages
           .where(
@@ -413,7 +419,9 @@ class _IntakeShellState extends State<IntakeShell> {
 
   Widget _buildIntake() {
     final language = _draft.language;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -458,48 +466,53 @@ class _IntakeShellState extends State<IntakeShell> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
-          child: Row(
-            children: [
-              if (_page > 0)
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: keyboardInset),
+        child: SafeArea(
+          top: false,
+          child: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
+            child: Row(
+              children: [
+                if (_page > 0)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _submitting ? null : _back,
+                      icon: const Icon(Icons.arrow_back),
+                      label: Text(t(language, 'back')),
+                    ),
+                  ),
+                if (_page > 0) const SizedBox(width: 14),
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _submitting ? null : _back,
-                    icon: const Icon(Icons.arrow_back),
-                    label: Text(t(language, 'back')),
-                  ),
-                ),
-              if (_page > 0) const SizedBox(width: 14),
-              Expanded(
-                flex: 2,
-                child: FilledButton.icon(
-                  key: const ValueKey('next_button'),
-                  onPressed: _submitting ? null : _next,
-                  icon: _submitting
-                      ? const SizedBox.square(
-                          dimension: 22,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                      : Icon(
-                          _page == _pageCount - 1
-                              ? Icons.lock_outline
-                              : Icons.arrow_forward,
-                        ),
-                  label: Text(
-                    _submitting
-                        ? t(language, 'submitting')
-                        : t(
-                            language,
-                            _page == _pageCount - 1 ? 'submit' : 'next',
+                  flex: 2,
+                  child: FilledButton.icon(
+                    key: const ValueKey('next_button'),
+                    onPressed: _submitting ? null : _next,
+                    icon: _submitting
+                        ? const SizedBox.square(
+                            dimension: 22,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          )
+                        : Icon(
+                            _page == _pageCount - 1
+                                ? Icons.lock_outline
+                                : Icons.arrow_forward,
                           ),
+                    label: Text(
+                      _submitting
+                          ? t(language, 'submitting')
+                          : t(
+                              language,
+                              _page == _pageCount - 1 ? 'submit' : 'next',
+                            ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -629,8 +642,17 @@ class _IntakeShellState extends State<IntakeShell> {
     IntakeFieldDefinition definition,
     String language,
   ) {
+    if (definition.input == 'date') {
+      return DateInputField(
+        key: ValueKey('field_${definition.id}'),
+        controller: _fields[definition.id]!,
+        label: definition.label(language),
+        onChanged: () {
+          if (_pageError != null) setState(() => _pageError = null);
+        },
+      );
+    }
     final keyboardType = switch (definition.input) {
-      'date' => TextInputType.datetime,
       'phone' => TextInputType.phone,
       'email' => TextInputType.emailAddress,
       'number' => TextInputType.number,
@@ -643,7 +665,6 @@ class _IntakeShellState extends State<IntakeShell> {
       wide: definition.wide,
       lines: definition.lines,
       keyboardType: keyboardType,
-      hint: definition.input == 'date' ? 'DD/MM/YYYY' : null,
     );
   }
 
@@ -1220,6 +1241,7 @@ const _ui = <String, Map<String, String>>{
     'given_name': 'Όνομα',
     'father_name': 'Πατρώνυμο',
     'date_of_birth': 'Ημερομηνία γέννησης',
+    'date_invalid': 'Συμπληρώστε έγκυρη ημερομηνία σε μορφή ΗΗ/ΜΜ/ΕΕΕΕ.',
     'occupation': 'Επάγγελμα',
     'country_of_origin': 'Χώρα καταγωγής',
     'identity_required': 'Συμπληρώστε επώνυμο, όνομα και ημερομηνία γέννησης.',
@@ -1294,6 +1316,7 @@ const _ui = <String, Map<String, String>>{
     'given_name': 'First name',
     'father_name': 'Father’s name',
     'date_of_birth': 'Date of birth',
+    'date_invalid': 'Enter a valid date in DD/MM/YYYY format.',
     'occupation': 'Occupation',
     'country_of_origin': 'Country of origin',
     'identity_required': 'Enter family name, first name, and date of birth.',
@@ -1367,6 +1390,7 @@ const _ui = <String, Map<String, String>>{
     'given_name': 'Vorname',
     'father_name': 'Name des Vaters',
     'date_of_birth': 'Geburtsdatum',
+    'date_invalid': 'Geben Sie ein gültiges Datum im Format TT/MM/JJJJ ein.',
     'occupation': 'Beruf',
     'country_of_origin': 'Herkunftsland',
     'identity_required': 'Bitte Nachname, Vorname und Geburtsdatum eingeben.',
