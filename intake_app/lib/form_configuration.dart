@@ -8,6 +8,12 @@ const mandatoryFieldIds = <String>{
 
 const contactFieldIds = <String>{'mobile', 'phone', 'email'};
 
+const defaultPracticeNames = <String, String>{
+  'el': 'ΕΥΡΙΠΙΔΗΣ ΔΗΜΗΤΡΑΚΟΠΟΥΛΟΣ',
+  'en': 'EVRIPIDIS DIMITRAKOPOULOS',
+  'de': 'EVRIPIDIS DIMITRAKOPOULOS',
+};
+
 class IntakeFieldDefinition {
   const IntakeFieldDefinition({
     required this.id,
@@ -59,31 +65,6 @@ const _fieldLabels = <String, Labels>{
   'afm': {'el': 'ΑΦΜ', 'en': 'Tax number', 'de': 'Steuernummer'},
   'doy': {'el': 'ΔΟΥ', 'en': 'Tax office', 'de': 'Finanzamt'},
   'insurance': {'el': 'Ασφάλιση', 'en': 'Insurance', 'de': 'Versicherung'},
-  'reason_for_visit': {
-    'el': 'Λόγος επίσκεψης',
-    'en': 'Reason for visit',
-    'de': 'Grund des Besuchs',
-  },
-  'present_condition': {
-    'el': 'Παρούσα κατάσταση / συμπτώματα',
-    'en': 'Current condition / symptoms',
-    'de': 'Aktueller Zustand / Beschwerden',
-  },
-  'treating_physician': {
-    'el': 'Θεράπων ιατρός',
-    'en': 'Treating physician',
-    'de': 'Behandelnder Arzt',
-  },
-  'diseases_surgeries': {
-    'el': 'Παθήσεις, επεμβάσεις ή νοσηλείες',
-    'en': 'Diseases, operations, or hospital stays',
-    'de': 'Erkrankungen, Operationen oder Krankenhausaufenthalte',
-  },
-  'general_notes': {
-    'el': 'Άλλες πληροφορίες ή παρατηρήσεις',
-    'en': 'Other information or notes',
-    'de': 'Weitere Angaben oder Hinweise',
-  },
 };
 
 const intakeFieldDefinitions = <IntakeFieldDefinition>[
@@ -111,35 +92,6 @@ const intakeFieldDefinitions = <IntakeFieldDefinition>[
   IntakeFieldDefinition(id: 'afm', labelKey: 'afm'),
   IntakeFieldDefinition(id: 'doy', labelKey: 'doy'),
   IntakeFieldDefinition(id: 'insurance', labelKey: 'insurance'),
-  IntakeFieldDefinition(
-    id: 'reason_for_visit',
-    labelKey: 'reason_for_visit',
-    lines: 2,
-    wide: true,
-  ),
-  IntakeFieldDefinition(
-    id: 'present_condition',
-    labelKey: 'present_condition',
-    lines: 3,
-    wide: true,
-  ),
-  IntakeFieldDefinition(
-    id: 'treating_physician',
-    labelKey: 'treating_physician',
-    wide: true,
-  ),
-  IntakeFieldDefinition(
-    id: 'diseases_surgeries',
-    labelKey: 'diseases_surgeries',
-    lines: 4,
-    wide: true,
-  ),
-  IntakeFieldDefinition(
-    id: 'general_notes',
-    labelKey: 'general_notes',
-    lines: 3,
-    wide: true,
-  ),
 ];
 
 Map<String, IntakeFieldDefinition> get intakeFieldsById => {
@@ -241,11 +193,19 @@ class IntakeFormConfiguration {
     required this.pages,
     required this.items,
     this.revision = 1,
-  });
+    Labels? practiceNames,
+    this.customLogoPath = '',
+  }) : practiceNames = Map<String, String>.from(
+         practiceNames ?? defaultPracticeNames,
+       );
 
   int revision;
   List<IntakePageConfiguration> pages;
   List<IntakeItemConfiguration> items;
+  Labels practiceNames;
+  String customLogoPath;
+
+  String practiceName(String language) => localized(practiceNames, language);
 
   factory IntakeFormConfiguration.defaults() {
     final pages = <IntakePageConfiguration>[
@@ -276,21 +236,6 @@ class IntakeFormConfiguration {
           'de': 'Bitte geben Sie mindestens eine Kontaktmöglichkeit an.',
         },
         order: 1,
-      ),
-      IntakePageConfiguration(
-        id: 'medical_context',
-        titles: const {
-          'el': 'Γενικές ιατρικές πληροφορίες',
-          'en': 'General medical information',
-          'de': 'Allgemeine medizinische Angaben',
-        },
-        subtitles: const {
-          'el': 'Γράψτε ό,τι θεωρείτε σημαντικό για τη θεραπεία σας.',
-          'en': 'Tell us anything that may be important for your care.',
-          'de':
-              'Nennen Sie alles, was für Ihre Behandlung wichtig sein könnte.',
-        },
-        order: 2,
       ),
       IntakePageConfiguration(
         id: 'conditions',
@@ -371,14 +316,6 @@ class IntakeFormConfiguration {
       'doy',
       'insurance',
     ]);
-    addFields('medical_context', const [
-      'reason_for_visit',
-      'present_condition',
-      'treating_physician',
-      'diseases_surgeries',
-      'general_notes',
-    ]);
-
     final nextOrder = <String, int>{};
     for (final question in intakeQuestions) {
       final pageId = switch (question.group) {
@@ -417,6 +354,12 @@ class IntakeFormConfiguration {
           )
           .toList(),
       revision: int.tryParse(json['revision']?.toString() ?? '') ?? 1,
+      practiceNames: Map<String, String>.from(
+        (json['branding'] as Map?)?['practice_names'] as Map? ??
+            defaultPracticeNames,
+      ),
+      customLogoPath:
+          (json['branding'] as Map?)?['custom_logo_path']?.toString() ?? '',
     );
     return config..normalize();
   }
@@ -493,6 +436,7 @@ class IntakeFormConfiguration {
         items.add(defaultItem.copy());
       }
     }
+    pages.removeWhere((page) => page.id == 'medical_context');
     final validFieldIds = intakeFieldDefinitions
         .map((field) => field.id)
         .toSet();
@@ -508,7 +452,9 @@ class IntakeFormConfiguration {
 
     for (final item in items) {
       if (item.mandatory) item.enabled = true;
-      if (pageById(item.pageId) == null) item.pageId = 'medical_context';
+      if (pageById(item.pageId) == null) {
+        item.pageId = item.isField ? 'identity' : 'conditions';
+      }
     }
     if (!items.any((item) => item.isContactMethod && item.enabled)) {
       itemById('mobile')?.enabled = true;
@@ -519,6 +465,11 @@ class IntakeFormConfiguration {
             page.id,
           ).any((item) => item.mandatory || item.isContactMethod)) {
         page.enabled = true;
+      }
+    }
+    for (final language in const ['el', 'en', 'de']) {
+      if ((practiceNames[language] ?? '').trim().isEmpty) {
+        practiceNames[language] = defaultPracticeNames[language]!;
       }
     }
     final ordered = orderedPages;
@@ -540,6 +491,10 @@ class IntakeFormConfiguration {
 
   Map<String, dynamic> toJson() => {
     'revision': revision,
+    'branding': {
+      'practice_names': practiceNames,
+      'custom_logo_path': customLogoPath,
+    },
     'pages': orderedPages.map((page) => page.toJson()).toList(),
     'items': items.map((item) => item.toJson()).toList(),
   };
@@ -588,21 +543,6 @@ class _DefaultConfigurationBuilder {
           'de': 'Bitte geben Sie mindestens eine Kontaktmöglichkeit an.',
         },
         order: 1,
-      ),
-      IntakePageConfiguration(
-        id: 'medical_context',
-        titles: const {
-          'el': 'Γενικές ιατρικές πληροφορίες',
-          'en': 'General medical information',
-          'de': 'Allgemeine medizinische Angaben',
-        },
-        subtitles: const {
-          'el': 'Γράψτε ό,τι θεωρείτε σημαντικό για τη θεραπεία σας.',
-          'en': 'Tell us anything that may be important for your care.',
-          'de':
-              'Nennen Sie alles, was für Ihre Behandlung wichtig sein könnte.',
-        },
-        order: 2,
       ),
       IntakePageConfiguration(
         id: 'conditions',
@@ -668,13 +608,6 @@ class _DefaultConfigurationBuilder {
         'afm',
         'doy',
         'insurance',
-      ],
-      'medical_context': [
-        'reason_for_visit',
-        'present_condition',
-        'treating_physician',
-        'diseases_surgeries',
-        'general_notes',
       ],
     };
     for (final entry in fieldPages.entries) {

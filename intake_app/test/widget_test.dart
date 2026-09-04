@@ -16,18 +16,22 @@ void main() {
   });
 
   test('questionnaire keeps the canonical version and stable unique IDs', () {
-    expect(questionnaireVersion, 'practice-medical-history-2026-09-02-v1');
+    expect(questionnaireVersion, 'practice-medical-history-2026-09-04-v2');
     final ids = intakeQuestions.map((question) => question.id).toList();
     expect(ids.toSet().length, ids.length);
     expect(
       ids,
       containsAll(<String>[
         'allergies',
+        'antibiotic_allergy',
         'cardiovascular_disease',
         'antiresorptive_therapy',
         'adverse_dental_reaction',
       ]),
     );
+    expect(ids, isNot(contains('penicillin_allergy')));
+    expect(ids, isNot(contains('latex_allergy')));
+    expect(ids, isNot(contains('alcohol_use')));
   });
 
   testWidgets('navigation buttons rise above the Android keyboard', (
@@ -83,9 +87,6 @@ void main() {
       find.byKey(const ValueKey('field_mobile')),
       '6900000000',
     );
-    await tester.tap(find.byKey(const ValueKey('next_button')));
-    await tester.pumpAndSettle();
-
     await tester.tap(find.byKey(const ValueKey('next_button')));
     await tester.pumpAndSettle();
 

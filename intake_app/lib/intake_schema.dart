@@ -1,5 +1,5 @@
-const questionnaireVersion = 'practice-medical-history-2026-09-02-v1';
-const intakePacketVersion = 'practice-patient-intake-2026-09-02-v1';
+const questionnaireVersion = 'practice-medical-history-2026-09-04-v2';
+const intakePacketVersion = 'practice-patient-intake-2026-09-04-v2';
 
 typedef Labels = Map<String, String>;
 
@@ -55,21 +55,12 @@ const intakeQuestions = <IntakeQuestion>[
     },
   ),
   IntakeQuestion(
-    id: 'penicillin_allergy',
+    id: 'antibiotic_allergy',
     group: 'allergies_and_reactions',
     labels: {
-      'el': 'Αλλεργία στην πενικιλίνη',
-      'en': 'Penicillin allergy',
-      'de': 'Penicillinallergie',
-    },
-  ),
-  IntakeQuestion(
-    id: 'latex_allergy',
-    group: 'allergies_and_reactions',
-    labels: {
-      'el': 'Αλλεργία στο λάτεξ',
-      'en': 'Latex allergy',
-      'de': 'Latexallergie',
+      'el': 'Αλλεργία σε αντιβιοτικό',
+      'en': 'Antibiotic allergy',
+      'de': 'Allergie gegen Antibiotika',
     },
   ),
   IntakeQuestion(
@@ -162,9 +153,9 @@ const intakeQuestions = <IntakeQuestion>[
     id: 'liver_kidney_disease',
     group: 'systemic_conditions',
     labels: {
-      'el': 'Πάθηση ήπατος ή νεφρών',
-      'en': 'Liver or kidney disease',
-      'de': 'Leber- oder Nierenerkrankung',
+      'el': 'Πάθηση νεφρών ή ήπατος',
+      'en': 'Kidney or liver disease',
+      'de': 'Nieren- oder Lebererkrankung',
     },
   ),
   IntakeQuestion(
@@ -257,18 +248,21 @@ const intakeQuestions = <IntakeQuestion>[
     id: 'antibiotic_prophylaxis',
     group: 'cardiovascular',
     labels: {
-      'el': 'Αντιβιοτική προφύλαξη πριν από οδοντιατρική θεραπεία',
-      'en': 'Antibiotic prophylaxis before dental treatment',
-      'de': 'Antibiotikaprophylaxe vor Zahnbehandlung',
+      'el':
+          'Αντιβιοτική προφύλαξη πριν από οδοντιατρική θεραπεία, κατόπιν εντολής ιατρού',
+      'en':
+          'Antibiotic prophylaxis ordered by a doctor before dental treatment',
+      'de':
+          'Ärztlich angeordnete Antibiotikaprophylaxe vor einer Zahnbehandlung',
     },
   ),
   IntakeQuestion(
     id: 'pregnancy',
     group: 'care_and_medication',
     labels: {
-      'el': 'Εγκυμοσύνη ή πιθανότητα εγκυμοσύνης',
-      'en': 'Pregnancy or possibility of pregnancy',
-      'de': 'Schwangerschaft oder mögliche Schwangerschaft',
+      'el': '♀ Εγκυμοσύνη ή πιθανότητα εγκυμοσύνης',
+      'en': '♀ Pregnancy or possibility of pregnancy',
+      'de': '♀ Schwangerschaft oder mögliche Schwangerschaft',
     },
   ),
   IntakeQuestion(
@@ -320,9 +314,12 @@ const intakeQuestions = <IntakeQuestion>[
     id: 'antiresorptive_therapy',
     group: 'care_and_medication',
     labels: {
-      'el': 'Αντιοστεολυτική αγωγή, συμπεριλαμβανομένων των διφωσφονικών',
-      'en': 'Antiresorptive medication, including bisphosphonates',
-      'de': 'Antiresorptive Medikamente, einschließlich Bisphosphonate',
+      'el':
+          'Αντιοστεολυτική αγωγή — Prolia® (denosumab) ή διφωσφονικά, π.χ. alendronate, risedronate, ibandronate, zoledronic acid',
+      'en':
+          'Antiresorptive treatment — Prolia® (denosumab) or bisphosphonates, e.g. alendronate, risedronate, ibandronate, zoledronic acid',
+      'de':
+          'Antiresorptive Therapie — Prolia® (Denosumab) oder Bisphosphonate, z. B. Alendronat, Risedronat, Ibandronat, Zoledronsäure',
     },
   ),
   IntakeQuestion(
@@ -330,25 +327,35 @@ const intakeQuestions = <IntakeQuestion>[
     group: 'lifestyle',
     labels: {'el': 'Κάπνισμα', 'en': 'Smoking', 'de': 'Rauchen'},
   ),
-  IntakeQuestion(
-    id: 'alcohol_use',
-    group: 'lifestyle',
-    labels: {
-      'el': 'Χρήση αλκοόλ σχετική με τη θεραπεία',
-      'en': 'Alcohol use relevant to care',
-      'de': 'Für die Behandlung relevanter Alkoholkonsum',
-    },
-  ),
 ];
 
 class IntakeAnswer {
   String value = '';
   String notes = '';
+  List<String> selections = [];
 
   Map<String, dynamic> toJson() => {
     'value': value.isEmpty ? 'unknown' : value,
+    if (selections.isNotEmpty) 'selections': selections,
     if (notes.trim().isNotEmpty) 'notes': notes.trim(),
   };
+}
+
+bool requiresQuestionDetails(String questionId, IntakeAnswer answer) =>
+    answer.value == 'yes' &&
+    const {
+      'antibiotic_allergy',
+      'liver_kidney_disease',
+      'smoking',
+    }.contains(questionId);
+
+bool hasValidRequiredDetails(String questionId, IntakeAnswer answer) {
+  if (!requiresQuestionDetails(questionId, answer)) return true;
+  final text = answer.notes.trim();
+  if (text.isEmpty) return false;
+  if (questionId != 'smoking') return true;
+  final daily = int.tryParse(text);
+  return daily != null && daily > 0 && daily <= 200;
 }
 
 class IntakeDraft {
@@ -364,11 +371,6 @@ class IntakeDraft {
   bool privacyAccepted = false;
   bool confirmed = false;
   String signedName = '';
-  String reasonForVisit = '';
-  String presentCondition = '';
-  String treatingPhysician = '';
-  String diseasesSurgeries = '';
-  String generalNotes = '';
   int configurationRevision = 1;
   List<String> visibleItemIds = const [];
   List<List<Map<String, double>>> signatureStrokes = const [];
@@ -378,6 +380,7 @@ class IntakeDraft {
     'questionnaire_version': questionnaireVersion,
     'source': 'patient_intake_android',
     'language_code': language,
+    'gdpr_acknowledged': privacyAccepted,
     'form_configuration': {
       'revision': configurationRevision,
       'visible_item_ids': visibleItemIds,
@@ -386,15 +389,6 @@ class IntakeDraft {
     'personal': personal.map((key, value) => MapEntry(key, value.trim()))
       ..removeWhere((_, value) => value.isEmpty),
     'medical_history': {
-      if (reasonForVisit.trim().isNotEmpty)
-        'reason_for_visit': reasonForVisit.trim(),
-      if (presentCondition.trim().isNotEmpty)
-        'present_condition': presentCondition.trim(),
-      if (treatingPhysician.trim().isNotEmpty)
-        'treating_physician': treatingPhysician.trim(),
-      if (diseasesSurgeries.trim().isNotEmpty)
-        'diseases_surgeries': diseasesSurgeries.trim(),
-      if (generalNotes.trim().isNotEmpty) 'general_notes': generalNotes.trim(),
       'answers': answers.map((key, value) => MapEntry(key, value.toJson())),
     },
     'patient_confirmed': confirmed,

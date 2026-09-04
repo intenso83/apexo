@@ -39,6 +39,21 @@ void main() {
     expect((await store.verifyPassword('a secure password')).success, isFalse);
   });
 
+  test('copies a selected practice logo into private app storage', () async {
+    final directory = await Directory.systemTemp.createTemp('intake_logo_');
+    addTearDown(() => directory.delete(recursive: true));
+    final source = File(
+      '${directory.path}${Platform.pathSeparator}selected-logo.png',
+    );
+    await source.writeAsBytes(const [0x89, 0x50, 0x4e, 0x47]);
+    final store = IntakeSettingsStore(directory: directory, iterations: 10);
+
+    final importedPath = await store.importCustomLogo(source.path);
+
+    expect(importedPath, isNot(source.path));
+    expect(await File(importedPath).readAsBytes(), await source.readAsBytes());
+  });
+
   testWidgets('settings screen is usable on a phone-sized display', (
     tester,
   ) async {

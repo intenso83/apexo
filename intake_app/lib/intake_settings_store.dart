@@ -44,11 +44,32 @@ class IntakeSettingsStore {
   bool get hasPassword =>
       _password['salt'] is String && _password['verifier'] is String;
 
-  Future<File> get _file async {
+  Future<Directory> get _supportDirectory async {
     final directory =
         _directoryOverride ?? await getApplicationSupportDirectory();
     if (!await directory.exists()) await directory.create(recursive: true);
-    return File('${directory.path}${Platform.pathSeparator}$_fileName');
+    return directory;
+  }
+
+  Future<File> get _file async => File(
+    '${(await _supportDirectory).path}${Platform.pathSeparator}$_fileName',
+  );
+
+  Future<String> importCustomLogo(String sourcePath) async {
+    final source = File(sourcePath);
+    if (!await source.exists()) {
+      throw const FileSystemException('The selected logo could not be read.');
+    }
+    final length = await source.length();
+    if (length == 0 || length > 12 * 1024 * 1024) {
+      throw const FormatException('Choose a logo smaller than 12 MB.');
+    }
+    final directory = await _supportDirectory;
+    final destination = File(
+      '${directory.path}${Platform.pathSeparator}practice_logo_custom',
+    );
+    await source.copy(destination.path);
+    return destination.path;
   }
 
   Future<void> load() async {

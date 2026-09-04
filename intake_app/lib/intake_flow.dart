@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -28,11 +30,6 @@ const _fieldKeys = <String>[
   'doy',
   'insurance',
   'country_of_origin',
-  'reason_for_visit',
-  'present_condition',
-  'treating_physician',
-  'diseases_surgeries',
-  'general_notes',
   'signed_name',
 ];
 
@@ -132,23 +129,9 @@ class _IntakeShellState extends State<IntakeShell> {
   }
 
   void _copyFieldsToDraft() {
-    const medicalFields = {
-      'reason_for_visit',
-      'present_condition',
-      'treating_physician',
-      'diseases_surgeries',
-      'general_notes',
-    };
     for (final definition in intakeFieldDefinitions) {
-      if (!medicalFields.contains(definition.id)) {
-        _draft.personal[definition.id] = _fields[definition.id]!.text;
-      }
+      _draft.personal[definition.id] = _fields[definition.id]!.text;
     }
-    _draft.reasonForVisit = _fields['reason_for_visit']!.text;
-    _draft.presentCondition = _fields['present_condition']!.text;
-    _draft.treatingPhysician = _fields['treating_physician']!.text;
-    _draft.diseasesSurgeries = _fields['diseases_surgeries']!.text;
-    _draft.generalNotes = _fields['general_notes']!.text;
     _draft.signedName = _fields['signed_name']!.text;
     _draft.signatureStrokes = _signatureController.toJson();
     _draft.configurationRevision = _configuration.revision;
@@ -200,6 +183,15 @@ class _IntakeShellState extends State<IntakeShell> {
               .where((item) => item.isQuestion)
               .any((item) => _draft.answers[item.id]!.value.isEmpty)) {
         error = t(_draft.language, 'answers_required');
+      }
+      if (error == null &&
+          items
+              .where((item) => item.isQuestion)
+              .any(
+                (item) =>
+                    !hasValidRequiredDetails(item.id, _draft.answers[item.id]!),
+              )) {
+        error = t(_draft.language, 'details_required');
       }
     } else if (_page == _pageCount - 1) {
       if (!_draft.confirmed ||
@@ -336,7 +328,11 @@ class _IntakeShellState extends State<IntakeShell> {
                   padding: EdgeInsets.all(compact ? 20 : 32),
                   child: Column(
                     children: [
-                      PracticeHeader(compact: compact),
+                      PracticeHeader(
+                        compact: compact,
+                        configuration: _configuration,
+                        language: _draft.language,
+                      ),
                       SizedBox(height: compact ? 14 : 28),
                       const Divider(),
                       SizedBox(height: compact ? 14 : 24),
@@ -430,7 +426,11 @@ class _IntakeShellState extends State<IntakeShell> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
               child: Column(
                 children: [
-                  const PracticeHeader(compact: true),
+                  PracticeHeader(
+                    compact: true,
+                    configuration: _configuration,
+                    language: language,
+                  ),
                   const SizedBox(height: 10),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -581,7 +581,12 @@ class _IntakeShellState extends State<IntakeShell> {
         ],
       ),
       const SizedBox(height: 28),
-      _MessageBox(message: t(language, 'privacy_text')),
+      Text(
+        t(language, 'gdpr_title'),
+        style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
+      ),
+      const SizedBox(height: 10),
+      _MessageBox(message: _gdprNotice(language)),
       const SizedBox(height: 16),
       _LargeCheckbox(
         value: _draft.privacyAccepted,
@@ -589,6 +594,48 @@ class _IntakeShellState extends State<IntakeShell> {
         onChanged: (value) => setState(() => _draft.privacyAccepted = value),
       ),
     ];
+  }
+
+  String _gdprNotice(String language) {
+    final name = _configuration.practiceName(language);
+    return switch (language) {
+      'el' =>
+        'Υπεύθυνος επεξεργασίας είναι το $name. Συλλέγουμε τα στοιχεία '
+            'ταυτοποίησης, επικοινωνίας και υγείας αυτής της φόρμας αποκλειστικά '
+            'για οδοντιατρική διάγνωση και θεραπεία, τήρηση του ιατρικού αρχείου '
+            'και συμμόρφωση με τις νόμιμες υποχρεώσεις του ιατρείου. Η επεξεργασία '
+            'δεδομένων υγείας είναι αναγκαία για την παροχή υγειονομικής περίθαλψης '
+            '(άρθρο 9 παρ. 2η ΓΚΠΔ) και γίνεται υπό επαγγελματικό απόρρητο. Πρόσβαση '
+            'έχουν μόνο εξουσιοδοτημένα μέλη του ιατρείου και δεσμευμένοι εκτελούντες '
+            'την επεξεργασία. Τα δεδομένα τηρούνται για όσο απαιτεί η θεραπεία και '
+            'η ισχύουσα νομοθεσία. Μπορείτε να ζητήσετε ενημέρωση, πρόσβαση, διόρθωση '
+            'ή περιορισμό και, όπου εφαρμόζεται, διαγραφή ή φορητότητα, επικοινωνώντας '
+            'με το ιατρείο. Έχετε επίσης δικαίωμα καταγγελίας στην Αρχή Προστασίας '
+            'Δεδομένων Προσωπικού Χαρακτήρα (dpa.gr).',
+      'de' =>
+        'Verantwortlicher ist $name. Wir erheben die Identitäts-, Kontakt- und '
+            'Gesundheitsdaten dieses Formulars ausschließlich für zahnärztliche '
+            'Diagnose und Behandlung, die Patientenakte und gesetzliche Pflichten. '
+            'Die Verarbeitung von Gesundheitsdaten ist für die Gesundheitsversorgung '
+            'erforderlich (Art. 9 Abs. 2 Buchst. h DSGVO) und unterliegt der '
+            'beruflichen Schweigepflicht. Zugriff haben nur befugte Praxismitarbeiter '
+            'und vertraglich gebundene Auftragsverarbeiter. Die Daten werden so lange '
+            'gespeichert, wie Behandlung und geltendes Recht es verlangen. Sie können '
+            'bei der Praxis Auskunft, Zugang, Berichtigung oder Einschränkung sowie, '
+            'soweit anwendbar, Löschung oder Übertragbarkeit verlangen. Sie können '
+            'außerdem Beschwerde bei der zuständigen Datenschutzaufsicht einlegen.',
+      _ =>
+        'The data controller is $name. We collect the identity, contact, and health '
+            'information in this form solely for dental diagnosis and treatment, '
+            'maintenance of the clinical record, and the practice’s legal obligations. '
+            'Health-data processing is necessary for healthcare provision '
+            '(GDPR Article 9(2)(h)) and is subject to professional confidentiality. '
+            'Access is limited to authorised practice staff and bound service providers. '
+            'Data is retained for as long as treatment and applicable law require. '
+            'You may ask the practice for information, access, correction, or restriction '
+            'and, where applicable, deletion or portability. You may also complain to '
+            'the competent data-protection authority.',
+    };
   }
 
   List<Widget> _configuredPage(IntakePageConfiguration page) {
@@ -797,7 +844,11 @@ class _IntakeShellState extends State<IntakeShell> {
                     children: [
                       GestureDetector(
                         onLongPress: _returnToPreparation,
-                        child: const PracticeHeader(compact: false),
+                        child: PracticeHeader(
+                          compact: false,
+                          configuration: _configuration,
+                          language: _draft.language,
+                        ),
                       ),
                       const SizedBox(height: 30),
                       Icon(
@@ -844,34 +895,37 @@ class _IntakeShellState extends State<IntakeShell> {
 }
 
 class PracticeHeader extends StatelessWidget {
-  const PracticeHeader({super.key, required this.compact});
+  const PracticeHeader({
+    super.key,
+    required this.compact,
+    required this.configuration,
+    required this.language,
+  });
 
   final bool compact;
+  final IntakeFormConfiguration configuration;
+  final String language;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset(
-          'assets/practice_logo.gif',
-          width: compact ? 62 : 94,
-          height: compact ? 62 : 94,
-        ),
+        _PracticeLogo(configuration: configuration, compact: compact),
         const SizedBox(width: 16),
         Flexible(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'ΕΥΡΙΠΙΔΗΣ ΔΗΜΗΤΡΑΚΟΠΟΥΛΟΣ',
+                configuration.practiceName(language),
                 style: TextStyle(
                   fontSize: compact ? 16 : 21,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               Text(
-                'Οδοντίατρος',
+                t(language, 'practice_type'),
                 style: TextStyle(fontSize: compact ? 14 : 17),
               ),
               if (!compact)
@@ -883,6 +937,33 @@ class PracticeHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PracticeLogo extends StatelessWidget {
+  const _PracticeLogo({required this.configuration, required this.compact});
+
+  final IntakeFormConfiguration configuration;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = compact ? 62.0 : 94.0;
+    final fallback = Image.asset(
+      'assets/practice_logo.gif',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+    );
+    final path = configuration.customLogoPath.trim();
+    if (path.isEmpty) return fallback;
+    return Image.file(
+      File(path),
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      errorBuilder: (_, _, _) => fallback,
     );
   }
 }
@@ -1010,6 +1091,20 @@ class _LargeCheckbox extends StatelessWidget {
   }
 }
 
+class _QuestionChoice {
+  const _QuestionChoice(
+    this.id,
+    this.label,
+    this.value, [
+    this.selections = const [],
+  ]);
+
+  final String id;
+  final String label;
+  final String value;
+  final List<String> selections;
+}
+
 class _QuestionCard extends StatefulWidget {
   const _QuestionCard({
     required this.question,
@@ -1050,12 +1145,11 @@ class _QuestionCardState extends State<_QuestionCard> {
   @override
   Widget build(BuildContext context) {
     final language = widget.language;
-    final choices = <(String, String)>[
-      ('no', t(language, 'no')),
-      ('yes', t(language, 'yes')),
-      ('unknown', t(language, 'unknown')),
-      ('not_applicable', t(language, 'not_applicable')),
-    ];
+    final choices = _choices(language);
+    final detailsRequired = requiresQuestionDetails(
+      widget.question.id,
+      widget.answer,
+    );
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -1085,34 +1179,46 @@ class _QuestionCardState extends State<_QuestionCard> {
               spacing: 10,
               runSpacing: 10,
               children: choices.map((choice) {
-                final selected = widget.answer.value == choice.$1;
+                final selected =
+                    widget.answer.value == choice.value &&
+                    widget.answer.selections.length ==
+                        choice.selections.length &&
+                    choice.selections.every(widget.answer.selections.contains);
                 return SizedBox(
                   height: 54,
                   child: selected
                       ? FilledButton(
                           key: ValueKey(
-                            'answer_${widget.question.id}_${choice.$1}',
+                            'answer_${widget.question.id}_${choice.id}',
                           ),
                           onPressed: () {},
                           style: FilledButton.styleFrom(
                             minimumSize: const Size(118, 54),
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                           ),
-                          child: Text(choice.$2),
+                          child: Text(choice.label),
                         )
                       : OutlinedButton(
                           key: ValueKey(
-                            'answer_${widget.question.id}_${choice.$1}',
+                            'answer_${widget.question.id}_${choice.id}',
                           ),
                           onPressed: () {
-                            setState(() => widget.answer.value = choice.$1);
+                            setState(() {
+                              widget.answer.value = choice.value;
+                              widget.answer.selections = choice.selections
+                                  .toList();
+                              if (choice.value != 'yes') {
+                                widget.answer.notes = '';
+                                _notes.clear();
+                              }
+                            });
                             widget.onChanged();
                           },
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(118, 54),
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                           ),
-                          child: Text(choice.$2),
+                          child: Text(choice.label),
                         ),
                 );
               }).toList(),
@@ -1121,11 +1227,21 @@ class _QuestionCardState extends State<_QuestionCard> {
                 widget.answer.notes.isNotEmpty) ...[
               const SizedBox(height: 14),
               TextField(
+                key: ValueKey('details_${widget.question.id}'),
                 controller: _notes,
-                minLines: 2,
-                maxLines: 3,
+                keyboardType: widget.question.id == 'smoking'
+                    ? TextInputType.number
+                    : TextInputType.text,
+                inputFormatters: widget.question.id == 'smoking'
+                    ? [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(3),
+                      ]
+                    : null,
+                minLines: widget.question.id == 'smoking' ? 1 : 2,
+                maxLines: widget.question.id == 'smoking' ? 1 : 3,
                 decoration: InputDecoration(
-                  labelText: t(language, 'details_optional'),
+                  labelText: _detailsLabel(language, detailsRequired),
                 ),
                 onChanged: (value) {
                   widget.answer.notes = value;
@@ -1137,6 +1253,58 @@ class _QuestionCardState extends State<_QuestionCard> {
         ),
       ),
     );
+  }
+
+  List<_QuestionChoice> _choices(String language) {
+    if (widget.question.id == 'liver_kidney_disease') {
+      return [
+        _QuestionChoice('no', t(language, 'no'), 'no'),
+        _QuestionChoice('kidney', t(language, 'kidney'), 'yes', const [
+          'kidney',
+        ]),
+        _QuestionChoice('liver', t(language, 'liver'), 'yes', const ['liver']),
+        _QuestionChoice('both', t(language, 'kidney_and_liver'), 'yes', const [
+          'kidney',
+          'liver',
+        ]),
+        _QuestionChoice('unknown', t(language, 'unknown'), 'unknown'),
+      ];
+    }
+    if (widget.question.id == 'blood_pressure_disorder') {
+      return [
+        _QuestionChoice('no', t(language, 'no'), 'no'),
+        _QuestionChoice(
+          'high',
+          t(language, 'high_blood_pressure'),
+          'yes',
+          const ['high'],
+        ),
+        _QuestionChoice('low', t(language, 'low_blood_pressure'), 'yes', const [
+          'low',
+        ]),
+        _QuestionChoice('both', t(language, 'high_and_low'), 'yes', const [
+          'high',
+          'low',
+        ]),
+        _QuestionChoice('unknown', t(language, 'unknown'), 'unknown'),
+      ];
+    }
+    return [
+      _QuestionChoice('no', t(language, 'no'), 'no'),
+      _QuestionChoice('yes', t(language, 'yes'), 'yes'),
+      _QuestionChoice('unknown', t(language, 'unknown'), 'unknown'),
+    ];
+  }
+
+  String _detailsLabel(String language, bool required) {
+    final key = switch (widget.question.id) {
+      'antibiotic_allergy' => 'antibiotic_allergy_details',
+      'liver_kidney_disease' => 'kidney_liver_details',
+      'smoking' => 'cigarettes_per_day',
+      _ => 'details_optional',
+    };
+    final label = t(language, key);
+    return required ? '$label *' : label;
   }
 }
 
@@ -1220,6 +1388,7 @@ class _MessageBox extends StatelessWidget {
 
 const _ui = <String, Map<String, String>>{
   'el': {
+    'practice_type': 'Οδοντιατρείο',
     'step': 'Βήμα',
     'back': 'Πίσω',
     'next': 'Επόμενο',
@@ -1231,8 +1400,9 @@ const _ui = <String, Map<String, String>>{
     'choose_language': 'Επιλέξτε γλώσσα',
     'privacy_text':
         'Οι πληροφορίες χρησιμοποιούνται αποκλειστικά για την οδοντιατρική σας φροντίδα και αποστέλλονται στο ιατρείο μόνο όταν πατήσετε «Ασφαλής αποστολή».',
+    'gdpr_title': 'Ενημέρωση προστασίας προσωπικών δεδομένων (ΓΚΠΔ)',
     'privacy_accept':
-        'Κατανοώ και συμφωνώ να υποβάλω τα στοιχεία μου στο οδοντιατρείο.',
+        'Έχω διαβάσει και κατανοήσει την παραπάνω ενημέρωση και επιθυμώ να υποβάλω τη φόρμα στο οδοντιατρείο.',
     'privacy_required':
         'Παρακαλούμε αποδεχθείτε την ενημέρωση για να συνεχίσετε.',
     'identity_title': 'Προσωπικά στοιχεία',
@@ -1258,12 +1428,6 @@ const _ui = <String, Map<String, String>>{
     'doy': 'ΔΟΥ',
     'insurance': 'Ασφάλιση',
     'contact_required': 'Συμπληρώστε κινητό, τηλέφωνο ή email.',
-    'context_title': 'Γενικές ιατρικές πληροφορίες',
-    'context_hint': 'Γράψτε ό,τι θεωρείτε σημαντικό για τη θεραπεία σας.',
-    'reason_for_visit': 'Λόγος επίσκεψης',
-    'present_condition': 'Παρούσα κατάσταση / συμπτώματα',
-    'treating_physician': 'Θεράπων ιατρός',
-    'diseases_surgeries': 'Παθήσεις, επεμβάσεις ή νοσηλείες',
     'conditions_title': 'Αλλεργίες και παθήσεις',
     'heart_title': 'Καρδιαγγειακό ιστορικό',
     'care_title': 'Αγωγή και τρόπος ζωής',
@@ -1271,17 +1435,26 @@ const _ui = <String, Map<String, String>>{
         'Επιλέξτε μία απάντηση για κάθε ερώτηση. Αν δεν γνωρίζετε, επιλέξτε «Δεν γνωρίζω».',
     'answers_required':
         'Παρακαλούμε απαντήστε σε όλες τις ερωτήσεις αυτής της σελίδας.',
+    'details_required':
+        'Συμπληρώστε τις υποχρεωτικές λεπτομέρειες για τις θετικές απαντήσεις.',
     'yes': 'Ναι',
     'no': 'Όχι',
     'unknown': 'Δεν γνωρίζω',
-    'not_applicable': 'Δεν αφορά',
+    'kidney': 'Νεφρά',
+    'liver': 'Ήπαρ',
+    'kidney_and_liver': 'Νεφρά και ήπαρ',
+    'high_blood_pressure': 'Υψηλή',
+    'low_blood_pressure': 'Χαμηλή',
+    'high_and_low': 'Υψηλή και χαμηλή',
     'details_optional': 'Λεπτομέρειες (προαιρετικά)',
+    'antibiotic_allergy_details': 'Ποιο αντιβιοτικό και ποια αντίδραση;',
+    'kidney_liver_details': 'Περιγράψτε την πάθηση',
+    'cigarettes_per_day': 'Τσιγάρα ανά ημέρα',
     'review_title': 'Έλεγχος και υπογραφή',
     'review_hint': 'Ελέγξτε τη σύνοψη πριν από την ασφαλή αποστολή.',
     'patient': 'Ασθενής',
     'yes_answers': 'Απαντήσεις «Ναι»',
     'none': 'Καμία',
-    'general_notes': 'Άλλες πληροφορίες ή παρατηρήσεις',
     'confirmation_text':
         'Δηλώνω ότι οι παραπάνω πληροφορίες είναι ακριβείς σύμφωνα με όσα γνωρίζω και θα ενημερώσω το ιατρείο για οποιαδήποτε αλλαγή.',
     'confirm_checkbox': 'Επιβεβαιώνω ότι έλεγξα τις απαντήσεις μου.',
@@ -1296,6 +1469,7 @@ const _ui = <String, Map<String, String>>{
         'Η φόρμα δεν μπόρεσε να αποσταλεί. Παρακαλούμε καλέστε μέλος του προσωπικού.',
   },
   'en': {
+    'practice_type': 'Dental practice',
     'step': 'Step',
     'back': 'Back',
     'next': 'Next',
@@ -1307,8 +1481,9 @@ const _ui = <String, Map<String, String>>{
     'choose_language': 'Choose your language',
     'privacy_text':
         'This information is used only for your dental care and is sent to the practice only when you press “Submit securely”.',
+    'gdpr_title': 'Personal data notice (GDPR)',
     'privacy_accept':
-        'I understand and agree to submit my information to the dental practice.',
+        'I have read and understood the notice above and wish to submit this form to the dental practice.',
     'privacy_required': 'Please accept the notice to continue.',
     'identity_title': 'Personal details',
     'required_hint': 'Fields marked with an asterisk (*) are required.',
@@ -1333,29 +1508,32 @@ const _ui = <String, Map<String, String>>{
     'doy': 'Tax office',
     'insurance': 'Insurance',
     'contact_required': 'Enter a mobile, telephone, or email address.',
-    'context_title': 'General medical information',
-    'context_hint': 'Tell us anything that may be important for your care.',
-    'reason_for_visit': 'Reason for visit',
-    'present_condition': 'Current condition / symptoms',
-    'treating_physician': 'Treating physician',
-    'diseases_surgeries': 'Diseases, operations, or hospital stays',
     'conditions_title': 'Allergies and conditions',
     'heart_title': 'Cardiovascular history',
     'care_title': 'Medication and lifestyle',
     'answer_every':
         'Choose one answer for every question. If you are unsure, choose “I don’t know”.',
     'answers_required': 'Please answer every question on this page.',
+    'details_required':
+        'Complete the required details for the positive answers.',
     'yes': 'Yes',
     'no': 'No',
     'unknown': 'I don’t know',
-    'not_applicable': 'Not applicable',
+    'kidney': 'Kidney',
+    'liver': 'Liver',
+    'kidney_and_liver': 'Kidney and liver',
+    'high_blood_pressure': 'High',
+    'low_blood_pressure': 'Low',
+    'high_and_low': 'High and low',
     'details_optional': 'Details (optional)',
+    'antibiotic_allergy_details': 'Which antibiotic and what reaction?',
+    'kidney_liver_details': 'Describe the condition',
+    'cigarettes_per_day': 'Cigarettes per day',
     'review_title': 'Review and sign',
     'review_hint': 'Review the summary before submitting securely.',
     'patient': 'Patient',
     'yes_answers': '“Yes” answers',
     'none': 'None',
-    'general_notes': 'Other information or notes',
     'confirmation_text':
         'I declare that this information is accurate to the best of my knowledge and I will notify the practice of any changes.',
     'confirm_checkbox': 'I confirm that I reviewed my answers.',
@@ -1370,6 +1548,7 @@ const _ui = <String, Map<String, String>>{
         'The form could not be submitted. Please call a member of staff.',
   },
   'de': {
+    'practice_type': 'Zahnarztpraxis',
     'step': 'Schritt',
     'back': 'Zurück',
     'next': 'Weiter',
@@ -1381,8 +1560,9 @@ const _ui = <String, Map<String, String>>{
     'choose_language': 'Sprache wählen',
     'privacy_text':
         'Diese Angaben werden nur für Ihre zahnärztliche Behandlung verwendet und erst beim Tippen auf „Sicher senden“ an die Praxis übermittelt.',
+    'gdpr_title': 'Datenschutzhinweis (DSGVO)',
     'privacy_accept':
-        'Ich bin einverstanden, meine Angaben an die Zahnarztpraxis zu übermitteln.',
+        'Ich habe den obigen Hinweis gelesen und verstanden und möchte dieses Formular an die Zahnarztpraxis übermitteln.',
     'privacy_required': 'Bitte stimmen Sie dem Hinweis zu, um fortzufahren.',
     'identity_title': 'Persönliche Angaben',
     'required_hint': 'Mit Sternchen (*) markierte Felder sind Pflichtfelder.',
@@ -1407,31 +1587,32 @@ const _ui = <String, Map<String, String>>{
     'doy': 'Finanzamt',
     'insurance': 'Versicherung',
     'contact_required': 'Bitte Mobiltelefon, Telefon oder E-Mail angeben.',
-    'context_title': 'Allgemeine medizinische Angaben',
-    'context_hint':
-        'Nennen Sie alles, was für Ihre Behandlung wichtig sein könnte.',
-    'reason_for_visit': 'Grund des Besuchs',
-    'present_condition': 'Aktueller Zustand / Beschwerden',
-    'treating_physician': 'Behandelnder Arzt',
-    'diseases_surgeries':
-        'Erkrankungen, Operationen oder Krankenhausaufenthalte',
     'conditions_title': 'Allergien und Erkrankungen',
     'heart_title': 'Herz-Kreislauf-Anamnese',
     'care_title': 'Medikamente und Lebensweise',
     'answer_every':
         'Wählen Sie für jede Frage eine Antwort. Wenn Sie unsicher sind, wählen Sie „Ich weiß es nicht“.',
     'answers_required': 'Bitte beantworten Sie jede Frage auf dieser Seite.',
+    'details_required':
+        'Bitte ergänzen Sie die erforderlichen Angaben zu den positiven Antworten.',
     'yes': 'Ja',
     'no': 'Nein',
     'unknown': 'Ich weiß es nicht',
-    'not_applicable': 'Nicht zutreffend',
+    'kidney': 'Niere',
+    'liver': 'Leber',
+    'kidney_and_liver': 'Niere und Leber',
+    'high_blood_pressure': 'Hoch',
+    'low_blood_pressure': 'Niedrig',
+    'high_and_low': 'Hoch und niedrig',
     'details_optional': 'Einzelheiten (optional)',
+    'antibiotic_allergy_details': 'Welches Antibiotikum und welche Reaktion?',
+    'kidney_liver_details': 'Beschreiben Sie die Erkrankung',
+    'cigarettes_per_day': 'Zigaretten pro Tag',
     'review_title': 'Prüfen und unterschreiben',
     'review_hint': 'Prüfen Sie die Zusammenfassung vor dem sicheren Senden.',
     'patient': 'Patient/in',
     'yes_answers': 'Antworten „Ja“',
     'none': 'Keine',
-    'general_notes': 'Weitere Angaben oder Hinweise',
     'confirmation_text':
         'Ich erkläre, dass diese Angaben nach bestem Wissen richtig sind, und informiere die Praxis über Änderungen.',
     'confirm_checkbox': 'Ich bestätige, dass ich meine Antworten geprüft habe.',

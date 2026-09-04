@@ -33,8 +33,8 @@ void main() {
 
   test('page, item order, visibility and movement survive serialization', () {
     final configuration = IntakeFormConfiguration.defaults();
-    final medicalPage = configuration.pageById('medical_context')!;
-    medicalPage.order = 0;
+    final conditionsPage = configuration.pageById('conditions')!;
+    conditionsPage.order = 0;
     configuration.pageById('identity')!.order = 2;
     final allergies = configuration.itemById('allergies')!
       ..enabled = false
@@ -44,8 +44,34 @@ void main() {
 
     final restored = IntakeFormConfiguration.fromJson(configuration.toJson());
 
-    expect(restored.orderedPages.first.id, medicalPage.id);
+    expect(restored.orderedPages.first.id, conditionsPage.id);
     expect(restored.itemById(allergies.id)!.enabled, isFalse);
     expect(restored.itemById(allergies.id)!.pageId, 'care');
   });
+
+  test('practice branding survives serialization', () {
+    final configuration = IntakeFormConfiguration.defaults()
+      ..practiceNames['el'] = 'ΔΟΚΙΜΑΣΤΙΚΟ ΟΔΟΝΤΙΑΤΡΕΙΟ'
+      ..practiceNames['en'] = 'TEST DENTAL PRACTICE'
+      ..customLogoPath = '/private/practice-logo.png';
+
+    final restored = IntakeFormConfiguration.fromJson(configuration.toJson());
+
+    expect(restored.practiceName('el'), 'ΔΟΚΙΜΑΣΤΙΚΟ ΟΔΟΝΤΙΑΤΡΕΙΟ');
+    expect(restored.practiceName('en'), 'TEST DENTAL PRACTICE');
+    expect(restored.customLogoPath, '/private/practice-logo.png');
+  });
+
+  test(
+    'removed page and retired questions cannot return from old settings',
+    () {
+      final configuration = IntakeFormConfiguration.defaults();
+
+      expect(configuration.pageById('medical_context'), isNull);
+      expect(configuration.itemById('penicillin_allergy'), isNull);
+      expect(configuration.itemById('latex_allergy'), isNull);
+      expect(configuration.itemById('alcohol_use'), isNull);
+      expect(configuration.itemById('antibiotic_allergy'), isNotNull);
+    },
+  );
 }

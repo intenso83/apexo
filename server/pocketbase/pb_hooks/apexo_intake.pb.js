@@ -43,12 +43,11 @@ routerAdd("POST", "/api/apexo/intake/sessions", (e) => {
 
 routerAdd("POST", "/api/apexo/intake/submit", (e) => {
   const maxPacketBytes = 128 * 1024
-  const packetVersion = "practice-patient-intake-2026-09-02-v1"
-  const questionnaireVersion = "practice-medical-history-2026-09-02-v1"
+  const packetVersion = "practice-patient-intake-2026-09-04-v2"
+  const questionnaireVersion = "practice-medical-history-2026-09-04-v2"
   const questionIds = [
     "allergies",
-    "penicillin_allergy",
-    "latex_allergy",
+    "antibiotic_allergy",
     "adverse_dental_reaction",
     "respiratory_disease",
     "asthma",
@@ -80,9 +79,8 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
     "chemotherapy_radiotherapy",
     "antiresorptive_therapy",
     "smoking",
-    "alcohol_use",
   ]
-  const answerValues = ["yes", "no", "unknown", "not_applicable"]
+  const answerValues = ["yes", "no", "unknown"]
   const isShortText = (value, max) =>
     typeof value === "string" && value.trim().length > 0 && value.length <= max
 
@@ -122,7 +120,8 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
     throw new BadRequestError("The medical history is incomplete.")
   }
   for (let i = 0; i < questionIds.length; i++) {
-    const answer = answers[questionIds[i]]
+    const questionId = questionIds[i]
+    const answer = answers[questionId]
     if (!answer || answerValues.indexOf(answer.value) < 0) {
       throw new BadRequestError("Every medical-history question must be answered.")
     }
@@ -130,8 +129,30 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
         (typeof answer.notes !== "string" || answer.notes.length > 4000)) {
       throw new BadRequestError("A medical-history note is too long.")
     }
+    if ((questionId === "antibiotic_allergy" ||
+         questionId === "liver_kidney_disease") &&
+        answer.value === "yes" && !isShortText(answer.notes, 4000)) {
+      throw new BadRequestError("Details are required for a positive medical-history answer.")
+    }
+    if (questionId === "smoking" && answer.value === "yes" &&
+        (typeof answer.notes !== "string" ||
+         !/^[0-9]{1,3}$/.test(answer.notes.trim()) ||
+         Number(answer.notes.trim()) < 1 || Number(answer.notes.trim()) > 200)) {
+      throw new BadRequestError("A valid number of cigarettes per day is required.")
+    }
+    if (questionId === "liver_kidney_disease" && answer.value === "yes" &&
+        (!Array.isArray(answer.selections) || answer.selections.length < 1 ||
+         answer.selections.some((value) => ["kidney", "liver"].indexOf(value) < 0))) {
+      throw new BadRequestError("Select kidney, liver, or both.")
+    }
+    if (questionId === "blood_pressure_disorder" && answer.value === "yes" &&
+        (!Array.isArray(answer.selections) || answer.selections.length < 1 ||
+         answer.selections.some((value) => ["high", "low"].indexOf(value) < 0))) {
+      throw new BadRequestError("Select high blood pressure, low blood pressure, or both.")
+    }
   }
-  if (packet.patient_confirmed !== true ||
+  if (packet.gdpr_acknowledged !== true ||
+      packet.patient_confirmed !== true ||
       !packet.signature ||
       !isShortText(packet.signature.name, 240)) {
     throw new BadRequestError("The intake form must be confirmed and signed.")

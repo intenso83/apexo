@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'form_configuration.dart';
 import 'intake_schema.dart';
@@ -201,12 +204,13 @@ class _StaffSettingsScreenState extends State<StaffSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Patient form settings'),
           bottom: const TabBar(
             tabs: [
+              Tab(icon: Icon(Icons.palette_outlined), text: 'Branding'),
               Tab(icon: Icon(Icons.view_carousel_outlined), text: 'Pages'),
               Tab(icon: Icon(Icons.checklist_outlined), text: 'Entries'),
               Tab(icon: Icon(Icons.security_outlined), text: 'Security'),
@@ -229,9 +233,102 @@ class _StaffSettingsScreenState extends State<StaffSettingsScreen> {
             ),
           ],
         ),
-        body: TabBarView(children: [_pagesTab(), _itemsTab(), _securityTab()]),
+        body: TabBarView(
+          children: [_brandingTab(), _pagesTab(), _itemsTab(), _securityTab()],
+        ),
       ),
     );
+  }
+
+  Widget _brandingTab() {
+    final customPath = _configuration.customLogoPath.trim();
+    Widget fallback() => Image.asset(
+      'assets/practice_logo.gif',
+      width: 130,
+      height: 130,
+      fit: BoxFit.contain,
+    );
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        const _SettingsExplanation(
+          icon: Icons.storefront_outlined,
+          text:
+              'Choose the logo and practice name shown above every patient page.',
+        ),
+        Center(
+          child: customPath.isEmpty
+              ? fallback()
+              : Image.file(
+                  File(customPath),
+                  width: 130,
+                  height: 130,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => fallback(),
+                ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            FilledButton.icon(
+              key: const ValueKey('choose_practice_logo'),
+              onPressed: _chooseLogo,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('Choose logo'),
+            ),
+            OutlinedButton.icon(
+              onPressed: customPath.isEmpty
+                  ? null
+                  : () => setState(() => _configuration.customLogoPath = ''),
+              icon: const Icon(Icons.restore_outlined),
+              label: const Text('Use original logo'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 26),
+        for (final entry in const [
+          ('el', 'Practice name — Greek'),
+          ('en', 'Practice name — English'),
+          ('de', 'Practice name — German'),
+        ]) ...[
+          TextFormField(
+            key: ValueKey('practice_name_${entry.$1}'),
+            initialValue: _configuration.practiceNames[entry.$1],
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(labelText: entry.$2),
+            onChanged: (value) =>
+                _configuration.practiceNames[entry.$1] = value,
+          ),
+          const SizedBox(height: 14),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _chooseLogo() async {
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+      );
+      if (picked == null) return;
+      final storedPath = await widget.store.importCustomLogo(picked.path);
+      if (!mounted) return;
+      setState(() => _configuration.customLogoPath = storedPath);
+    } on FormatException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The selected logo could not be opened.')),
+      );
+    }
   }
 
   Widget _pagesTab() {

@@ -47,6 +47,8 @@ configure the form again.
 
 The settings screen allows staff to:
 
+- choose a custom practice logo from the device and edit the practice name in
+  Greek, English, and German;
 - show or hide every optional personal field and medical-history question;
 - drag entries into a different order or move them to another page;
 - reorder, enable, disable, and rename pages in Greek, English, and German;
@@ -58,6 +60,19 @@ mobile, telephone, or email must remain enabled. The welcome/privacy step and
 the review/confirmation/signature step are fixed. A saved configuration takes
 effect on the next patient form and remains on that device until changed or the
 Android app data is cleared.
+
+The welcome step includes a Greek, English, or German GDPR information notice
+and a mandatory acknowledgement checkbox. The submitted packet records that
+acknowledgement. The supplied wording is a practical baseline and should be
+reviewed against the practice's final contact details, processors, retention
+policy, and legal advice before production use.
+
+The current medical-history form has no general-medical-information page,
+penicillin-specific allergy, latex-allergy, or alcohol-use entries. Antibiotic
+allergy and kidney/liver disease require details when selected. Kidney/liver
+and high/low blood pressure are stored as structured selections; smoking
+requires a numeric cigarettes-per-day value. The patient choices are Yes, No,
+and I don't know, with no Doesn't apply option.
 
 The final step records both the patient's typed full name and normalized drawn
 signature strokes from a finger or stylus. The server validates drawn points
