@@ -1169,6 +1169,11 @@ class En {
         "Click the first PD field and type continuously. Values 0–9 move immediately to the next pocket; after typing 1, a short pause accepts 1 or a second digit completes 10–15.",
     "periodontalGmHelp":
         "GM is the gingival margin relative to the CEJ: positive values indicate recession and negative values indicate gingival enlargement.",
+    "periodontalProfileGraph": "Pocket-depth profile",
+    "periodontalProfileLegend":
+        "Blue/teal: surfaces · amber: 4–5 mm · red: ≥6 mm · red ring: BOP",
+    "printPeriodontalPdf": "Print chart PDF",
+    "printBlankPeriodontalPdf": "Blank A4 chart",
     "periodontalVoiceReady": "Voice-entry foundation ready",
     "periodontalVoiceReadyDescription":
         "The chart follows a fixed tooth and six-site sequence. Voice recording is not active yet, but future transcribed numbers can use this same validated entry path.",

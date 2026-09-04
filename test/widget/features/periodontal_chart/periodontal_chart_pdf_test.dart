@@ -21,8 +21,16 @@ void main() {
       chart: chart,
       patient: patient,
     );
+    final blankBytes = await buildPeriodontalChartPdf(
+      chart: chart,
+      patient: patient,
+      blank: true,
+    );
 
     expect(bytes.length, greaterThan(1000));
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+    expect(blankBytes.length, greaterThan(1000));
+    expect(String.fromCharCodes(blankBytes.take(4)), '%PDF');
+    expect(blankBytes, isNot(equals(bytes)));
   });
 }

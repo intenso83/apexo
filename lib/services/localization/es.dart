@@ -1192,6 +1192,11 @@ class Es implements En {
         "Pulse el primer campo PD y escriba de forma continua. Los valores 0–9 avanzan de inmediato; tras escribir 1, una pausa breve acepta 1 o un segundo dígito completa 10–15.",
     "periodontalGmHelp":
         "GM es el margen gingival respecto a la UAC: los valores positivos indican recesión y los negativos agrandamiento gingival.",
+    "periodontalProfileGraph": "Gráfico de profundidad de sondaje",
+    "periodontalProfileLegend":
+        "Azul/verde: superficies · ámbar: 4–5 mm · rojo: ≥6 mm · círculo rojo: BOP",
+    "printPeriodontalPdf": "Imprimir gráfico PDF",
+    "printBlankPeriodontalPdf": "Gráfico A4 en blanco",
     "periodontalVoiceReady": "Base de entrada por voz preparada",
     "periodontalVoiceReadyDescription":
         "El gráfico usa una secuencia fija de dientes y seis sitios. La grabación de voz aún no está activa.",

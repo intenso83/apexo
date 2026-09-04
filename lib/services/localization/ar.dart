@@ -1152,6 +1152,11 @@ class Ar implements En {
         "انقر حقل PD الأول واكتب باستمرار. تنتقل القيم 0–9 فوراً؛ بعد كتابة 1 تقبل وقفة قصيرة القيمة 1 أو يكمل رقم ثانٍ القيم 10–15.",
     "periodontalGmHelp":
         "GM هو موضع حافة اللثة بالنسبة إلى CEJ: القيم الموجبة تعني انحساراً والسالبة تعني تضخم اللثة.",
+    "periodontalProfileGraph": "رسم عمق الجيوب",
+    "periodontalProfileLegend":
+        "أزرق/أخضر: الأسطح · كهرماني: 4–5 مم · أحمر: ≥6 مم · حلقة حمراء: BOP",
+    "printPeriodontalPdf": "طباعة مخطط PDF",
+    "printBlankPeriodontalPdf": "مخطط A4 فارغ",
     "periodontalVoiceReady": "أساس الإدخال الصوتي جاهز",
     "periodontalVoiceReadyDescription":
         "يتبع المخطط تسلسلاً ثابتاً للأسنان والمواضع الستة. التسجيل الصوتي غير نشط حالياً.",

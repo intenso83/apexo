@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'periodontal_chart_model.dart';
 import 'periodontal_chart_pdf.dart';
 import 'periodontal_chart_store.dart';
+import 'periodontal_profile_chart.dart';
 
 class PatientPeriodontalChart extends StatefulWidget {
   const PatientPeriodontalChart({
@@ -55,6 +56,9 @@ class _PatientPeriodontalChartState extends State<PatientPeriodontalChart> {
         return _PeriodontalHistory(
           charts: charts,
           patient: widget.patient,
+          onPrintBlank: () => printBlankPeriodontalChart(
+            patient: widget.patient,
+          ),
           onCreate: () {
             setState(() {
               _draft = PeriodontalChart.newExam(
@@ -86,12 +90,14 @@ class _PeriodontalHistory extends StatelessWidget {
   const _PeriodontalHistory({
     required this.charts,
     required this.patient,
+    required this.onPrintBlank,
     required this.onCreate,
     required this.onOpen,
   });
 
   final List<PeriodontalChart> charts;
   final Patient patient;
+  final VoidCallback onPrintBlank;
   final VoidCallback onCreate;
   final ValueChanged<PeriodontalChart> onOpen;
 
@@ -117,6 +123,19 @@ class _PeriodontalHistory extends StatelessWidget {
                 ],
               ),
             ),
+            Button(
+              key: const ValueKey('print-blank-periodontal-pdf'),
+              onPressed: onPrintBlank,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(FluentIcons.print, size: 14),
+                  const SizedBox(width: 6),
+                  Text(txt('printBlankPeriodontalPdf')),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
             FilledButton(
               key: const ValueKey('new-periodontal-exam'),
               onPressed: onCreate,
@@ -283,9 +302,14 @@ class _PeriodontalChartEditorState extends State<PeriodontalChartEditor> {
           onBack: widget.onCancel,
           onPrint: () =>
               printPeriodontalChart(chart: chart, patient: widget.patient),
+          onPrintBlank: () => printBlankPeriodontalChart(
+            patient: widget.patient,
+          ),
         ),
         const SizedBox(height: 10),
         _SummaryStrip(summary: chart.summary),
+        const SizedBox(height: 10),
+        PeriodontalProfileOverview(chart: chart),
         const SizedBox(height: 10),
         InfoBar(
           severity: InfoBarSeverity.info,
@@ -393,12 +417,14 @@ class _EditorHeader extends StatelessWidget {
     required this.readOnly,
     required this.onBack,
     required this.onPrint,
+    required this.onPrintBlank,
   });
 
   final PeriodontalChart chart;
   final bool readOnly;
   final VoidCallback onBack;
   final VoidCallback onPrint;
+  final VoidCallback onPrintBlank;
 
   @override
   Widget build(BuildContext context) {
@@ -429,13 +455,27 @@ class _EditorHeader extends StatelessWidget {
           ),
         ),
         Button(
+          key: const ValueKey('print-blank-periodontal-pdf'),
+          onPressed: onPrintBlank,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(FluentIcons.page, size: 14),
+              const SizedBox(width: 6),
+              Text(txt('printBlankPeriodontalPdf')),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        FilledButton(
+          key: const ValueKey('print-periodontal-pdf'),
           onPressed: onPrint,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(FluentIcons.print, size: 14),
               const SizedBox(width: 6),
-              Text(txt('print')),
+              Text(txt('printPeriodontalPdf')),
             ],
           ),
         ),

@@ -43,6 +43,22 @@ void main() {
     expect(find.text('48'), findsWidgets);
     expect(find.text('PD'), findsWidgets);
     expect(find.text('CAL'), findsWidgets);
+    expect(
+      find.byKey(const ValueKey('periodontal-profile-upper')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('periodontal-profile-lower')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('print-periodontal-pdf')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('print-blank-periodontal-pdf')),
+      findsOneWidget,
+    );
 
     final tooth18Sites = [
       PeriodontalSite.mesioBuccal,
