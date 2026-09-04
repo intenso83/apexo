@@ -1,4 +1,5 @@
 import 'package:apexo/services/login.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 import 'patient_intake_submission.dart';
 
@@ -42,6 +43,26 @@ class PatientIntakeService {
               Map<String, dynamic>.from(item as Map),
             ))
         .toList(growable: false);
+  }
+
+  Future<Uri> protectedPdfUrl(PatientIntakeSubmission submission) async {
+    final pb = login.pb;
+    if (pb == null || !pb.authStore.isValid) {
+      throw StateError('Apexo must be online and authenticated.');
+    }
+    if (!submission.hasPdf) {
+      throw StateError('This intake submission has no generated PDF.');
+    }
+    final token = await pb.files.getToken();
+    final record = RecordModel({
+      'id': submission.id,
+      'collectionName': 'intake_submissions',
+    });
+    return pb.files.getURL(
+      record,
+      submission.pdfFile,
+      token: token,
+    );
   }
 
   Future<void> markImported({

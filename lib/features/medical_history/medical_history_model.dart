@@ -276,12 +276,12 @@ class MedicalHistoryRevision extends Model {
     });
 
     revision._addImportedFlag(
-      questionID: 'penicillin_allergy',
+      questionID: 'antibiotic_allergy',
       sourceField: 'penikilinh',
       rawValue: stage['penicillin_raw'],
     );
     revision._addImportedFlag(
-      questionID: 'latex_allergy',
+      questionID: 'allergies',
       sourceField: 'latex',
       rawValue: stage['latex_raw'],
     );

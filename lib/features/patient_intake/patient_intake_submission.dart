@@ -3,17 +3,22 @@ class PatientIntakeSubmission {
     required this.id,
     required this.receivedAt,
     required this.packet,
+    this.pdfFile = '',
   });
 
   final String id;
   final DateTime? receivedAt;
   final Map<String, dynamic> packet;
+  final String pdfFile;
+
+  bool get hasPdf => pdfFile.trim().isNotEmpty;
 
   factory PatientIntakeSubmission.fromJson(Map<String, dynamic> json) {
     return PatientIntakeSubmission(
       id: json['id']?.toString() ?? '',
       receivedAt:
           DateTime.tryParse(json['received_at']?.toString() ?? '')?.toUtc(),
+      pdfFile: json['pdf_file']?.toString() ?? '',
       packet: Map<String, dynamic>.from(json['packet'] as Map? ?? const {}),
     );
   }

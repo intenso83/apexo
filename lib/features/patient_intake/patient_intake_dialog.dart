@@ -8,6 +8,7 @@ import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> showPatientIntakeDialog(BuildContext context) {
   return showDialog<void>(
@@ -275,6 +276,7 @@ class _ImportSubmissionDialogState extends State<_ImportSubmissionDialog> {
   bool _createNew = true;
   String? _selectedPatientId;
   bool _saving = false;
+  bool _openingPdf = false;
   String? _error;
 
   @override
@@ -347,6 +349,23 @@ class _ImportSubmissionDialogState extends State<_ImportSubmissionDialog> {
     }
   }
 
+  Future<void> _openPdf() async {
+    setState(() {
+      _openingPdf = true;
+      _error = null;
+    });
+    try {
+      final uri = await widget.service.protectedPdfUrl(widget.submission);
+      if (!await launchUrl(uri)) {
+        throw StateError('The signed PDF could not be opened.');
+      }
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _openingPdf = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final personal = widget.submission.personal;
@@ -384,6 +403,18 @@ class _ImportSubmissionDialogState extends State<_ImportSubmissionDialog> {
                       ))
                   .toList(),
             ),
+            if (widget.submission.hasPdf) ...[
+              const SizedBox(height: 14),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Button(
+                  onPressed: _openingPdf ? null : _openPdf,
+                  child: Text(
+                    _openingPdf ? 'Opening signed PDF…' : 'Open signed PDF',
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 18),
             Text(
               'Medical answers marked “yes” (${positiveLabels.length})',

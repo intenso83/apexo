@@ -43,8 +43,9 @@ routerAdd("POST", "/api/apexo/intake/sessions", (e) => {
 
 routerAdd("POST", "/api/apexo/intake/submit", (e) => {
   const maxPacketBytes = 128 * 1024
-  const packetVersion = "practice-patient-intake-2026-09-04-v2"
-  const questionnaireVersion = "practice-medical-history-2026-09-04-v2"
+  const maxPdfBytes = 2 * 1024 * 1024
+  const packetVersion = "practice-patient-intake-2026-09-04-v3"
+  const questionnaireVersion = "practice-medical-history-2026-09-04-v3"
   const questionIds = [
     "allergies",
     "antibiotic_allergy",
@@ -84,25 +85,32 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
   const isShortText = (value, max) =>
     typeof value === "string" && value.trim().length > 0 && value.length <= max
 
-  const raw = toString(e.request.body)
-  if (!raw || raw.length > maxPacketBytes + 4096) {
+  const contentType = e.request.header.get("Content-Type").toLowerCase()
+  if (contentType.indexOf("multipart/form-data") !== 0) {
     throw new BadRequestError("Invalid intake request.")
   }
-  let body
+  const sessionId = e.request.formValue("session_id").trim()
+  const packetJsonInput = e.request.formValue("packet")
+  if (!packetJsonInput || packetJsonInput.length > maxPacketBytes) {
+    throw new BadRequestError("Invalid intake request.")
+  }
+  let packet
   try {
-    body = JSON.parse(raw)
+    packet = JSON.parse(packetJsonInput)
   } catch (_) {
     throw new BadRequestError("Invalid intake request.")
   }
-  const sessionId = typeof body.session_id === "string" ? body.session_id.trim() : ""
   if (!/^[A-Za-z0-9]{15}$/.test(sessionId)) {
     throw new BadRequestError("The intake session is invalid or expired. Please call a member of staff.")
   }
-
-  const packet = body.packet
   if (!packet || typeof packet !== "object" || Array.isArray(packet)) {
     throw new BadRequestError("Invalid intake form.")
   }
+  const pdfFiles = e.findUploadedFiles("intake_pdf")
+  if (pdfFiles.length !== 1 || pdfFiles[0].size < 100 || pdfFiles[0].size > maxPdfBytes) {
+    throw new BadRequestError("The signed intake PDF is missing or invalid.")
+  }
+  const intakePdf = pdfFiles[0]
   if (packet.packet_version !== packetVersion ||
       packet.questionnaire_version !== questionnaireVersion) {
     throw new BadRequestError("This intake form version is no longer accepted. Please call a member of staff.")
@@ -146,9 +154,9 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
       throw new BadRequestError("Select kidney, liver, or both.")
     }
     if (questionId === "blood_pressure_disorder" && answer.value === "yes" &&
-        (!Array.isArray(answer.selections) || answer.selections.length < 1 ||
+        (!Array.isArray(answer.selections) || answer.selections.length !== 1 ||
          answer.selections.some((value) => ["high", "low"].indexOf(value) < 0))) {
-      throw new BadRequestError("Select high blood pressure, low blood pressure, or both.")
+      throw new BadRequestError("Select high blood pressure or low blood pressure.")
     }
   }
   if (packet.gdpr_acknowledged !== true ||
@@ -205,6 +213,7 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
     const submission = new Record(collection)
     submission.set("session", session.id)
     submission.set("packet_json", packetJson)
+    submission.set("intake_pdf", intakePdf)
     submission.set("status", "pending")
     submission.set("received_at", new Date().toISOString())
     txApp.save(submission)
@@ -216,7 +225,7 @@ routerAdd("POST", "/api/apexo/intake/submit", (e) => {
   })
 
   return e.json(201, { receipt_id: receiptId })
-}, $apis.requireGuestOnly(), $apis.bodyLimit(135168), $apis.skipSuccessActivityLog())
+}, $apis.requireGuestOnly(), $apis.bodyLimit(2359296), $apis.skipSuccessActivityLog())
 
 routerAdd("GET", "/api/apexo/intake/submissions", (e) => {
   const records = e.app.findRecordsByFilter(
@@ -229,6 +238,7 @@ routerAdd("GET", "/api/apexo/intake/submissions", (e) => {
   const result = records.map((record) => ({
     id: record.id,
     received_at: record.getDateTime("received_at").string(),
+    pdf_file: record.getString("intake_pdf"),
     packet: JSON.parse(record.getString("packet_json")),
   }))
   return e.json(200, { items: result })

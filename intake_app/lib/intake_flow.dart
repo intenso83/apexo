@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'date_input_field.dart';
 import 'form_configuration.dart';
+import 'intake_pdf_generator.dart';
 import 'intake_schema.dart';
 import 'intake_settings_store.dart';
 import 'signature_pad.dart';
@@ -252,10 +253,19 @@ class _IntakeShellState extends State<IntakeShell> {
     });
     final isTest = !_client.isConfigured;
     try {
+      final packet = _draft.toJson();
+      final pdfBytes = await const IntakePdfGenerator().generate(
+        draft: _draft,
+        configuration: _configuration,
+      );
       if (isTest) {
         await Future<void>.delayed(const Duration(milliseconds: 700));
       } else {
-        await _client.submit(sessionId: _sessionId, packet: _draft.toJson());
+        await _client.submit(
+          sessionId: _sessionId,
+          packet: packet,
+          pdfBytes: pdfBytes,
+        );
       }
       if (!mounted) return;
       for (final controller in _fields.values) {
@@ -872,7 +882,7 @@ class _IntakeShellState extends State<IntakeShell> {
                       const SizedBox(height: 12),
                       Text(
                         _testCompletion
-                            ? 'This testing build did not save or send the answers.'
+                            ? 'The signed PDF was generated and checked in memory. This testing build did not save or send the PDF or answers.'
                             : 'Your form has been sent to the practice. Your answers have been cleared from this tablet.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 19, height: 1.45),
@@ -1282,10 +1292,6 @@ class _QuestionCardState extends State<_QuestionCard> {
         _QuestionChoice('low', t(language, 'low_blood_pressure'), 'yes', const [
           'low',
         ]),
-        _QuestionChoice('both', t(language, 'high_and_low'), 'yes', const [
-          'high',
-          'low',
-        ]),
         _QuestionChoice('unknown', t(language, 'unknown'), 'unknown'),
       ];
     }
@@ -1445,7 +1451,6 @@ const _ui = <String, Map<String, String>>{
     'kidney_and_liver': 'Νεφρά και ήπαρ',
     'high_blood_pressure': 'Υψηλή',
     'low_blood_pressure': 'Χαμηλή',
-    'high_and_low': 'Υψηλή και χαμηλή',
     'details_optional': 'Λεπτομέρειες (προαιρετικά)',
     'antibiotic_allergy_details': 'Ποιο αντιβιοτικό και ποια αντίδραση;',
     'kidney_liver_details': 'Περιγράψτε την πάθηση',
@@ -1524,7 +1529,6 @@ const _ui = <String, Map<String, String>>{
     'kidney_and_liver': 'Kidney and liver',
     'high_blood_pressure': 'High',
     'low_blood_pressure': 'Low',
-    'high_and_low': 'High and low',
     'details_optional': 'Details (optional)',
     'antibiotic_allergy_details': 'Which antibiotic and what reaction?',
     'kidney_liver_details': 'Describe the condition',
@@ -1603,7 +1607,6 @@ const _ui = <String, Map<String, String>>{
     'kidney_and_liver': 'Niere und Leber',
     'high_blood_pressure': 'Hoch',
     'low_blood_pressure': 'Niedrig',
-    'high_and_low': 'Hoch und niedrig',
     'details_optional': 'Einzelheiten (optional)',
     'antibiotic_allergy_details': 'Welches Antibiotikum und welche Reaktion?',
     'kidney_liver_details': 'Beschreiben Sie die Erkrankung',

@@ -1,5 +1,5 @@
-const questionnaireVersion = 'practice-medical-history-2026-09-04-v2';
-const intakePacketVersion = 'practice-patient-intake-2026-09-04-v2';
+const questionnaireVersion = 'practice-medical-history-2026-09-04-v3';
+const intakePacketVersion = 'practice-patient-intake-2026-09-04-v3';
 
 typedef Labels = Map<String, String>;
 
@@ -315,11 +315,11 @@ const intakeQuestions = <IntakeQuestion>[
     group: 'care_and_medication',
     labels: {
       'el':
-          'Αντιοστεολυτική αγωγή — Prolia® (denosumab) ή διφωσφονικά, π.χ. alendronate, risedronate, ibandronate, zoledronic acid',
+          'Αντιοστεολυτική αγωγή — Prolia® (denosumab) ή διφωσφονικά, π.χ. Fosamax®/Fosavance® (alendronate), Actonel® (risedronate), Bonviva® (ibandronate), Aclasta®/Zometa® (zoledronic acid)',
       'en':
-          'Antiresorptive treatment — Prolia® (denosumab) or bisphosphonates, e.g. alendronate, risedronate, ibandronate, zoledronic acid',
+          'Antiresorptive treatment — Prolia® (denosumab) or bisphosphonates, e.g. Fosamax®/Fosavance® (alendronate), Actonel® (risedronate), Bonviva® (ibandronate), Aclasta®/Zometa® (zoledronic acid)',
       'de':
-          'Antiresorptive Therapie — Prolia® (Denosumab) oder Bisphosphonate, z. B. Alendronat, Risedronat, Ibandronat, Zoledronsäure',
+          'Antiresorptive Therapie — Prolia® (Denosumab) oder Bisphosphonate, z. B. Fosamax®/Fosavance® (Alendronat), Actonel® (Risedronat), Bonviva® (Ibandronat), Aclasta®/Zometa® (Zoledronsäure)',
     },
   ),
   IntakeQuestion(

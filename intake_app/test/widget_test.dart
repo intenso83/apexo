@@ -16,7 +16,7 @@ void main() {
   });
 
   test('questionnaire keeps the canonical version and stable unique IDs', () {
-    expect(questionnaireVersion, 'practice-medical-history-2026-09-04-v2');
+    expect(questionnaireVersion, 'practice-medical-history-2026-09-04-v3');
     final ids = intakeQuestions.map((question) => question.id).toList();
     expect(ids.toSet().length, ids.length);
     expect(
@@ -104,6 +104,20 @@ void main() {
     for (final question in intakeQuestions) {
       final finder = find.byKey(ValueKey('answer_${question.id}_no'));
       if (finder.evaluate().isEmpty) continue;
+      if (question.id == 'blood_pressure_disorder') {
+        expect(
+          find.byKey(const ValueKey('answer_blood_pressure_disorder_high')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('answer_blood_pressure_disorder_low')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('answer_blood_pressure_disorder_both')),
+          findsNothing,
+        );
+      }
       await tester.ensureVisible(finder);
       await tester.tap(finder);
       await tester.pump();
@@ -138,7 +152,9 @@ void main() {
 
     expect(find.text('Test completed'), findsOneWidget);
     expect(
-      find.text('This testing build did not save or send the answers.'),
+      find.textContaining(
+        'The signed PDF was generated and checked in memory.',
+      ),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);

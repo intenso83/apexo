@@ -15,9 +15,13 @@ void main() {
       expect(ids.length, questions.length);
       expect(paperNumbers, containsAll(List<int>.generate(23, (i) => i + 1)));
       expect(PracticeMedicalHistoryQuestionnaire.questionsByID,
-          contains('penicillin_allergy'));
+          contains('antibiotic_allergy'));
       expect(PracticeMedicalHistoryQuestionnaire.questionsByID,
-          contains('latex_allergy'));
+          isNot(contains('penicillin_allergy')));
+      expect(PracticeMedicalHistoryQuestionnaire.questionsByID,
+          isNot(contains('latex_allergy')));
+      expect(PracticeMedicalHistoryQuestionnaire.questionsByID,
+          isNot(contains('alcohol_use')));
       expect(PracticeMedicalHistoryQuestionnaire.questionsByID,
           contains('antiresorptive_therapy'));
     });
@@ -109,10 +113,10 @@ void main() {
       expect(revision.status, MedicalHistoryStatus.pendingReview);
       expect(revision.reasonForVisit, 'Synthetic reason');
       expect(revision.diseasesSurgeries, 'Synthetic disease text');
-      expect(revision.answers['penicillin_allergy']!.value,
+      expect(revision.answers['antibiotic_allergy']!.value,
           MedicalHistoryAnswerValue.yes);
-      expect(revision.answers['latex_allergy']!.value,
-          MedicalHistoryAnswerValue.no);
+      expect(
+          revision.answers['allergies']!.value, MedicalHistoryAnswerValue.no);
       expect(revision.answers['blood_pressure_disorder']!.value,
           MedicalHistoryAnswerValue.yes);
       expect(revision.answers['cardiovascular_disease']!.value,

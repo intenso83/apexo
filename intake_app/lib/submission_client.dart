@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 const compiledIntakeServerUrl = String.fromEnvironment('INTAKE_SERVER_URL');
 
@@ -21,6 +22,7 @@ class IntakeSubmissionClient {
   Future<void> submit({
     required String sessionId,
     required Map<String, dynamic> packet,
+    required Uint8List pdfBytes,
   }) async {
     final base = compiledIntakeServerUrl.trim();
     final uri = Uri.tryParse(base);
@@ -31,6 +33,11 @@ class IntakeSubmissionClient {
     }
     if (sessionId.trim().isEmpty) {
       throw const IntakeSubmissionException('The intake session is missing.');
+    }
+    if (pdfBytes.isEmpty || pdfBytes.length > 2 * 1024 * 1024) {
+      throw const IntakeSubmissionException(
+        'The signed PDF could not be prepared safely.',
+      );
     }
 
     final client = HttpClient()
@@ -43,11 +50,23 @@ class IntakeSubmissionClient {
       final request = await client
           .postUrl(endpoint)
           .timeout(const Duration(seconds: 15));
-      request.headers.contentType = ContentType.json;
-      request.headers.set(HttpHeaders.acceptHeader, 'application/json');
-      request.write(
-        jsonEncode({'session_id': sessionId.trim(), 'packet': packet}),
+      final boundary =
+          'apexo-intake-${DateTime.now().microsecondsSinceEpoch.toRadixString(16)}';
+      request.headers.set(
+        HttpHeaders.contentTypeHeader,
+        'multipart/form-data; boundary=$boundary',
       );
+      request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+      _writeTextPart(request, boundary, 'session_id', sessionId.trim());
+      _writeTextPart(request, boundary, 'packet', jsonEncode(packet));
+      request.write('--$boundary\r\n');
+      request.write(
+        'Content-Disposition: form-data; name="intake_pdf"; '
+        'filename="signed-patient-intake.pdf"\r\n',
+      );
+      request.write('Content-Type: application/pdf\r\n\r\n');
+      request.add(pdfBytes);
+      request.write('\r\n--$boundary--\r\n');
       final response = await request.close().timeout(
         const Duration(seconds: 20),
       );
@@ -80,5 +99,18 @@ class IntakeSubmissionClient {
     } finally {
       client.close(force: true);
     }
+  }
+
+  void _writeTextPart(
+    HttpClientRequest request,
+    String boundary,
+    String name,
+    String value,
+  ) {
+    request.write('--$boundary\r\n');
+    request.write('Content-Disposition: form-data; name="$name"\r\n');
+    request.write('Content-Type: text/plain; charset=utf-8\r\n\r\n');
+    request.add(utf8.encode(value));
+    request.write('\r\n');
   }
 }

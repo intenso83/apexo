@@ -39,7 +39,7 @@ class MedicalHistorySection {
 class PracticeMedicalHistoryQuestionnaire {
   PracticeMedicalHistoryQuestionnaire._();
 
-  static const version = 'practice-medical-history-2026-09-02-v1';
+  static const version = 'practice-medical-history-2026-09-04-v3';
 
   static String localized(
     Map<String, String> values, [
@@ -68,21 +68,12 @@ class PracticeMedicalHistoryQuestionnaire {
           },
         ),
         MedicalHistoryQuestion(
-          id: 'penicillin_allergy',
+          id: 'antibiotic_allergy',
           indented: true,
           labels: {
-            'en': 'Penicillin allergy',
-            'el': 'Αλλεργία στην πενικιλίνη',
-            'de': 'Penicillinallergie',
-          },
-        ),
-        MedicalHistoryQuestion(
-          id: 'latex_allergy',
-          indented: true,
-          labels: {
-            'en': 'Latex allergy',
-            'el': 'Αλλεργία στο λάτεξ',
-            'de': 'Latexallergie',
+            'en': 'Antibiotic allergy',
+            'el': 'Αλλεργία σε αντιβιοτικό',
+            'de': 'Allergie gegen Antibiotika',
           },
         ),
         MedicalHistoryQuestion(
@@ -298,9 +289,12 @@ class PracticeMedicalHistoryQuestionnaire {
           id: 'antibiotic_prophylaxis',
           indented: true,
           labels: {
-            'en': 'Antibiotic prophylaxis before dental treatment',
-            'el': 'Αντιβιοτική προφύλαξη πριν από οδοντιατρική θεραπεία',
-            'de': 'Antibiotikaprophylaxe vor Zahnbehandlung',
+            'en':
+                'Antibiotic prophylaxis ordered by a doctor before dental treatment',
+            'el':
+                'Αντιβιοτική προφύλαξη πριν από οδοντιατρική θεραπεία, κατόπιν εντολής ιατρού',
+            'de':
+                'Ärztlich angeordnete Antibiotikaprophylaxe vor einer Zahnbehandlung',
           },
         ),
       ],
@@ -317,9 +311,9 @@ class PracticeMedicalHistoryQuestionnaire {
           id: 'pregnancy',
           paperNumber: 15,
           labels: {
-            'en': 'Pregnancy or possibility of pregnancy',
-            'el': 'Εγκυμοσύνη ή πιθανότητα εγκυμοσύνης',
-            'de': 'Schwangerschaft oder mögliche Schwangerschaft',
+            'en': '♀ Pregnancy or possibility of pregnancy',
+            'el': '♀ Εγκυμοσύνη ή πιθανότητα εγκυμοσύνης',
+            'de': '♀ Schwangerschaft oder mögliche Schwangerschaft',
           },
         ),
         MedicalHistoryQuestion(
@@ -371,9 +365,12 @@ class PracticeMedicalHistoryQuestionnaire {
           id: 'antiresorptive_therapy',
           paperNumber: 22,
           labels: {
-            'en': 'Antiresorptive medication, including bisphosphonates',
-            'el': 'Αντιοστεολυτική αγωγή, συμπεριλαμβανομένων των διφωσφονικών',
-            'de': 'Antiresorptive Medikamente, einschließlich Bisphosphonate',
+            'en':
+                'Antiresorptive treatment — Prolia® (denosumab) or bisphosphonates, e.g. Fosamax®/Fosavance® (alendronate), Actonel® (risedronate), Bonviva® (ibandronate), Aclasta®/Zometa® (zoledronic acid)',
+            'el':
+                'Αντιοστεολυτική αγωγή — Prolia® (denosumab) ή διφωσφονικά, π.χ. Fosamax®/Fosavance® (alendronate), Actonel® (risedronate), Bonviva® (ibandronate), Aclasta®/Zometa® (zoledronic acid)',
+            'de':
+                'Antiresorptive Therapie — Prolia® (Denosumab) oder Bisphosphonate, z. B. Fosamax®/Fosavance® (Alendronat), Actonel® (Risedronat), Bonviva® (Ibandronat), Aclasta®/Zometa® (Zoledronsäure)',
           },
         ),
       ],
@@ -393,14 +390,6 @@ class PracticeMedicalHistoryQuestionnaire {
             'en': 'Smoking',
             'el': 'Κάπνισμα',
             'de': 'Rauchen',
-          },
-        ),
-        MedicalHistoryQuestion(
-          id: 'alcohol_use',
-          labels: {
-            'en': 'Alcohol use relevant to care',
-            'el': 'Χρήση αλκοόλ σχετική με τη θεραπεία',
-            'de': 'Für die Behandlung relevanter Alkoholkonsum',
           },
         ),
       ],

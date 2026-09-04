@@ -13,7 +13,8 @@ the PocketBase client SDK.
 - No collection list, view, create, update, or delete rule is exposed to a
   patient.
 - Patient answers remain in memory, are sent only from the final confirmation
-  screen, and are cleared after a successful response.
+  screen together with the generated signed PDF, and are cleared after a
+  successful response. The PDF file field is protected on PocketBase.
 - Form settings are available only from the staff preparation screen, before a
   patient session starts. They are protected by a local password. The app stores
   a random salt and a PBKDF2-HMAC-SHA256 verifier, never the password itself,
@@ -33,7 +34,8 @@ and is intentionally not claimed by the app itself.
 
 `output/android/Dimitrakopoulos-Patient-Intake-test.apk` is built without an
 `INTAKE_SERVER_URL`. It exercises the complete phone/tablet UI but deliberately
-does not save or transmit answers. The completion screen says this explicitly.
+does not save or transmit answers. It generates and validates the signed PDF in
+memory, then discards it. The completion screen says this explicitly.
 
 The test build can be installed alongside Apexo because it has a separate
 application id. Android 7.0 (API 24) or newer is required.
@@ -76,13 +78,17 @@ and I don't know, with no Doesn't apply option.
 
 The final step records both the patient's typed full name and normalized drawn
 signature strokes from a finger or stylus. The server validates drawn points
-before accepting the packet.
+before accepting the packet. At submission, the app also converts those strokes
+to a PNG signature image and embeds it in a branded, multilingual A4 PDF. The
+PDF includes the visible personal fields, every visible medical-history answer,
+details, GDPR acknowledgement, confirmation, typed name, and drawn signature.
 
 ## Server deployment
 
 The tested server extension targets PocketBase 0.40.1:
 
 - `server/pocketbase/pb_migrations/1788372000_create_patient_intake.js`
+- `server/pocketbase/pb_migrations/1788544800_add_intake_pdf.js`
 - `server/pocketbase/pb_hooks/apexo_intake.pb.js`
 
 Back up the production PocketBase data directory first. Copy these directories
@@ -128,6 +134,8 @@ The Patients screen contains a `Patient intake` command:
    over the tablet.
 3. The patient completes the multi-page form and submits it.
 4. Staff refreshes pending submissions in Apexo and reviews possible matches.
+   The review window can open the protected signed PDF using a short-lived
+   authenticated file token.
 5. Staff explicitly chooses either a new patient or an existing patient.
 6. For an existing patient, only currently empty personal fields are filled;
    existing values are never overwritten. A new immutable medical-history

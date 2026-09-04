@@ -11,8 +11,9 @@ void main() {
     return PatientIntakeSubmission.fromJson({
       'id': 'intakesubmit001',
       'received_at': '2026-09-02T10:00:00Z',
+      'pdf_file': 'signed-patient-intake_abc123.pdf',
       'packet': {
-        'packet_version': 'practice-patient-intake-2026-09-02-v1',
+        'packet_version': 'practice-patient-intake-2026-09-04-v3',
         'questionnaire_version': PracticeMedicalHistoryQuestionnaire.version,
         'language_code': 'el',
         'patient_confirmed': true,
@@ -46,8 +47,10 @@ void main() {
   }
 
   test('maps practice-form personal data into the Apexo patient shape', () {
-    final patient = PatientIntakeMapper.newPatient(submission());
+    final incoming = submission();
+    final patient = PatientIntakeMapper.newPatient(incoming);
 
+    expect(incoming.hasPdf, isTrue);
     expect(patient.surname, 'Δημητρίου');
     expect(patient.firstName, 'Μαρία');
     expect(patient.patronymic, 'Γεώργιος');
@@ -87,10 +90,16 @@ void main() {
     final serverHook = await File(
       'server/pocketbase/pb_hooks/apexo_intake.pb.js',
     ).readAsString();
+    final pdfMigration = await File(
+      'server/pocketbase/pb_migrations/1788544800_add_intake_pdf.js',
+    ).readAsString();
 
     for (final question in PracticeMedicalHistoryQuestionnaire.questions) {
       expect(appSchema, contains("id: '${question.id}'"));
       expect(serverHook, contains('"${question.id}"'));
     }
+    expect(serverHook, contains('findUploadedFiles("intake_pdf")'));
+    expect(pdfMigration, contains('mimeTypes: ["application/pdf"]'));
+    expect(pdfMigration, contains('protected: true'));
   });
 }
