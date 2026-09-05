@@ -86,6 +86,64 @@ void main() {
     expect(item.toJson()['odontogramOverlay'], 'none');
   });
 
+  test('laboratory requirement is explicit or inferred for prosthetics', () {
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    addTearDown(() {
+      therapyGroups.observableMap.clear();
+      procedureCatalog.observableMap.clear();
+    });
+    final group = TherapyGroup.fromJson({
+      'id': 'prosthetic-group',
+      'name': 'Ακίνητη Προσθετική',
+    });
+    therapyGroups.set(group);
+    final crown = ProcedureCatalogItem.fromJson({
+      'id': 'crown-procedure',
+      'name': 'Στεφάνη ζιρκονίας',
+      'therapyGroupID': group.id,
+    });
+    expect(procedureCatalog.requiresLaboratory(crown), isTrue);
+
+    crown.requiresLaboratory = false;
+    final restored = ProcedureCatalogItem.fromJson(crown.toJson());
+    expect(restored.requiresLaboratory, isFalse);
+    expect(procedureCatalog.requiresLaboratory(restored), isFalse);
+  });
+
+  test('labworks catalogue contains only therapies marked for laboratory use',
+      () {
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    addTearDown(() {
+      therapyGroups.observableMap.clear();
+      procedureCatalog.observableMap.clear();
+    });
+    final group = TherapyGroup.fromJson({
+      'id': 'mixed-group',
+      'name': 'Treatments',
+    });
+    therapyGroups.set(group);
+    final filling = ProcedureCatalogItem.fromJson({
+      'id': 'filling',
+      'name': 'Filling',
+      'therapyGroupID': group.id,
+      'requiresLaboratory': false,
+    });
+    final crown = ProcedureCatalogItem.fromJson({
+      'id': 'crown',
+      'name': 'Crown',
+      'therapyGroupID': group.id,
+      'requiresLaboratory': true,
+    });
+    procedureCatalog.setAll([filling, crown]);
+
+    expect(
+      procedureCatalog.laboratoryProcedures.map((item) => item.id),
+      ['crown'],
+    );
+  });
+
   test('overlay classifier distinguishes common clinical symbols', () {
     expect(
       inferOdontogramOverlay(

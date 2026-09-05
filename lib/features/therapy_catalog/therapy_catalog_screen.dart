@@ -283,6 +283,19 @@ class _ProcedurePane extends StatelessWidget {
                                   Text(
                                     '${txt('odontogramOverlaySetting')}: ${_overlayLabel(item)}',
                                   ),
+                                  Checkbox(
+                                    checked: procedureCatalog
+                                        .requiresLaboratory(item),
+                                    content: Text(txt('showInLabworks')),
+                                    onChanged: login.isAdmin
+                                        ? (value) {
+                                            final copy = item.copy(false)
+                                              ..requiresLaboratory =
+                                                  value ?? false;
+                                            procedureCatalog.set(copy);
+                                          }
+                                        : null,
+                                  ),
                                   if (procedureCatalog
                                       .handlingDecision(item)
                                       .needsReview)
@@ -461,6 +474,8 @@ Future<void> _showProcedureDialog(
       ? null
       : procedureCatalog.handlingDecision(existing).mode;
   OdontogramOverlayKind? odontogramOverlay = existing?.odontogramOverlay;
+  var laboratoryRequired =
+      existing == null ? false : procedureCatalog.requiresLaboratory(existing);
   final defaultSurfaces = <DentalSurface>{
     ...DentalSurface.values.where(
       (surface) => existing?.defaultSurfaces.contains(surface.name) ?? false,
@@ -571,6 +586,14 @@ Future<void> _showProcedureDialog(
                   txt('odontogramOverlayDescription'),
                   style: FluentTheme.of(context).typography.caption,
                 ),
+                const SizedBox(height: 10),
+                Checkbox(
+                  checked: laboratoryRequired,
+                  content: Text(txt('showInLabworks')),
+                  onChanged: (value) => setDialogState(
+                    () => laboratoryRequired = value ?? false,
+                  ),
+                ),
                 if (handlingMode == ProcedureHandlingMode.surfaceBased) ...[
                   const SizedBox(height: 10),
                   Text(txt('catalogueSurfacePreset')),
@@ -641,6 +664,7 @@ Future<void> _showProcedureDialog(
                   defaultSurfaces.map((surface) => surface.name).toList();
               item.applyHandlingMode(handlingMode!);
               item.odontogramOverlay = odontogramOverlay;
+              item.requiresLaboratory = laboratoryRequired;
               item.hidden = hidden;
               procedureCatalog.set(item);
               Navigator.pop(dialogContext);

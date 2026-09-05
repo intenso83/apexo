@@ -5,6 +5,7 @@ import 'package:apexo/common_widgets/money_display.dart';
 import 'package:apexo/common_widgets/screen_command_bar.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/expenses/expense_model.dart';
+import 'package:apexo/features/expenses/expense_item_catalog_dialog.dart';
 import 'package:apexo/features/expenses/open_expense_panel.dart';
 import 'package:apexo/features/expenses/scan_receipt_dialog.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
@@ -62,10 +63,17 @@ class _SuppliersListState extends State<SuppliersList> {
                 icon: ButtonContent(WindowsIcons.add, txt("addSupplier")),
                 onPressed: _showAddSupplierDialog,
               ),
-              otherButtons:
-                  globalSettings.aiServicesEnabled && network.isOnline()
-                      ? [_buildScanButton(context)]
-                      : [],
+              otherButtons: [
+                Button(
+                  onPressed: () => showExpenseItemCatalogDialog(context),
+                  child: ButtonContent(
+                    FluentIcons.product_catalog,
+                    txt('expenseItemCatalogue'),
+                  ),
+                ),
+                if (globalSettings.aiServicesEnabled && network.isOnline())
+                  _buildScanButton(context),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),

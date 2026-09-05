@@ -1,6 +1,10 @@
 import 'dart:convert';
 
 import 'package:apexo/core/multi_stream_builder.dart';
+import 'package:apexo/common_widgets/button_styles.dart';
+import 'package:apexo/common_widgets/tag_input.dart';
+import 'package:apexo/features/expenses/expenses_store.dart';
+import 'package:apexo/features/labwork/laboratory_catalog_dialog.dart';
 import 'package:apexo/features/odontogram/odontogram_assets.dart';
 import 'package:apexo/features/odontogram/odontogram_event_model.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
@@ -8,6 +12,7 @@ import 'package:apexo/features/odontogram/patient_odontogram.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
+import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:fluent_ui/fluent_ui.dart';
@@ -38,6 +43,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
   String? selectedItemID;
   String? selectedGroupID;
   String? selectedProcedureID;
+  String? initializedProcedureGroupID;
   int draftSelectedFdi = 11;
   int? bridgeRangeAnchorFdi;
   final Map<String, int> bridgeDraftTooth = {};
@@ -65,6 +71,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
             treatmentPlans.observableMap.stream,
             therapyGroups.observableMap.stream,
             procedureCatalog.observableMap.stream,
+            expenses.observableMap.stream,
             globalSettings.observableMap.stream,
             odontogramEvents.observableMap.stream,
           ],
@@ -526,6 +533,27 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               ),
             ),
             const SizedBox(width: 6),
+            if (!completed)
+              Tooltip(
+                message: txt('deleteTreatment'),
+                child: IconButton(
+                  key: ValueKey('delete-plan-item-${item.id}'),
+                  icon: Icon(
+                    FluentIcons.delete,
+                    size: 15,
+                    color: Colors.red,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      plan.items.removeWhere(
+                        (candidate) => candidate.id == item.id,
+                      );
+                      if (selectedItemID == item.id) selectedItemID = null;
+                    });
+                    treatmentPlans.set(plan);
+                  },
+                ),
+              ),
             Icon(
               completed ? FluentIcons.completed_solid : FluentIcons.edit,
               size: 14,
@@ -631,7 +659,10 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         .forGroup(selectedGroupID ?? '')
         .where((procedure) => !procedure.hidden)
         .toList();
-    if (selectedProcedureID == null ||
+    if (initializedProcedureGroupID != selectedGroupID) {
+      initializedProcedureGroupID = selectedGroupID;
+      selectedProcedureID = procedures.isEmpty ? null : procedures.first.id;
+    } else if (selectedProcedureID != null &&
         !procedures.any((procedure) => procedure.id == selectedProcedureID)) {
       selectedProcedureID = procedures.isEmpty ? null : procedures.first.id;
     }
@@ -680,21 +711,40 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                 flex: 2,
                 child: InfoLabel(
                   label: 'Θεραπεία',
-                  child: ComboBox<String>(
+                  child: TagInputWidget(
                     key: const Key('treatment-plan-procedure-picker'),
-                    isExpanded: true,
-                    value: selectedProcedureID,
-                    items: procedures
-                        .map((procedure) => ComboBoxItem<String>(
+                    strict: true,
+                    limit: 1,
+                    multiline: false,
+                    placeholder: txt('catalogueSearch'),
+                    initialValue: procedures
+                        .where(
+                            (procedure) => procedure.id == selectedProcedureID)
+                        .map((procedure) => TagInputItem(
                               value: procedure.id,
-                              child: Text(translations.procedureName(
+                              label: translations.procedureName(
                                 procedure,
                                 plan.language,
-                              )),
+                              ),
+                              searchText:
+                                  '${procedure.title} ${procedure.sourceCode}',
                             ))
                         .toList(),
-                    onChanged: (value) =>
-                        setState(() => selectedProcedureID = value),
+                    suggestions: procedures
+                        .map((procedure) => TagInputItem(
+                              value: procedure.id,
+                              label: translations.procedureName(
+                                procedure,
+                                plan.language,
+                              ),
+                              searchText:
+                                  '${procedure.title} ${procedure.sourceCode}',
+                            ))
+                        .toList(),
+                    onChanged: (items) => setState(() {
+                      selectedProcedureID =
+                          items.isEmpty ? null : items.first.value;
+                    }),
                   ),
                 ),
               ),
@@ -722,6 +772,7 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
 
   Widget _buildPlanItem(TreatmentPlan plan, TreatmentPlanItem item) {
     final completed = item.isCompleted;
+    final procedure = procedureCatalog.get(item.procedureID);
     return Container(
       key: ValueKey('treatment-plan-item-${item.id}'),
       padding: const EdgeInsets.all(12),
@@ -806,6 +857,11 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
               ),
             ],
           ),
+          if (procedure != null &&
+              procedureCatalog.requiresLaboratory(procedure)) ...[
+            const SizedBox(height: 12),
+            _buildLaboratoryEditor(plan, item, completed),
+          ],
           const SizedBox(height: 12),
           _buildTargetEditor(plan, item, completed),
           const SizedBox(height: 8),
@@ -849,6 +905,110 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                 ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLaboratoryEditor(
+    TreatmentPlan plan,
+    TreatmentPlanItem item,
+    bool completed,
+  ) {
+    final laboratories = expenses.laboratories;
+    final selected = laboratories.any((lab) => lab.id == item.laboratoryID)
+        ? item.laboratoryID
+        : null;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(FluentIcons.manufacturing, size: 17),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  txt('laboratoryAssignment'),
+                  style: FluentTheme.of(context).typography.bodyStrong,
+                ),
+              ),
+              Button(
+                onPressed: completed
+                    ? null
+                    : () => showLaboratoryCatalogDialog(
+                          context,
+                          selectedLaboratoryID: item.laboratoryID,
+                        ),
+                child: ButtonContent(
+                  FluentIcons.settings,
+                  txt('laboratoryCatalogue'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (laboratories.isEmpty)
+            InfoBar(
+              title: Text(txt('noLaboratories')),
+              content: Text(txt('createLaboratoryFirst')),
+              severity: InfoBarSeverity.warning,
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: InfoLabel(
+                    label: txt('laboratory'),
+                    child: ComboBox<String>(
+                      isExpanded: true,
+                      value: selected,
+                      placeholder: Text(txt('selectLaboratory')),
+                      items: laboratories
+                          .map((lab) => ComboBoxItem<String>(
+                                value: lab.id,
+                                child: Text(lab.supplierName),
+                              ))
+                          .toList(),
+                      onChanged: completed
+                          ? null
+                          : (value) {
+                              final laboratory = expenses.get(value ?? '');
+                              item.laboratoryID = value ?? '';
+                              item.laboratoryNameSnapshot =
+                                  laboratory?.supplierName ?? '';
+                              item.laboratoryCost = expenses.laboratoryPrice(
+                                    item.laboratoryID,
+                                    item.procedureID,
+                                  ) ??
+                                  0;
+                              treatmentPlans.set(plan);
+                            },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                _numberField(
+                  label: '${txt('laboratoryCost')} (${currency()})',
+                  width: 175,
+                  value: item.laboratoryCost,
+                  min: 0,
+                  onChanged: completed || selected == null
+                      ? null
+                      : (value) {
+                          item.laboratoryCost = value ?? 0;
+                          treatmentPlans.set(plan);
+                        },
+                ),
+              ],
+            ),
         ],
       ),
     );

@@ -112,6 +112,36 @@ void main() {
       expect(json['photos'], ['receipt.jpg']);
     });
 
+    test('round-trip preserves laboratory contact and procedure prices', () {
+      final laboratory = Expense.fromJson({
+        'id': 'laboratory-1',
+        'isSupplier': true,
+        'isLaboratory': true,
+        'supplierName': 'Praxis Lab',
+        'supplierContactName': 'George Praxis',
+        'supplierPhone': '2310000000',
+        'supplierMobile': '6900000000',
+        'supplierEmail': 'lab@example.com',
+        'supplierAddress': 'Thessaloniki',
+        'laboratoryProcedurePrices': {
+          'procedure-crown': 85,
+          'procedure-bridge': 140.5,
+        },
+      });
+
+      final restored = Expense.fromJson(laboratory.toJson());
+      expect(restored.isLaboratory, isTrue);
+      expect(restored.supplierContactName, 'George Praxis');
+      expect(restored.supplierPhone, '2310000000');
+      expect(restored.supplierMobile, '6900000000');
+      expect(restored.supplierEmail, 'lab@example.com');
+      expect(restored.supplierAddress, 'Thessaloniki');
+      expect(restored.laboratoryProcedurePrices, {
+        'procedure-crown': 85,
+        'procedure-bridge': 140.5,
+      });
+    });
+
     test('default collections are omitted while date is always serialized', () {
       final json = Expense.fromJson({'id': 'defaults'}).toJson();
 
@@ -122,9 +152,16 @@ void main() {
   });
 
   group('Expense computed getters', () {
-    test('isOrder is !isSupplier', () {
+    test('catalogue records are not counted as orders', () {
       expect(Expense.fromJson({'isSupplier': true}).isOrder, false);
       expect(Expense.fromJson({'isSupplier': false}).isOrder, true);
+      expect(
+        Expense.fromJson({
+          'isCatalogueItem': true,
+          'catalogueItemName': 'Gloves',
+        }).isOrder,
+        false,
+      );
     });
 
     test('title format for supplier', () {

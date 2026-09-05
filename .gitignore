@@ -46,6 +46,12 @@ app_specific_password.txt
 /build/
 /linux/flutter/ephemeral/
 
+# Generated local builds, previews, reports, and temporary server files.
+# Tracked historical samples under these paths remain tracked by Git.
+/output/
+/outputs/
+/tmp/
+
 # Symbolication related
 app.*.symbols
 

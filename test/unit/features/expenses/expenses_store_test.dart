@@ -80,6 +80,54 @@ void main() {
       expect(expenses.allItems.toSet(), {'gloves', 'mask', 'syringe'});
     });
 
+    test('allItems combines the reusable catalogue with order history', () {
+      expenses.setAll([
+        Expense.fromJson({
+          'id': 'catalogue-gloves',
+          'isCatalogueItem': true,
+          'catalogueItemName': 'Gloves',
+        }),
+        testExpense(id: 'order', items: ['Mask', 'Gloves']),
+      ]);
+
+      expect(expenses.catalogueItems.map((item) => item.catalogueItemName), [
+        'Gloves',
+      ]);
+      expect(expenses.allItems, ['Gloves', 'Mask']);
+      expect(expenses.allOrders.map((order) => order.id), ['order']);
+    });
+
+    test('laboratories expose saved per-procedure prices', () {
+      expenses.setAll([
+        Expense.fromJson({
+          'id': 'lab-b',
+          'isSupplier': true,
+          'isLaboratory': true,
+          'supplierName': 'Beta Lab',
+          'laboratoryProcedurePrices': {'crown': 90},
+        }),
+        Expense.fromJson({
+          'id': 'lab-a',
+          'isSupplier': true,
+          'isLaboratory': true,
+          'supplierName': 'Alpha Lab',
+          'laboratoryProcedurePrices': {'crown': 75},
+        }),
+        Expense.fromJson({
+          'id': 'ordinary-supplier',
+          'isSupplier': true,
+          'supplierName': 'Dental Materials',
+        }),
+      ]);
+
+      expect(
+        expenses.laboratories.map((laboratory) => laboratory.supplierName),
+        ['Alpha Lab', 'Beta Lab'],
+      );
+      expect(expenses.laboratoryPrice('lab-a', 'crown'), 75);
+      expect(expenses.laboratoryPrice('lab-a', 'unknown'), isNull);
+    });
+
     test('suppliers, supplierMap, and ordersPerSupplier group correctly', () {
       final supplierA =
           testExpense(id: 'supplier-a', isSupplier: true, supplierName: 'A');

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "block_id": {
+      "type": "string",
+      "pattern": "^[0-9A-F]{24}$"
+    },
+    "transcription": {
+      "type": "string"
+    },
+    "needs_review": {
+      "type": "boolean"
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 3
+    }
+  },
+  "required": [
+    "block_id",
+    "transcription",
+    "needs_review",
+    "alternatives"
+  ],
+  "additionalProperties": false
+}

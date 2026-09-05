@@ -137,7 +137,13 @@ void main() {
       isNotNull,
     );
 
-    await tester.tap(find.byKey(const Key('procedure-selector')));
+    await tester.tap(find.byKey(const Key('Bridge work_clear')));
+    await tester.pumpAndSettle();
+    final openProcedureList = find.descendant(
+      of: find.byKey(const Key('procedure-selector')),
+      matching: find.byIcon(WindowsIcons.chevron_down),
+    );
+    await tester.tap(openProcedureList);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Removable work').last);
     await tester.pumpAndSettle();

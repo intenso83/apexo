@@ -65,7 +65,9 @@ class Expenses extends Store<Expense> {
 
   void nullifyExpensesCache() {
     _cachedAllItems = null;
+    _cachedCatalogueItems = null;
     _cachedSuppliers = null;
+    _cachedLaboratories = null;
     _cachedSupplierMap = null;
     _cachedOrdersPerSupplier = null;
     _cachedTotalDue = null;
@@ -73,7 +75,9 @@ class Expenses extends Store<Expense> {
   }
 
   List<String>? _cachedAllItems;
+  List<Expense>? _cachedCatalogueItems;
   List<Expense>? _cachedSuppliers;
+  List<Expense>? _cachedLaboratories;
 
   @override
   void set(Expense item) {
@@ -99,14 +103,29 @@ class Expenses extends Store<Expense> {
 
   List<String> get allItems {
     if (_cachedAllItems != null) return _cachedAllItems!;
-    Set<String> items = {};
+    Set<String> items = {
+      ...catalogueItems.map((item) => item.catalogueItemName.trim()),
+    }..remove('');
     for (var doc in docs.values) {
+      if (!doc.isOrder) continue;
       for (var item in doc.items) {
-        items.add(item);
+        if (item.trim().isNotEmpty) items.add(item.trim());
       }
     }
-    _cachedAllItems = items.toList();
+    _cachedAllItems = items.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     return _cachedAllItems!;
+  }
+
+  List<Expense> get catalogueItems {
+    if (_cachedCatalogueItems != null) return _cachedCatalogueItems!;
+    _cachedCatalogueItems = present.values
+        .where((item) => item.isCatalogueItem)
+        .toList()
+      ..sort((a, b) => a.catalogueItemName
+          .toLowerCase()
+          .compareTo(b.catalogueItemName.toLowerCase()));
+    return _cachedCatalogueItems!;
   }
 
   double? _cachedTotalDue;
@@ -140,6 +159,20 @@ class Expenses extends Store<Expense> {
         .toList()
       ..sort((x, y) => y.duePayments.compareTo(x.duePayments));
     return _cachedSuppliers!;
+  }
+
+  List<Expense> get laboratories {
+    if (_cachedLaboratories != null) return _cachedLaboratories!;
+    _cachedLaboratories = suppliers.where((item) => item.isLaboratory).toList()
+      ..sort((a, b) =>
+          a.supplierName.toLowerCase().compareTo(b.supplierName.toLowerCase()));
+    return _cachedLaboratories!;
+  }
+
+  double? laboratoryPrice(String laboratoryID, String procedureID) {
+    final value =
+        supplierMap[laboratoryID]?.laboratoryProcedurePrices[procedureID];
+    return value == null || value <= 0 ? null : value;
   }
 
   Map<String, Expense>? _cachedSupplierMap;

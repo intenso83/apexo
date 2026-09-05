@@ -351,10 +351,29 @@ class _TagInputWidgetState extends State<TagInputWidget> {
             .map(
               (s) => AutoSuggestBoxItem(
                 value: s.value,
-                label: s.searchText,
+                label: s.label,
+                child: Text(
+                  s.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             )
             .toList(),
+        sorter: (text, items) {
+          final query = text.trim().toLowerCase();
+          if (query.isEmpty) return items;
+          return items.where((candidate) {
+            final source = _suggestions.firstWhere(
+              (suggestion) => suggestion.value == candidate.value,
+              orElse: () => TagInputItem(
+                value: candidate.value,
+                label: candidate.label,
+              ),
+            );
+            return source.searchText.toLowerCase().contains(query);
+          }).toList();
+        },
         onSelected: _onSuggestionSelected,
         onChanged: (text, reason) {
           if (widget.strict) return;

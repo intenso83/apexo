@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "page": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 17
+    },
+    "fields": {
+      "type": "object",
+      "properties": {
+        "full_name": { "$ref": "#/$defs/field" },
+        "address": { "$ref": "#/$defs/field" },
+        "mobile": { "$ref": "#/$defs/field" },
+        "email": { "$ref": "#/$defs/field" },
+        "registration_date": { "$ref": "#/$defs/field" }
+      },
+      "required": [
+        "full_name",
+        "address",
+        "mobile",
+        "email",
+        "registration_date"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": ["page", "fields"],
+  "additionalProperties": false,
+  "$defs": {
+    "field": {
+      "type": "object",
+      "properties": {
+        "transcription": { "type": "string" },
+        "needs_review": { "type": "boolean" },
+        "alternatives": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 3
+        }
+      },
+      "required": ["transcription", "needs_review", "alternatives"],
+      "additionalProperties": false
+    }
+  }
+}

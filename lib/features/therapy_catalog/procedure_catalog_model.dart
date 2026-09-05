@@ -16,6 +16,7 @@ class ProcedureCatalogItem extends Model {
   SurfaceSelectionMode surfaceSelectionMode = SurfaceSelectionMode.optional;
   List<String> defaultSurfaces = [];
   bool hidden = false;
+  bool? requiresLaboratory;
   Map<String, dynamic> migration = {};
 
   ProcedureCatalogItem.fromJson(super.json) : super.fromJson();
@@ -53,6 +54,7 @@ class ProcedureCatalogItem extends Model {
       json['defaultSurfaces'] ?? const <String>[],
     );
     hidden = json['hidden'] == true;
+    requiresLaboratory = _asNullableBool(json['requiresLaboratory']);
     migration = Map<String, dynamic>.from(json['migration'] ?? migration);
   }
 
@@ -79,6 +81,9 @@ class ProcedureCatalogItem extends Model {
       json['defaultSurfaces'] = defaultSurfaces;
     }
     if (hidden) json['hidden'] = true;
+    if (requiresLaboratory != null) {
+      json['requiresLaboratory'] = requiresLaboratory;
+    }
     if (migration.isNotEmpty) json['migration'] = migration;
     return json;
   }

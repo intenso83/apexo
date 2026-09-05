@@ -46,6 +46,9 @@ void main() {
           'discountAmount': 10,
           'toothFdi': 16,
           'surfaces': ['wholeTooth'],
+          'laboratoryID': 'laboratory-1',
+          'laboratoryNameSnapshot': 'Praxis Lab',
+          'laboratoryCost': 85,
         },
       ],
     });
@@ -53,6 +56,9 @@ void main() {
     expect(plan.items.single.displayName(TreatmentPlanLanguage.de), 'Krone');
     expect(plan.signedAttachmentName, 'signed-plan.pdf');
     expect(plan.signedAttachmentBase64, 'c2lnbmVk');
+    expect(plan.items.single.laboratoryID, 'laboratory-1');
+    expect(plan.items.single.laboratoryNameSnapshot, 'Praxis Lab');
+    expect(plan.items.single.laboratoryCost, 85);
     expect(TreatmentPlan.fromJson(plan.toJson()).toJson(), plan.toJson());
   });
 
@@ -100,6 +106,9 @@ void main() {
           'unitPrice': 180,
           'toothFdi': 16,
           'surfaces': ['wholeTooth'],
+          'laboratoryID': 'laboratory-1',
+          'laboratoryNameSnapshot': 'Praxis Lab',
+          'laboratoryCost': 70,
         },
       ],
     });
@@ -117,6 +126,9 @@ void main() {
     expect(event.surfaces, ['wholeTooth']);
     expect(event.overlayKind, OdontogramOverlayKind.rootCanal);
     expect(event.priceSnapshot, 180);
+    expect(event.laboratoryID, 'laboratory-1');
+    expect(event.laboratoryNameSnapshot, 'Praxis Lab');
+    expect(event.laboratoryCost, 70);
     expect(event.migration['financialMutation'], isFalse);
     expect(plan.items.single.status, TreatmentPlanItemStatus.completed);
     expect(plan.items.single.odontogramEventID, event.id);

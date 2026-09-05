@@ -7,6 +7,8 @@ import 'package:apexo/features/appointments/appointment_model.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/labwork/labworks_ctrl.dart';
 import 'package:apexo/features/labwork/open_labwork_panel.dart';
+import 'package:apexo/features/labwork/laboratory_catalog_dialog.dart';
+import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
@@ -23,7 +25,10 @@ class LabworksScreen extends StatelessWidget {
       children: [
         Expanded(
           child: MStreamBuilder(
-              streams: [appointments.observableMap.stream],
+              streams: [
+                appointments.observableMap.stream,
+                expenses.observableMap.stream,
+              ],
               builder: (context, snapshot) {
                 // ignore: prefer_const_constructors
                 return LabworksTable();
@@ -300,14 +305,23 @@ class _LabworksTableState extends State<LabworksTable> {
 
   Widget _buildCommandBar() {
     return ScreenCommandBar(
-      mainButton: (login.perm(Perm.postOp).none ||
-              login.perm(Perm.appointments).none)
-          ? const SizedBox.shrink()
-          : IconButton(
-              icon: ButtonContent(WindowsIcons.add, txt("newLabwork")),
-              onPressed: () {
-                openLabworkPanel(null);
-              }),
+      mainButton:
+          (login.perm(Perm.postOp).none || login.perm(Perm.appointments).none)
+              ? const SizedBox.shrink()
+              : IconButton(
+                  icon: ButtonContent(WindowsIcons.add, txt("newLabwork")),
+                  onPressed: () {
+                    openLabworkPanel(null);
+                  }),
+      otherButtons: [
+        Button(
+          onPressed: () => showLaboratoryCatalogDialog(context),
+          child: ButtonContent(
+            FluentIcons.shop,
+            txt('laboratoryCatalogue'),
+          ),
+        ),
+      ],
     );
   }
 

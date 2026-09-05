@@ -1,0 +1,20 @@
+Apexo OCR Utility 1.0.0 — Third-party notices
+================================================
+
+This utility is packaged with the following runtime components:
+
+- Python (PSF License): https://docs.python.org/3/license.html
+- Pillow 12.3.0 (HPND): https://github.com/python-pillow/Pillow/blob/main/LICENSE
+- openpyxl 3.1.5 (MIT): https://foss.heptapod.net/openpyxl/openpyxl/-/blob/branch/3.1/LICENCE.rst
+- pypdfium2 5.13.0 (Apache-2.0 / BSD-3-Clause):
+  https://github.com/pypdfium2-team/pypdfium2/tree/main/LICENSES
+- PDFium and bundled PDFium dependencies (BSD-style and dependency licenses):
+  the complete license files are included in the packaged pypdfium2 data.
+
+PyInstaller is used as a build tool under GPL-2.0-or-later with its exception
+for distributing bundled applications. It is not an OCR runtime service.
+
+External local engines are not bundled:
+
+- Ollama: installed and run separately on the same PC.
+- Tesseract OCR: installed separately on the same PC.

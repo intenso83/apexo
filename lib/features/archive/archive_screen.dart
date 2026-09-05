@@ -17,6 +17,7 @@ import 'package:apexo/features/notes/notes_store.dart';
 import 'package:apexo/features/patients/open_patient_panel.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
+import 'package:apexo/features/shopping/shopping_store.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/utils/constants.dart';
@@ -33,6 +34,7 @@ class ArchivedScreen extends StatelessWidget {
         appointments.observableMap.stream,
         expenses.observableMap.stream,
         notes.observableMap.stream,
+        shoppingList.observableMap.stream,
       ],
       builder: (context, _) =>
           _ArchivedPage(DateTime.now().millisecondsSinceEpoch),
@@ -159,6 +161,7 @@ class _ArchivedPageState extends State<_ArchivedPage> {
     }
     if (_canAccess(Perm.expenses)) keys.addAll(_collect("expenses", expenses));
     if (_canAccess(Perm.notes)) keys.addAll(_collect("notes", notes));
+    keys.addAll(_collect('shoppingList', shoppingList));
 
     keys.sort((a, b) => a[2].compareTo(b[2]) * _sortDirection);
     return keys;
@@ -233,6 +236,20 @@ class _ArchivedPageState extends State<_ArchivedPage> {
           onOpen: () => n.isColumn
               ? showColumnEditDialog(context, column: n)
               : showNoteEditDialog(context, note: n),
+        );
+      case 'shoppingList':
+        final shoppingItem = shoppingList.get(key[0])!;
+        return _ArchivedRow(
+          item: shoppingItem,
+          storeLabel: txt('shoppingList'),
+          storeColor: Colors.teal,
+          storeIcon: FluentIcons.shop,
+          subtitle: shoppingItem.isCategory
+              ? txt('shoppingCategory')
+              : '${shoppingList.categoryTitle(shoppingItem.categoryID)} — '
+                  '${shoppingItem.displayName}',
+          onRestore: () => shoppingList.unarchive(shoppingItem.id),
+          onOpen: null,
         );
       default:
         throw ArgumentError("Unknown store key: ${key[1]}");
@@ -379,6 +396,13 @@ class _ArchivedPageState extends State<_ArchivedPage> {
         ]),
       ));
     }
+    items.add(ComboBoxItem(
+      value: 'shoppingList',
+      child: Row(mainAxisSize: MainAxisSize.min, spacing: 4, children: [
+        Icon(FluentIcons.shop, size: 14, color: Colors.teal),
+        Txt(txt('shoppingList')),
+      ]),
+    ));
 
     return ComboBox<String?>(
       value: _activeStore,

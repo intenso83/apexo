@@ -59,6 +59,10 @@ OdontogramEvent completeTreatmentPlanItem({
     'status': OdontogramEventStatus.completed.name,
     'recordedAt': (now.millisecondsSinceEpoch / 60000).round(),
     if (item.notes.isNotEmpty) 'notes': item.notes,
+    if (item.laboratoryID.isNotEmpty) 'laboratoryID': item.laboratoryID,
+    if (item.laboratoryNameSnapshot.isNotEmpty)
+      'laboratoryNameSnapshot': item.laboratoryNameSnapshot,
+    if (item.laboratoryCost != 0) 'laboratoryCost': item.laboratoryCost,
     'migration': {
       'source': 'treatment_plan',
       'treatmentPlanID': plan.id,

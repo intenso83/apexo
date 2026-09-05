@@ -87,5 +87,11 @@ void main() {
     expect(find.text('Ενδοδοντική θεραπεία γομφίου'), findsWidgets);
     expect(find.textContaining('180.00 EUR'), findsWidgets);
     expect(find.byKey(const Key('preview-treatment-plan-pdf')), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(ValueKey('delete-plan-item-${plan.items.single.id}')),
+    );
+    await tester.pumpAndSettle();
+    expect(plan.items, isEmpty);
   });
 }

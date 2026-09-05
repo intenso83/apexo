@@ -52,6 +52,16 @@ class SaveLocal {
     }
   }
 
+  /// Deletes selected entries from the main box without clearing the store.
+  Future<void> delete(Iterable<String> keys) async {
+    try {
+      final box = await mainHiveBox;
+      await box.deleteAll(keys);
+    } catch (e, s) {
+      throw StorageException('Failed to delete entries: $e', s);
+    }
+  }
+
   // Get a value from the main box
   Future<String> get(String key) async {
     try {

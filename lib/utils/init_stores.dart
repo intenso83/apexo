@@ -7,6 +7,7 @@ import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/periodontal_chart/periodontal_chart_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
+import 'package:apexo/features/shopping/shopping_store.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/treatment_history/treatment_history_store.dart';
 import 'package:apexo/features/treatment_planning/treatment_plan_store.dart';
@@ -22,6 +23,7 @@ initializeStores() {
   odontogramEvents.init();
   periodontalCharts.init();
   treatmentPlans.init();
+  shoppingList.init();
 
   appointments.observableMap.observe((events) {
     for (var event in events) {

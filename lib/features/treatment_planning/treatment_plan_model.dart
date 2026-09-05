@@ -38,6 +38,9 @@ class TreatmentPlanItem {
   String notes = '';
   DateTime? completedAt;
   String odontogramEventID = '';
+  String laboratoryID = '';
+  String laboratoryNameSnapshot = '';
+  double laboratoryCost = 0;
 
   factory TreatmentPlanItem.fromJson(Map<String, dynamic> json) {
     final item = TreatmentPlanItem(id: json['id']?.toString());
@@ -80,6 +83,10 @@ class TreatmentPlanItem {
     item.notes = json['notes']?.toString() ?? '';
     item.completedAt = _dateFromMinuteEpoch(json['completedAt']);
     item.odontogramEventID = json['odontogramEventID']?.toString() ?? '';
+    item.laboratoryID = json['laboratoryID']?.toString() ?? '';
+    item.laboratoryNameSnapshot =
+        json['laboratoryNameSnapshot']?.toString() ?? '';
+    item.laboratoryCost = _asDouble(json['laboratoryCost']);
     return item;
   }
 
@@ -116,6 +123,10 @@ class TreatmentPlanItem {
           'completedAt': (completedAt!.millisecondsSinceEpoch / 60000).round(),
         if (odontogramEventID.isNotEmpty)
           'odontogramEventID': odontogramEventID,
+        if (laboratoryID.isNotEmpty) 'laboratoryID': laboratoryID,
+        if (laboratoryNameSnapshot.isNotEmpty)
+          'laboratoryNameSnapshot': laboratoryNameSnapshot,
+        if (laboratoryCost != 0) 'laboratoryCost': laboratoryCost,
       };
 
   TreatmentPlanItem copy() => TreatmentPlanItem.fromJson(toJson());

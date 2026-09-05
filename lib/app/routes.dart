@@ -29,6 +29,8 @@ import 'package:fluent_ui/fluent_ui.dart';
 import '../services/localization/locale.dart';
 import 'package:apexo/features/appointments/calendar_screen.dart';
 import 'package:apexo/features/settings/settings_screen.dart';
+import 'package:apexo/features/shopping/shopping_screen.dart';
+import 'package:apexo/features/shopping/shopping_store.dart';
 import '../core/observable.dart';
 import "../features/appointments/appointments_store.dart";
 import "../features/archive/archive_screen.dart";
@@ -266,6 +268,17 @@ class _Routes {
             await notes.synchronize();
           },
         ),
+        Route(
+          title: txt('shoppingList'),
+          identifier: 'shoppingList',
+          navbarTitle: txt('shoppingList'),
+          icon: FluentIcons.shop,
+          screen: ShoppingListScreen.new,
+          accessible: true,
+          onSelect: () {
+            shoppingList.synchronize();
+          },
+        ),
         if (login.perm(Perm.expenses).some || login.isAdmin)
           Route(
             title: txt("expenses"),
@@ -334,6 +347,7 @@ class _Routes {
             appointments.synchronize();
             expenses.synchronize();
             notes.synchronize();
+            shoppingList.synchronize();
           },
         ),
         // Windows-only DICOM import route. Gated on the current

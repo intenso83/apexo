@@ -114,6 +114,28 @@ class ProcedureCatalog extends Store<ProcedureCatalogItem> {
         );
   }
 
+  bool requiresLaboratory(ProcedureCatalogItem item) {
+    if (item.requiresLaboratory != null) return item.requiresLaboratory!;
+    final group = therapyGroups.get(item.therapyGroupID)?.title ?? '';
+    final text = '${item.title} $group'.toLowerCase();
+    final mode = handlingDecision(item).mode;
+    if (mode == ProcedureHandlingMode.bridge ||
+        mode == ProcedureHandlingMode.removableProsthesis) {
+      return true;
+    }
+    return RegExp(
+      r'προσθετ|στεφαν|γεφυρ|ένθετ|ενθετ|επένθετ|επενθετ|όψη|οψη|implant crown|crown|bridge|veneer|inlay|onlay|denture|prosthe',
+    ).hasMatch(text);
+  }
+
+  List<ProcedureCatalogItem> get laboratoryProcedures {
+    final result = present.values
+        .where((item) => !item.hidden && requiresLaboratory(item))
+        .toList();
+    result.sort((a, b) => a.title.compareTo(b.title));
+    return List.unmodifiable(result);
+  }
+
   @override
   void set(ProcedureCatalogItem item) {
     super.set(item);

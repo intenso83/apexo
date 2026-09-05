@@ -114,7 +114,41 @@ function Write-DwJsonFile {
 function Get-DwFileHashHex {
     param([Parameter(Mandatory = $true)][string]$Path)
 
-    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    # Use the framework API instead of Get-FileHash so the embedded Windows
+    # PowerShell host does not depend on module auto-loading configuration.
+    $stream = [System.IO.File]::OpenRead([System.IO.Path]::GetFullPath($Path))
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ConvertTo-DwHexString -Bytes ($sha.ComputeHash($stream))
+    }
+    finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
+
+function ConvertTo-DwHexString {
+    param([Parameter(Mandatory = $true)][byte[]]$Bytes)
+
+    # Convert.ToHexString is unavailable in the .NET Framework runtime used by
+    # the Windows PowerShell host embedded in the standalone migration utility.
+    return ([System.BitConverter]::ToString($Bytes) -replace '-', '').ToLowerInvariant()
+}
+
+function New-DwRandomBytes {
+    param([Parameter(Mandatory = $true)][ValidateRange(1, 1048576)][int]$Length)
+
+    # RandomNumberGenerator.Fill is unavailable in Windows PowerShell 5.1.
+    # GetBytes is cryptographically equivalent and works in both runtimes.
+    $bytes = [byte[]]::new($Length)
+    $random = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $random.GetBytes($bytes)
+        return $bytes
+    }
+    finally {
+        $random.Dispose()
+    }
 }
 
 function Get-DwRelativePath {
@@ -462,8 +496,7 @@ function Protect-DwText {
         [Parameter(Mandatory = $true)][string]$Passphrase
     )
 
-    $salt = [byte[]]::new(16)
-    [System.Security.Cryptography.RandomNumberGenerator]::Fill($salt)
+    $salt = New-DwRandomBytes -Length 16
     $keyMaterial = New-DwDerivedKeyBytes -Passphrase $Passphrase -Salt $salt -Iterations $script:DwEncryptionIterations
     $encryptionKey = [byte[]]$keyMaterial[0..31]
     $authenticationKey = [byte[]]$keyMaterial[32..63]
@@ -694,7 +727,7 @@ function ConvertTo-DwExtractedValue {
             return [ordered]@{
                 binary_deferred = $true
                 length_bytes = $Value.Length
-                sha256 = ([Convert]::ToHexString($sha.ComputeHash($Value))).ToLowerInvariant()
+                sha256 = ConvertTo-DwHexString -Bytes ($sha.ComputeHash($Value))
             }
         }
         finally {
@@ -764,7 +797,7 @@ function Get-DwCombinedFingerprint {
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
     $sha = [System.Security.Cryptography.SHA256]::Create()
     try {
-        return ([Convert]::ToHexString($sha.ComputeHash($bytes))).ToLowerInvariant()
+        return ConvertTo-DwHexString -Bytes ($sha.ComputeHash($bytes))
     }
     finally {
         $sha.Dispose()
@@ -781,8 +814,7 @@ function New-DwPrivateKeyFile {
     }
     $parent = Split-Path -Parent $fullPath
     [System.IO.Directory]::CreateDirectory($parent) | Out-Null
-    $bytes = [byte[]]::new(64)
-    [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+    $bytes = New-DwRandomBytes -Length 64
     try {
         [System.IO.File]::WriteAllText(
             $fullPath,
@@ -799,10 +831,19 @@ function New-DwPrivateKeyFile {
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
             $security.AddAccessRule($rule)
-            [System.IO.FileSystemAclExtensions]::SetAccessControl(
-                [System.IO.FileInfo]::new($fullPath),
-                $security
-            )
+            $fileInfo = [System.IO.FileInfo]::new($fullPath)
+            try {
+                # Windows PowerShell / .NET Framework exposes this as an
+                # instance method.
+                $fileInfo.SetAccessControl($security)
+            }
+            catch {
+                # PowerShell 7 / .NET exposes the equivalent extension method.
+                [System.IO.FileSystemAclExtensions]::SetAccessControl(
+                    $fileInfo,
+                    $security
+                )
+            }
         }
         catch {
             Remove-Item -LiteralPath $fullPath -Force -ErrorAction SilentlyContinue

@@ -66,56 +66,66 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(top: 10),
       child: ListView(
         children: [
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("currency"),
-              identifier: "currency",
-              description: txt("currency_desc"),
-              icon: FluentIcons.all_currency,
-              inputType: InputType.dropDown,
-              scope: Scope.app,
-              options: currencyPickerOptions,
-              initiallyExpanded: true,
-              initValue: globalSettings.get("currency_______").value,
-              apply: (newVal) => globalSettings.set(
-                  Setting.fromJson({"id": "currency_______", "value": newVal})),
-            ),
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("countryCode"),
-              identifier: "ISO_country____",
-              description: txt("countryCode_desc"),
-              icon: FluentIcons.globe,
-              inputType: InputType.text,
-              scope: Scope.app,
-              initValue: globalSettings.get("ISO_country____").value,
-              apply: (newVal) => globalSettings.set(
-                  Setting.fromJson({"id": "ISO_country____", "value": newVal})),
-            ),
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("prescriptionFooter"),
-              identifier: "prescriptionFot",
-              description: txt("prescriptionFooter_desc"),
-              icon: FluentIcons.footer,
-              inputType: InputType.text,
-              scope: Scope.app,
-              initValue: globalSettings.get("prescriptionFot").value,
-              apply: (newVal) => globalSettings.set(
-                  Setting.fromJson({"id": "prescriptionFot", "value": newVal})),
-            ),
-          if (login.isAdmin)
-            SettingsItem(
-              title: txt("phone"),
-              identifier: "phone",
-              description: txt("phone_desc"),
-              icon: WindowsIcons.phone,
-              inputType: InputType.multiline,
-              scope: Scope.app,
-              initValue: globalSettings.get("phone__________").value,
-              apply: (newVal) => globalSettings.set(
-                  Setting.fromJson({"id": "phone__________", "value": newVal})),
-            ),
+          _SettingsGroup(
+            key: const Key('clinic_settings_group'),
+            title: txt('clinicSettingsGroup'),
+            description: txt('clinicSettingsGroup_desc'),
+            icon: FluentIcons.medical,
+            children: login.isAdmin
+                ? [
+                    SettingsItem(
+                      title: txt("currency"),
+                      identifier: "currency",
+                      description: txt("currency_desc"),
+                      icon: FluentIcons.all_currency,
+                      inputType: InputType.dropDown,
+                      scope: Scope.app,
+                      options: currencyPickerOptions,
+                      initValue: globalSettings.get("currency_______").value,
+                      apply: (newVal) => globalSettings.set(Setting.fromJson(
+                          {"id": "currency_______", "value": newVal})),
+                    ),
+                    SettingsItem(
+                      title: txt("countryCode"),
+                      identifier: "ISO_country____",
+                      description: txt("countryCode_desc"),
+                      icon: FluentIcons.globe,
+                      inputType: InputType.text,
+                      scope: Scope.app,
+                      initValue: globalSettings.get("ISO_country____").value,
+                      apply: (newVal) => globalSettings.set(Setting.fromJson(
+                          {"id": "ISO_country____", "value": newVal})),
+                    ),
+                    SettingsItem(
+                      title: txt("prescriptionFooter"),
+                      identifier: "prescriptionFot",
+                      description: txt("prescriptionFooter_desc"),
+                      icon: FluentIcons.footer,
+                      inputType: InputType.text,
+                      scope: Scope.app,
+                      initValue: globalSettings.get("prescriptionFot").value,
+                      apply: (newVal) => globalSettings.set(Setting.fromJson(
+                          {"id": "prescriptionFot", "value": newVal})),
+                    ),
+                    SettingsItem(
+                      title: txt("phone"),
+                      identifier: "phone",
+                      description: txt("phone_desc"),
+                      icon: WindowsIcons.phone,
+                      inputType: InputType.multiline,
+                      scope: Scope.app,
+                      initValue: globalSettings.get("phone__________").value,
+                      apply: (newVal) => globalSettings.set(Setting.fromJson(
+                          {"id": "phone__________", "value": newVal})),
+                    ),
+                  ]
+                : [
+                    InfoBar(
+                      title: Text(txt('managedByAdministrator')),
+                      severity: InfoBarSeverity.info,
+                    ),
+                  ],
+          ),
           SettingsItem(
             title: txt("language"),
             identifier: "language",
@@ -667,14 +677,27 @@ class SettingsScreen extends StatelessWidget {
                     if (context.mounted) Navigator.of(context).pop();
                   }),
             ),
-          if (login.isAdmin && network.isOnline()) ...[
-            const MetaSettings(),
-            const AuthSettings(),
-            const FileUploadSettings(),
-            const S3Settings(),
-            const SmtpSettings(),
-            const BackupsSettings(),
-          ],
+          _SettingsGroup(
+            key: const Key('administration_settings_group'),
+            title: txt('administrationSettingsGroup'),
+            description: txt('administrationSettingsGroup_desc'),
+            icon: FluentIcons.admin,
+            children: login.isAdmin && network.isOnline()
+                ? const [
+                    MetaSettings(),
+                    AuthSettings(),
+                    FileUploadSettings(),
+                    S3Settings(),
+                    SmtpSettings(),
+                    BackupsSettings(),
+                  ]
+                : [
+                    InfoBar(
+                      title: Text(txt('managedByAdministrator')),
+                      severity: InfoBarSeverity.info,
+                    ),
+                  ],
+          ),
         ],
       ),
     );

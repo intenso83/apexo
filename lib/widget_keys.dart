@@ -9,6 +9,7 @@ class WK {
   static const patientsScreen = Key("patientsScreen");
   static const calendarScreen = Key("calendarScreen");
   static const labworksScreen = Key("labworksScreen");
+  static const shoppingListScreen = Key('shoppingListScreen');
   static const settingsScreen = Key("settingsScreen");
   static const expensesScreen = Key("expensesScreen");
   static const notesScreen = Key("notesScreen");

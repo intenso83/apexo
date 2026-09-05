@@ -19,8 +19,14 @@ void main() {
       'eventKind': 'treatment',
       'status': 'completed',
       'recordedAt': 30000000,
+      'laboratoryID': 'laboratory-1',
+      'laboratoryNameSnapshot': 'Praxis Lab',
+      'laboratoryCost': 82.5,
     });
     expect(event.validationErrors(), isEmpty);
+    expect(event.laboratoryID, 'laboratory-1');
+    expect(event.laboratoryNameSnapshot, 'Praxis Lab');
+    expect(event.laboratoryCost, 82.5);
     expect(OdontogramEvent.fromJson(event.toJson()).toJson(), event.toJson());
     expect(event.effectiveOverlayKind, OdontogramOverlayKind.filling);
   });

@@ -11,6 +11,7 @@ import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/accounts/accounts_controller.dart';
 import 'package:apexo/features/labwork/open_labwork_panel.dart';
+import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/services/ai_services/post_op_notes.dart';
 import 'package:apexo/common_widgets/live_transcribing_textfield.dart';
@@ -1207,8 +1208,17 @@ class _LabWorkEditorState extends State<LabWorkEditor> {
                   onChanged: (text, reason) {
                     widget.appointment.labName = text;
                   },
+                  onSelected: (item) {
+                    final selected = item.value ?? item.label;
+                    widget.appointment.labName = selected;
+                    labNameController.text = selected;
+                  },
                   controller: labNameController,
-                  items: appointments.labs
+                  items: {
+                    ...expenses.laboratories
+                        .map((laboratory) => laboratory.supplierName),
+                    ...appointments.labs,
+                  }
                       .map((name) =>
                           AutoSuggestBoxItem<String>(value: name, label: name))
                       .toList(),

@@ -1,5 +1,8 @@
 import 'package:apexo/common_widgets/button_styles.dart';
+import 'package:apexo/common_widgets/tag_input.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
+import 'package:apexo/features/expenses/expenses_store.dart';
+import 'package:apexo/features/labwork/laboratory_catalog_dialog.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/therapy_catalog/procedure_catalog_model.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
@@ -42,7 +45,10 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
       RemovableComponentRole.replacedTooth;
   String selectedGroupID = '';
   String selectedProcedureID = '';
+  String initializedProcedureGroupID = '';
   OdontogramEventStatus selectedStatus = OdontogramEventStatus.planned;
+  String selectedLaboratoryID = '';
+  double selectedLaboratoryCost = 0;
   final notesController = TextEditingController();
 
   bool get canEdit => login.isAdmin || login.perm(Perm.patients).full;
@@ -60,6 +66,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
         odontogramEvents.observableMap.stream,
         therapyGroups.observableMap.stream,
         procedureCatalog.observableMap.stream,
+        expenses.observableMap.stream,
       ],
       builder: (context, _) {
         final groups = therapyGroups.ordered
@@ -73,7 +80,12 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             .forGroup(selectedGroupID)
             .where((item) => !item.hidden)
             .toList(growable: false);
-        if (!procedures.any((item) => item.id == selectedProcedureID)) {
+        if (initializedProcedureGroupID != selectedGroupID) {
+          initializedProcedureGroupID = selectedGroupID;
+          selectedProcedureID = procedures.firstOrNull?.id ?? '';
+          _applyProcedureDefaults(procedures.firstOrNull);
+        } else if (selectedProcedureID.isNotEmpty &&
+            !procedures.any((item) => item.id == selectedProcedureID)) {
           selectedProcedureID = procedures.firstOrNull?.id ?? '';
           _applyProcedureDefaults(procedures.firstOrNull);
         }
@@ -154,6 +166,8 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
                   ? (value) => setState(() {
                         selectedGroupID = value ?? '';
                         selectedProcedureID = '';
+                        selectedLaboratoryID = '';
+                        selectedLaboratoryCost = 0;
                       })
                   : null,
             ),
@@ -161,20 +175,34 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           const SizedBox(height: 9),
           InfoLabel(
             label: txt('procedureName'),
-            child: ComboBox<String>(
+            child: TagInputWidget(
               key: const Key('procedure-selector'),
-              value: selectedProcedureID.isEmpty ? null : selectedProcedureID,
-              isExpanded: true,
-              items: procedures
-                  .map(
-                    (procedure) => ComboBoxItem(
-                      value: procedure.id,
-                      child: Text(procedure.title),
-                    ),
-                  )
+              strict: true,
+              limit: 1,
+              multiline: false,
+              enabled: canEdit,
+              placeholder: txt('catalogueSearch'),
+              initialValue: procedures
+                  .where((procedure) => procedure.id == selectedProcedureID)
+                  .map((procedure) => TagInputItem(
+                        value: procedure.id,
+                        label: procedure.title,
+                        searchText:
+                            '${procedure.title} ${procedure.sourceCode}',
+                      ))
                   .toList(),
-              onChanged:
-                  canEdit ? (value) => _selectProcedure(value ?? '') : null,
+              suggestions: procedures
+                  .map((procedure) => TagInputItem(
+                        value: procedure.id,
+                        label: procedure.title,
+                        searchText:
+                            '${procedure.title} ${procedure.sourceCode}',
+                      ))
+                  .toList(),
+              onChanged: (items) {
+                if (!canEdit) return;
+                _selectProcedure(items.isEmpty ? '' : items.first.value ?? '');
+              },
             ),
           ),
           if (groups.isEmpty) ...[
@@ -193,6 +221,11 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
                   .handlingDecision(selectedProcedure)
                   .needsReview,
             ),
+          if (selectedProcedure != null &&
+              procedureCatalog.requiresLaboratory(selectedProcedure)) ...[
+            const SizedBox(height: 10),
+            _buildLaboratorySelector(selectedProcedure),
+          ],
           const SizedBox(height: 10),
           _buildTargetEditor(
             selectedProcedure,
@@ -252,6 +285,97 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
               txt('recordOdontogramEvent'),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLaboratorySelector(ProcedureCatalogItem procedure) {
+    final laboratories = expenses.laboratories;
+    final selected = laboratories.any((lab) => lab.id == selectedLaboratoryID)
+        ? selectedLaboratoryID
+        : null;
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(FluentIcons.manufacturing, size: 17),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  txt('laboratoryAssignment'),
+                  style: FluentTheme.of(context).typography.bodyStrong,
+                ),
+              ),
+              Button(
+                onPressed: canEdit
+                    ? () => showLaboratoryCatalogDialog(
+                          context,
+                          selectedLaboratoryID: selectedLaboratoryID,
+                        )
+                    : null,
+                child: const Icon(FluentIcons.settings, size: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (laboratories.isEmpty)
+            InfoBar(
+              title: Text(txt('noLaboratories')),
+              content: Text(txt('createLaboratoryFirst')),
+              severity: InfoBarSeverity.warning,
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: ComboBox<String>(
+                    isExpanded: true,
+                    value: selected,
+                    placeholder: Text(txt('selectLaboratory')),
+                    items: laboratories
+                        .map((lab) => ComboBoxItem<String>(
+                              value: lab.id,
+                              child: Text(lab.supplierName),
+                            ))
+                        .toList(),
+                    onChanged: canEdit
+                        ? (value) => setState(() {
+                              selectedLaboratoryID = value ?? '';
+                              selectedLaboratoryCost = expenses.laboratoryPrice(
+                                    selectedLaboratoryID,
+                                    procedure.id,
+                                  ) ??
+                                  0;
+                            })
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 145,
+                  child: NumberBox<double>(
+                    value: selectedLaboratoryCost,
+                    min: 0,
+                    mode: SpinButtonPlacementMode.compact,
+                    placeholder: txt('laboratoryCost'),
+                    onChanged: canEdit && selected != null
+                        ? (value) => setState(
+                              () => selectedLaboratoryCost = value ?? 0,
+                            )
+                        : null,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -559,6 +683,8 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   void _selectProcedure(String procedureID) {
     setState(() {
       selectedProcedureID = procedureID;
+      selectedLaboratoryID = '';
+      selectedLaboratoryCost = 0;
       bridgeUnits.clear();
       removableComponents.clear();
       _applyProcedureDefaults(procedureCatalog.get(procedureID));
@@ -726,12 +852,19 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
       'status': selectedStatus.name,
       'recordedAt': (DateTime.now().millisecondsSinceEpoch / 60000).round(),
       'notes': notesController.text.trim(),
+      if (selectedLaboratoryID.isNotEmpty) 'laboratoryID': selectedLaboratoryID,
+      if (selectedLaboratoryID.isNotEmpty)
+        'laboratoryNameSnapshot':
+            expenses.get(selectedLaboratoryID)?.supplierName ?? '',
+      if (selectedLaboratoryCost != 0) 'laboratoryCost': selectedLaboratoryCost,
     });
     odontogramEvents.set(event);
     setState(() {
       bridgeUnits.clear();
       removableComponents.clear();
       notesController.clear();
+      selectedLaboratoryID = '';
+      selectedLaboratoryCost = 0;
       _applyProcedureDefaults(procedure);
     });
   }

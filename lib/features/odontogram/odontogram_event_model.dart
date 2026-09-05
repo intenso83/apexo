@@ -33,6 +33,9 @@ class OdontogramEvent extends Model {
   String appointmentID = '';
   String notes = '';
   String supersedesEventID = '';
+  String laboratoryID = '';
+  String laboratoryNameSnapshot = '';
+  double? laboratoryCost;
   Map<String, dynamic> migration = {};
 
   OdontogramEvent.fromJson(super.json) : super.fromJson();
@@ -120,6 +123,10 @@ class OdontogramEvent extends Model {
     notes = json['notes']?.toString() ?? notes;
     supersedesEventID =
         json['supersedesEventID']?.toString() ?? supersedesEventID;
+    laboratoryID = json['laboratoryID']?.toString() ?? laboratoryID;
+    laboratoryNameSnapshot =
+        json['laboratoryNameSnapshot']?.toString() ?? laboratoryNameSnapshot;
+    laboratoryCost = _asNullableDouble(json['laboratoryCost']);
     migration = Map<String, dynamic>.from(json['migration'] ?? migration);
   }
 
@@ -157,6 +164,11 @@ class OdontogramEvent extends Model {
     if (supersedesEventID.isNotEmpty) {
       json['supersedesEventID'] = supersedesEventID;
     }
+    if (laboratoryID.isNotEmpty) json['laboratoryID'] = laboratoryID;
+    if (laboratoryNameSnapshot.isNotEmpty) {
+      json['laboratoryNameSnapshot'] = laboratoryNameSnapshot;
+    }
+    if (laboratoryCost != null) json['laboratoryCost'] = laboratoryCost;
     if (migration.isNotEmpty) json['migration'] = migration;
     return json;
   }

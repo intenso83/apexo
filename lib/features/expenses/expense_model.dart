@@ -12,7 +12,7 @@ class Expense extends Model {
   }
 
   bool get isOrder {
-    return !isSupplier;
+    return !isSupplier && !isCatalogueItem;
   }
 
   double get duePayments {
@@ -33,6 +33,7 @@ class Expense extends Model {
 
   @override
   String get title {
+    if (isCatalogueItem) return "${txt("items")}: $catalogueItemName";
     return "${isSupplier ? txt("supplier") : txt("order")}: ${isSupplier ? supplierName : fromSupplierName}";
   }
 
@@ -45,6 +46,21 @@ class Expense extends Model {
 
   /* 1 */ bool isSupplier = false;
   /* 2 */ String supplierName = "";
+
+  // Laboratories are suppliers too, so their invoices and prosthetic price
+  // lists stay connected to one partner record.
+  bool isLaboratory = false;
+  String supplierContactName = "";
+  String supplierPhone = "";
+  String supplierMobile = "";
+  String supplierEmail = "";
+  String supplierAddress = "";
+  Map<String, double> laboratoryProcedurePrices = {};
+
+  // Reusable expense catalogue entries share the expense permission and sync
+  // boundary. Existing free-text items on older orders remain supported.
+  bool isCatalogueItem = false;
+  String catalogueItemName = "";
 
   // when its an order
   /* 3 */ String supplierId = "";
@@ -68,6 +84,24 @@ class Expense extends Model {
     super.fromJson(json);
     /* 1 */ isSupplier = json['isSupplier'] ?? isSupplier;
     /* 2 */ supplierName = json['supplierName'] ?? supplierName;
+    isLaboratory = json['isLaboratory'] == true;
+    supplierContactName = json['supplierContactName']?.toString() ?? '';
+    supplierPhone = json['supplierPhone']?.toString() ?? '';
+    supplierMobile = json['supplierMobile']?.toString() ?? '';
+    supplierEmail = json['supplierEmail']?.toString() ?? '';
+    supplierAddress = json['supplierAddress']?.toString() ?? '';
+    laboratoryProcedurePrices = Map<String, double>.fromEntries(
+      Map<String, dynamic>.from(
+        json['laboratoryProcedurePrices'] ?? const <String, dynamic>{},
+      ).entries.map(
+            (entry) => MapEntry(
+              entry.key,
+              double.tryParse(entry.value.toString()) ?? 0,
+            ),
+          ),
+    );
+    isCatalogueItem = json['isCatalogueItem'] == true;
+    catalogueItemName = json['catalogueItemName']?.toString() ?? '';
 
     /* 3 */ supplierId = json['supplierId'] ?? supplierId;
     /* 4 */ date = json["date"] != null
@@ -91,6 +125,21 @@ class Expense extends Model {
     /* 1 */ if (isSupplier != d.isSupplier) json['isSupplier'] = isSupplier;
     /* 2 */ if (supplierName != d.supplierName) {
       json['supplierName'] = supplierName;
+    }
+    if (isLaboratory) json['isLaboratory'] = true;
+    if (supplierContactName.isNotEmpty) {
+      json['supplierContactName'] = supplierContactName;
+    }
+    if (supplierPhone.isNotEmpty) json['supplierPhone'] = supplierPhone;
+    if (supplierMobile.isNotEmpty) json['supplierMobile'] = supplierMobile;
+    if (supplierEmail.isNotEmpty) json['supplierEmail'] = supplierEmail;
+    if (supplierAddress.isNotEmpty) json['supplierAddress'] = supplierAddress;
+    if (laboratoryProcedurePrices.isNotEmpty) {
+      json['laboratoryProcedurePrices'] = laboratoryProcedurePrices;
+    }
+    if (isCatalogueItem) json['isCatalogueItem'] = true;
+    if (catalogueItemName.isNotEmpty) {
+      json['catalogueItemName'] = catalogueItemName;
     }
 
     /* 3 */ if (supplierId != d.supplierId) json['supplierId'] = supplierId;
