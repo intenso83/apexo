@@ -442,6 +442,7 @@ function Invoke-DwPilotImport {
         $patients = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/patients.jsonl.enc.json') -Passphrase $stagingKey)
         $contacts = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/patient_contacts.jsonl.enc.json') -Passphrase $stagingKey)
         $appointments = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/appointments.jsonl.enc.json') -Passphrase $stagingKey)
+        $clinicalEvents = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/clinical_events_and_plan_items.jsonl.enc.json') -Passphrase $stagingKey)
     }
     finally {
         $stagingKey = $null
@@ -467,14 +468,39 @@ function Invoke-DwPilotImport {
         [void]$appointmentsByPatient[$patientKey].Add($appointment)
     }
 
+    # Prefer otherwise-eligible patients who also have at least one chart row
+    # that can become a truthful, visible odontogram projection. The pilot is
+    # still capped at five patients and two appointments each; this only makes
+    # the isolated review sample clinically useful instead of selecting five
+    # patients whose DentalWin work cannot be drawn.
+    $projectionCandidatePatients = @{}
+    foreach ($event in $clinicalEvents) {
+        $patientKey = [string]$event.patient_stage_key
+        if ([string]::IsNullOrWhiteSpace($patientKey)) { continue }
+        try {
+            ConvertTo-DwOdontogramProjectionData `
+                -Event $event `
+                -TargetPatientId 'projection-candidate' `
+                -TreatmentHistoryId 'projection-candidate-history' `
+                -BatchId ([string]$summary.batch_id) `
+                -GuardId ([string]$marker.marker_id) `
+                -MappingVersion ([string]$summary.mapping_version) | Out-Null
+            $projectionCandidatePatients[$patientKey] = $true
+        }
+        catch {
+            if (-not ([string]$_.Exception.Message).StartsWith('Projection review: ')) { throw }
+        }
+    }
+
     $eligible = @($patients | Where-Object {
             -not [string]::IsNullOrWhiteSpace([string]$_.surname) -and
             -not [string]::IsNullOrWhiteSpace([string]$_.first_name) -and
             $contactsByPatient.ContainsKey([string]$_.stage_key) -and
             $appointmentsByPatient.ContainsKey([string]$_.stage_key)
-        } | Sort-Object {
-            Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'pilot-selection' -StageKey ([string]$_.stage_key)
-        } | Select-Object -First ([int]$marker.pilot_patient_limit))
+        } | Sort-Object `
+            @{ Expression = { if ($projectionCandidatePatients.ContainsKey([string]$_.stage_key)) { 0 } else { 1 } } },
+            @{ Expression = { Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'pilot-selection' -StageKey ([string]$_.stage_key) } } |
+            Select-Object -First ([int]$marker.pilot_patient_limit))
     if ($eligible.Count -ne [int]$marker.pilot_patient_limit) {
         throw 'The staging batch does not contain enough fully linked patients for the pilot.'
     }
@@ -644,6 +670,7 @@ function Invoke-DwPilotImport {
         source_batch_id = $summary.batch_id
         patient_limit = [int]$marker.pilot_patient_limit
         appointment_limit_per_patient = [int]$marker.pilot_appointment_limit_per_patient
+        selection_policy = 'projection-candidate-first-v1'
         production_import_authorized = $false
         migration = [ordered]@{
             batch_id = $summary.batch_id
@@ -666,6 +693,8 @@ function Invoke-DwPilotImport {
         server_host = '127.0.0.1'
         source_batch_id = $summary.batch_id
         guard_id = $marker.marker_id
+        selection_policy = 'projection-candidate-first-v1'
+        projection_candidate_patients_available = $projectionCandidatePatients.Count
         created_counts = $created
         already_imported_counts = $already
         final_store_counts = $storeCounts
@@ -715,6 +744,9 @@ function Test-DwPilotImport {
     $phase5Provenance = @($provenanceRows | Where-Object {
             [string](Get-DwImportProperty -InputObject $_.data -Name 'target_store') -eq 'treatment_history'
         })
+    $projectionProvenance = @($provenanceRows | Where-Object {
+            [string](Get-DwImportProperty -InputObject $_.data -Name 'target_store') -eq 'odontogram_events'
+        })
     $rows = @(
         @($allRows | Where-Object { [string]$_.store -in @('patients', 'appointments', 'migration_batches') }) +
         $baseProvenance
@@ -723,8 +755,17 @@ function Test-DwPilotImport {
         @($allRows | Where-Object store -eq 'treatment_history') +
         $phase5Provenance
     )
+    $projectionRows = @(
+        @($allRows | Where-Object store -eq 'odontogram_events') +
+        $projectionProvenance
+    )
+    $catalogueRows = @($allRows | Where-Object {
+            [string]$_.store -in @('therapy_groups', 'procedure_catalog')
+        })
     $knownIds = @{}
-    foreach ($row in @($rows + $phase5Rows)) { $knownIds[[string]$row.id] = $true }
+    foreach ($row in @($rows + $phase5Rows + $projectionRows + $catalogueRows)) {
+        $knownIds[[string]$row.id] = $true
+    }
     $housekeepingRows = @($allRows | Where-Object { -not $knownIds.ContainsKey([string]$_.id) })
     $unexpectedHousekeeping = @($housekeepingRows | Where-Object {
             -not [string]::IsNullOrWhiteSpace([string]$_.store) -and
@@ -733,11 +774,10 @@ function Test-DwPilotImport {
     if ($unexpectedHousekeeping.Count -gt 0) {
         throw 'Pilot verification found an unexpected non-migration store.'
     }
-    if ($rows.Count -ne 31) { throw 'Pilot verification expected exactly 31 migration records.' }
     if (@($allRows.id | Sort-Object -Unique).Count -ne $allRows.Count) {
         throw 'Pilot verification found duplicate PocketBase record IDs.'
     }
-    foreach ($record in @($rows + $phase5Rows)) {
+    foreach ($record in @($rows + $phase5Rows + $projectionRows + $catalogueRows)) {
         $migration = Get-DwImportProperty -InputObject $record.data -Name 'migration'
         if ($null -eq $migration -or
             (Get-DwImportProperty -InputObject $migration -Name 'batch_id') -ne $marker.staging_batch_id -or
@@ -750,8 +790,13 @@ function Test-DwPilotImport {
     $appointments = @($rows | Where-Object store -eq 'appointments')
     $provenance = @($baseProvenance)
     $batches = @($rows | Where-Object store -eq 'migration_batches')
-    if ($patients.Count -ne 5 -or $appointments.Count -ne 10 -or
-        $provenance.Count -ne 15 -or $batches.Count -ne 1) {
+    $expectedBaseCount = ($patients.Count * 2) + ($appointments.Count * 2) + $batches.Count
+    if ($patients.Count -ne [int]$marker.pilot_patient_limit -or
+        $appointments.Count -lt $patients.Count -or
+        $appointments.Count -gt ($patients.Count * [int]$marker.pilot_appointment_limit_per_patient) -or
+        $provenance.Count -ne ($patients.Count + $appointments.Count) -or
+        $batches.Count -ne 1 -or
+        $rows.Count -ne $expectedBaseCount) {
         throw 'Pilot verification found unexpected store counts.'
     }
 
@@ -823,6 +868,7 @@ function Test-DwPilotImport {
         appointments = $appointments.Count
         provenance_records = $provenance.Count
         migration_batches = $batches.Count
+        catalogue_records = $catalogueRows.Count
         patients_with_required_names_and_contact = $patients.Count
         patients_with_parseable_birth_date = $patientBirthDateCount
         patients_with_greek_name_characters = $greekNameCount
@@ -963,7 +1009,7 @@ function Invoke-DwTreatmentHistoryPilot {
     $existingRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
     $allowedStores = @(
         '', 'settings_global', 'patients', 'appointments', 'treatment_history',
-        'therapy_groups', 'procedure_catalog',
+        'odontogram_events', 'therapy_groups', 'procedure_catalog',
         'migration_batches', 'migration_external_identifiers'
     )
     foreach ($row in $existingRows) {
@@ -1175,6 +1221,476 @@ function Test-DwTreatmentHistoryPilot {
     return [pscustomobject]$report
 }
 
+function ConvertTo-DwOdontogramProjectionData {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]$Event,
+        [Parameter(Mandatory = $true)][string]$TargetPatientId,
+        [Parameter(Mandatory = $true)][string]$TreatmentHistoryId,
+        [Parameter(Mandatory = $true)][string]$BatchId,
+        [Parameter(Mandatory = $true)][string]$GuardId,
+        [Parameter(Mandatory = $true)][string]$MappingVersion,
+        [string]$ProcedureId = '',
+        [string]$TherapyGroupId = '',
+        [string]$TherapyGroupName = ''
+    )
+
+    $stageKey = [string](Get-DwImportProperty -InputObject $Event -Name 'stage_key')
+    if ([string]::IsNullOrWhiteSpace($stageKey) -or
+        [string]::IsNullOrWhiteSpace($TargetPatientId) -or
+        [string]::IsNullOrWhiteSpace($TreatmentHistoryId)) {
+        throw 'Projection review: history_projection_link_missing'
+    }
+
+    $multiToothRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'multi_tooth_raw')
+    if (-not [string]::IsNullOrWhiteSpace($multiToothRaw)) {
+        throw 'Projection review: multi_tooth_mapping_ambiguous'
+    }
+
+    $tooth = [string](Get-DwImportProperty -InputObject $Event -Name 'tooth_fdi')
+    if ($tooth -match '^(5[1-5]|6[1-5]|7[1-5]|8[1-5])$') {
+        throw 'Projection review: primary_tooth_not_supported'
+    }
+    if ($tooth -notmatch '^(1[1-8]|2[1-8]|3[1-8]|4[1-8])$') {
+        throw 'Projection review: tooth_mapping_invalid'
+    }
+
+    $drawingBehavior = [string](Get-DwImportProperty -InputObject $Event -Name 'drawing_behavior')
+    if ($drawingBehavior -notin @('filling', 'crown', 'veneer')) {
+        throw 'Projection review: drawing_behavior_unknown'
+    }
+
+    $surfaces = @(
+        @(Get-DwImportProperty -InputObject $Event -Name 'surfaces' -Default @()) |
+            ForEach-Object { [string]$_ } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+    $cervicalSurfaces = @(
+        @(Get-DwImportProperty -InputObject $Event -Name 'cervical_surfaces' -Default @()) |
+            ForEach-Object { [string]$_ } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+    $validSurfaces = @('mesial', 'distal', 'facial', 'oral', 'occlusalIncisal')
+    if ($drawingBehavior -eq 'filling') {
+        if ($surfaces.Count -eq 0 -or @($surfaces | Where-Object { $_ -notin $validSurfaces }).Count -gt 0) {
+            throw 'Projection review: surface_code_invalid'
+        }
+        if (@($surfaces | Sort-Object -Unique).Count -ne $surfaces.Count) {
+            throw 'Projection review: surface_code_repeated'
+        }
+        if (@($cervicalSurfaces | Where-Object { $_ -notin @('facial', 'oral') -or $_ -notin $surfaces }).Count -gt 0) {
+            throw 'Projection review: surface_code_invalid'
+        }
+    }
+    else {
+        # DentalWin crowns use the complete tooth strip and veneers use their
+        # dedicated complete facial mask. Keep this semantic target explicit;
+        # the renderer still refuses to substitute crown art for a missing
+        # veneer mask.
+        $surfaces = @('wholeTooth')
+        $cervicalSurfaces = @()
+    }
+
+    $chartRole = [string](Get-DwImportProperty -InputObject $Event -Name 'chart_role')
+    $sourceKind = [string](Get-DwImportProperty -InputObject $Event -Name 'event_kind' -Default 'clinical_event')
+    $eventKind = 'treatment'
+    $status = 'completed'
+    switch ($chartRole) {
+        'initial_condition' {
+            $eventKind = 'condition'
+            $status = 'existing'
+        }
+        'alternative_plan' {
+            $eventKind = 'treatment'
+            $status = 'planned'
+        }
+        'performed_work' {
+            $eventKind = 'treatment'
+            $status = if ($sourceKind -eq 'treatment_plan_item') { 'planned' } else { 'completed' }
+        }
+        default { throw 'Projection review: chart_role_unknown' }
+    }
+
+    $name = [string](Get-DwImportProperty -InputObject $Event -Name 'original_work_name')
+    if ([string]::IsNullOrWhiteSpace($name)) { $name = 'Unlabelled DentalWin treatment' }
+    $recordedAt = ConvertTo-DwMinuteEpoch (Get-DwImportProperty -InputObject $Event -Name 'date_raw')
+    if ($null -eq $recordedAt) { $recordedAt = 0 }
+    $data = [ordered]@{
+        patientID = $TargetPatientId
+        targetScope = 'tooth'
+        toothFdi = [int]$tooth
+        surfaces = @($surfaces)
+        cervicalSurfaces = @($cervicalSurfaces)
+        procedureNameSnapshot = $name
+        overlayKind = if ($drawingBehavior -eq 'filling') { 'filling' } else { 'crown' }
+        drawingBehavior = $drawingBehavior
+        eventKind = $eventKind
+        status = $status
+        recordedAt = $recordedAt
+        treatmentHistoryID = $TreatmentHistoryId
+        notes = [string](Get-DwImportProperty -InputObject $Event -Name 'notes')
+        migration = [ordered]@{
+            batch_id = $BatchId
+            guard_id = $GuardId
+            source_stage_key = $stageKey
+            source_system = 'DentalWin'
+            source_table = [string](Get-DwImportProperty -InputObject $Event -Name 'source_table')
+            source_record_key = [string](Get-DwImportProperty -InputObject $Event -Name 'source_record_key')
+            source_chart_role = $chartRole
+            source_event_kind = $sourceKind
+            source_status_raw = Get-DwImportProperty -InputObject $Event -Name 'status_raw'
+            source_surface_code = [string](Get-DwImportProperty -InputObject $Event -Name 'surface_code_raw')
+            source_drawing_behavior = [string](Get-DwImportProperty -InputObject $Event -Name 'drawing_behavior_raw')
+            source_color_argb = Get-DwImportProperty -InputObject $Event -Name 'drawing_color_raw'
+            source_multi_tooth = Get-DwImportProperty -InputObject $Event -Name 'multi_tooth_raw'
+            projection_mapping_version = $MappingVersion
+            status_mapping = 'provisional-chart-role-and-plan-flag-v1'
+            canonical_store = 'treatment_history'
+            canonical_record_id = $TreatmentHistoryId
+            pilot = $true
+            odontogram_projection_pilot = $true
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ProcedureId)) { $data.procedureID = $ProcedureId }
+    if (-not [string]::IsNullOrWhiteSpace($TherapyGroupId)) { $data.therapyGroupID = $TherapyGroupId }
+    if (-not [string]::IsNullOrWhiteSpace($TherapyGroupName)) { $data.therapyGroupNameSnapshot = $TherapyGroupName }
+    $drawingColorArgb = Get-DwImportProperty -InputObject $Event -Name 'drawing_color_argb'
+    if ($null -ne $drawingColorArgb) { $data.materialColorArgb = [int64]$drawingColorArgb }
+    return $data
+}
+
+function Resolve-DwProjectionCatalogRecord {
+    param(
+        [Parameter(Mandatory = $true)]$Event,
+        [Parameter(Mandatory = $true)]$CatalogRecords
+    )
+
+    $method = [string](Get-DwImportProperty -InputObject $Event -Name 'catalog_link_method')
+    if ($method -eq 'stable_code') {
+        $code = [string](Get-DwImportProperty -InputObject $Event -Name 'source_catalog_code')
+        $matches = @($CatalogRecords | Where-Object {
+                [string](Get-DwImportProperty -InputObject $_.data -Name 'sourceCode') -eq $code
+            })
+        if ($matches.Count -eq 1) { return $matches[0] }
+    }
+    elseif ($method -eq 'unique_exact_name') {
+        $name = [string](Get-DwImportProperty -InputObject $Event -Name 'original_work_name')
+        $matches = @($CatalogRecords | Where-Object {
+                [string](Get-DwImportProperty -InputObject $_.data -Name 'name' -Default (Get-DwImportProperty -InputObject $_.data -Name 'title')) -eq $name
+            })
+        if ($matches.Count -eq 1) { return $matches[0] }
+    }
+    return $null
+}
+
+function Add-DwProjectionSkipReason {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Counts,
+        [Parameter(Mandatory = $true)][string]$Reason
+    )
+
+    if (-not $Counts.ContainsKey($Reason)) { $Counts[$Reason] = 0 }
+    $Counts[$Reason] = [int]$Counts[$Reason] + 1
+}
+
+function Get-DwProjectionReviewReason {
+    param([Parameter(Mandatory = $true)]$ErrorRecord)
+
+    $message = [string]$ErrorRecord.Exception.Message
+    if ($message.StartsWith('Projection review: ')) {
+        return $message.Substring('Projection review: '.Length).Trim()
+    }
+    throw $ErrorRecord
+}
+
+function Invoke-DwOdontogramProjectionPilot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$ServerUrl,
+        [Parameter(Mandatory = $true)][string]$TestServerDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingKeyFile,
+        [Parameter(Mandatory = $true)][string]$Email,
+        [Parameter(Mandatory = $true)][string]$PasswordFile
+    )
+
+    $server = Assert-DwLoopbackTestServerUrl -ServerUrl $ServerUrl
+    $root = (Resolve-Path -LiteralPath $TestServerDirectory).Path
+    $marker = Get-Content -LiteralPath (Join-Path $root '.dentalwin-phase4-test-guard.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $staging = (Resolve-Path -LiteralPath $StagingDirectory).Path
+    $summary = Get-Content -LiteralPath (Join-Path $staging 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($marker.server_url -ne $server -or
+        $marker.staging_directory -ne $staging -or
+        $marker.staging_batch_id -ne $summary.batch_id -or
+        $marker.production_import_authorized -ne $false -or
+        $summary.writes_to_apexo -ne $false -or
+        [string]::IsNullOrWhiteSpace([string]$summary.mapping_version)) {
+        throw 'Safety lock: the odontogram projection pilot does not match the isolated guarded staging batch.'
+    }
+
+    $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
+    $existingRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    $allowedStores = @(
+        '', 'settings_global', 'patients', 'appointments', 'treatment_history',
+        'odontogram_events', 'therapy_groups', 'procedure_catalog',
+        'migration_batches', 'migration_external_identifiers'
+    )
+    foreach ($row in $existingRows) {
+        if ([string]$row.store -notin $allowedStores) {
+            throw 'Safety lock: the test server contains a store outside the odontogram-projection allow-list.'
+        }
+        if ([string]$row.store -notin @('', 'settings_global')) {
+            $migration = Get-DwImportProperty -InputObject $row.data -Name 'migration'
+            if ($null -eq $migration -or
+                (Get-DwImportProperty -InputObject $migration -Name 'batch_id') -ne $summary.batch_id -or
+                (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id) {
+                throw 'Safety lock: the test server contains data outside the guarded pilot batch.'
+            }
+        }
+    }
+
+    $patientTargets = @{}
+    foreach ($record in @($existingRows | Where-Object store -eq 'patients')) {
+        $migration = Get-DwImportProperty -InputObject $record.data -Name 'migration'
+        $patientTargets[[string](Get-DwImportProperty -InputObject $migration -Name 'source_stage_key')] = [string]$record.id
+    }
+    if ($patientTargets.Count -ne [int]$marker.pilot_patient_limit) {
+        throw 'Odontogram projection requires the verified five-patient pilot.'
+    }
+
+    $historyByStage = @{}
+    foreach ($record in @($existingRows | Where-Object store -eq 'treatment_history')) {
+        $migration = Get-DwImportProperty -InputObject $record.data -Name 'migration'
+        $sourceStageKey = [string](Get-DwImportProperty -InputObject $migration -Name 'source_stage_key')
+        if ([string]::IsNullOrWhiteSpace($sourceStageKey) -or $historyByStage.ContainsKey($sourceStageKey)) {
+            throw 'Safety lock: treatment history has a missing or duplicate DentalWin stage identity.'
+        }
+        $historyByStage[$sourceStageKey] = $record
+    }
+    if ($historyByStage.Count -eq 0) {
+        throw 'Odontogram projection requires the treatment-history pilot first.'
+    }
+
+    $groupNames = @{}
+    foreach ($record in @($existingRows | Where-Object store -eq 'therapy_groups')) {
+        $groupNames[[string]$record.id] = [string](Get-DwImportProperty -InputObject $record.data -Name 'name' -Default (Get-DwImportProperty -InputObject $record.data -Name 'title'))
+    }
+    $catalogRecords = @($existingRows | Where-Object store -eq 'procedure_catalog')
+
+    $stagingKey = [System.IO.File]::ReadAllText(
+        (Resolve-Path -LiteralPath $StagingKeyFile).Path,
+        [System.Text.Encoding]::UTF8
+    ).Trim()
+    try {
+        $events = @(Read-DwProtectedJsonLines -Path (Join-Path $staging 'protected/normalized/clinical_events_and_plan_items.jsonl.enc.json') -Passphrase $stagingKey)
+    }
+    finally { $stagingKey = $null }
+
+    $selected = @($events | Where-Object { $patientTargets.ContainsKey([string]$_.patient_stage_key) })
+    if ($selected.Count -eq 0 -or $selected.Count -gt 2500) {
+        throw 'Safety lock: the staged odontogram pilot selection is empty or exceeds 2500 rows.'
+    }
+
+    $created = 0
+    $already = 0
+    $createdProvenance = 0
+    $alreadyProvenance = 0
+    $eligible = 0
+    $skipped = @{}
+    foreach ($event in $selected) {
+        $stageKey = [string]$event.stage_key
+        if (-not $historyByStage.ContainsKey($stageKey)) {
+            Add-DwProjectionSkipReason -Counts $skipped -Reason 'history_projection_link_missing'
+            continue
+        }
+        $targetPatientId = [string]$patientTargets[[string]$event.patient_stage_key]
+        $historyRecord = $historyByStage[$stageKey]
+        if ([string](Get-DwImportProperty -InputObject $historyRecord.data -Name 'patientID') -ne $targetPatientId) {
+            throw 'Safety lock: odontogram projection and canonical history point to different patients.'
+        }
+        $catalogRecord = Resolve-DwProjectionCatalogRecord -Event $event -CatalogRecords $catalogRecords
+        $procedureId = if ($null -eq $catalogRecord) { '' } else { [string]$catalogRecord.id }
+        $groupId = if ($null -eq $catalogRecord) { '' } else { [string](Get-DwImportProperty -InputObject $catalogRecord.data -Name 'therapyGroupID') }
+        $groupName = if ($groupNames.ContainsKey($groupId)) { [string]$groupNames[$groupId] } else { '' }
+        try {
+            $data = ConvertTo-DwOdontogramProjectionData `
+                -Event $event `
+                -TargetPatientId $targetPatientId `
+                -TreatmentHistoryId ([string]$historyRecord.id) `
+                -BatchId ([string]$summary.batch_id) `
+                -GuardId ([string]$marker.marker_id) `
+                -MappingVersion ([string]$summary.mapping_version) `
+                -ProcedureId $procedureId `
+                -TherapyGroupId $groupId `
+                -TherapyGroupName $groupName
+        }
+        catch {
+            Add-DwProjectionSkipReason -Counts $skipped -Reason (Get-DwProjectionReviewReason -ErrorRecord $_)
+            continue
+        }
+
+        $eligible++
+        $targetId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'odontogram_events' -StageKey $stageKey
+        $data.id = $targetId
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $targetId -Store 'odontogram_events' -Data $data -BatchId $summary.batch_id -StageKey $stageKey
+        if ($result -eq 'created') { $created++ } else { $already++ }
+
+        $provenanceStageKey = "external:odontogram-projection:$stageKey"
+        $provenanceId = Get-DwDeterministicPocketBaseId -BatchId $summary.batch_id -Store 'migration_external_identifiers' -StageKey $provenanceStageKey
+        $provenanceData = [ordered]@{
+            title = 'DentalWin odontogram projection provenance'
+            source_system = 'DentalWin'
+            source_database_fingerprint = $summary.source_fingerprint
+            source_table = [string]$event.source_table
+            source_record_key = [string]$event.source_record_key
+            target_store = 'odontogram_events'
+            target_record_id = $targetId
+            canonical_store = 'treatment_history'
+            canonical_record_id = [string]$historyRecord.id
+            mapping_version = [string]$summary.mapping_version
+            migration = [ordered]@{
+                batch_id = $summary.batch_id
+                guard_id = $marker.marker_id
+                source_stage_key = $provenanceStageKey
+                pilot = $true
+                odontogram_projection_pilot = $true
+            }
+        }
+        $result = Add-DwPilotRecord -ServerUrl $server -Headers $headers -Id $provenanceId -Store 'migration_external_identifiers' -Data $provenanceData -BatchId $summary.batch_id -StageKey $provenanceStageKey
+        if ($result -eq 'created') { $createdProvenance++ } else { $alreadyProvenance++ }
+    }
+
+    $orderedSkipped = [ordered]@{}
+    foreach ($key in @($skipped.Keys | Sort-Object)) { $orderedSkipped[$key] = [int]$skipped[$key] }
+    $report = [ordered]@{
+        mode = 'isolated_odontogram_projection_pilot'
+        created_utc = [DateTime]::UtcNow.ToString('o')
+        server_host = '127.0.0.1'
+        pilot_patients = $patientTargets.Count
+        staged_patient_rows = $selected.Count
+        eligible_projection_rows = $eligible
+        skipped_projection_rows = $selected.Count - $eligible
+        skipped_reason_counts = $orderedSkipped
+        created_projection_records = $created
+        already_imported_projection_records = $already
+        created_provenance_records = $createdProvenance
+        already_imported_provenance_records = $alreadyProvenance
+        mapping_version = [string]$summary.mapping_version
+        status_mapping = 'provisional-chart-role-and-plan-flag-v1'
+        financial_records_created = 0
+        production_import_authorized = $false
+        writes_to_dentalwin = $false
+        contains_patient_values = $false
+    }
+    Write-DwImportJson -Path (Join-Path $root 'reports/odontogram-projection-pilot-import-summary.json') -Value $report
+    return [pscustomobject]$report
+}
+
+function Test-DwOdontogramProjectionPilot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$ServerUrl,
+        [Parameter(Mandatory = $true)][string]$TestServerDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingDirectory,
+        [Parameter(Mandatory = $true)][string]$StagingKeyFile,
+        [Parameter(Mandatory = $true)][string]$Email,
+        [Parameter(Mandatory = $true)][string]$PasswordFile
+    )
+
+    $server = Assert-DwLoopbackTestServerUrl -ServerUrl $ServerUrl
+    $root = (Resolve-Path -LiteralPath $TestServerDirectory).Path
+    $marker = Get-Content -LiteralPath (Join-Path $root '.dentalwin-phase4-test-guard.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($marker.server_url -ne $server -or $marker.production_import_authorized -ne $false) {
+        throw 'Safety lock: odontogram verification is not pointed at the isolated pilot server.'
+    }
+    $headers = Get-DwTestServerAuth -ServerUrl $server -Email $Email -PasswordFile $PasswordFile
+    $rows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
+    if (@($rows.id | Sort-Object -Unique).Count -ne $rows.Count) {
+        throw 'Odontogram projection verification found duplicate PocketBase record IDs.'
+    }
+    $patients = @($rows | Where-Object store -eq 'patients')
+    $histories = @($rows | Where-Object store -eq 'treatment_history')
+    $projections = @($rows | Where-Object store -eq 'odontogram_events')
+    $patientIds = @{}
+    foreach ($record in $patients) { $patientIds[[string]$record.id] = $true }
+    $historyIds = @{}
+    foreach ($record in $histories) { $historyIds[[string]$record.id] = $true }
+
+    $sourceKeys = @{}
+    $planned = 0
+    $completed = 0
+    $existing = 0
+    $materialColors = 0
+    foreach ($record in $projections) {
+        $data = $record.data
+        if (-not $patientIds.ContainsKey([string](Get-DwImportProperty -InputObject $data -Name 'patientID')) -or
+            -not $historyIds.ContainsKey([string](Get-DwImportProperty -InputObject $data -Name 'treatmentHistoryID'))) {
+            throw 'Odontogram projection verification found a broken patient or canonical-history link.'
+        }
+        $tooth = [string](Get-DwImportProperty -InputObject $data -Name 'toothFdi')
+        if ($tooth -notmatch '^(1[1-8]|2[1-8]|3[1-8]|4[1-8])$') {
+            throw 'Odontogram projection verification found a non-permanent or invalid tooth.'
+        }
+        $surfaces = @(Get-DwImportProperty -InputObject $data -Name 'surfaces' -Default @())
+        if ($surfaces.Count -eq 0) {
+            throw 'Odontogram projection verification found an event without a drawable target.'
+        }
+        $status = [string](Get-DwImportProperty -InputObject $data -Name 'status')
+        switch ($status) {
+            'planned' { $planned++ }
+            'completed' { $completed++ }
+            'existing' { $existing++ }
+            default { throw 'Odontogram projection verification found an unsupported provisional status.' }
+        }
+        if ($null -ne (Get-DwImportProperty -InputObject $data -Name 'materialColorArgb')) { $materialColors++ }
+        foreach ($forbidden in @('priceSnapshot', 'laboratoryCost', 'chargeRaw', 'creditRaw', 'totalRaw')) {
+            if ($null -ne $data.PSObject.Properties[$forbidden]) {
+                throw 'Odontogram projection verification found an unexpected financial field.'
+            }
+        }
+        $migration = Get-DwImportProperty -InputObject $data -Name 'migration'
+        $sourceKey = [string](Get-DwImportProperty -InputObject $migration -Name 'source_stage_key')
+        if ([string]::IsNullOrWhiteSpace($sourceKey) -or $sourceKeys.ContainsKey($sourceKey) -or
+            (Get-DwImportProperty -InputObject $migration -Name 'guard_id') -ne $marker.marker_id -or
+            (Get-DwImportProperty -InputObject $migration -Name 'odontogram_projection_pilot') -ne $true) {
+            throw 'Odontogram projection verification found invalid or duplicate provenance.'
+        }
+        $sourceKeys[$sourceKey] = $true
+        $expectedId = Get-DwDeterministicPocketBaseId -BatchId ([string](Get-DwImportProperty -InputObject $migration -Name 'batch_id')) -Store 'odontogram_events' -StageKey $sourceKey
+        if ([string]$record.id -ne $expectedId) {
+            throw 'Odontogram projection verification found a non-deterministic target ID.'
+        }
+    }
+
+    $projectionProvenance = @($rows | Where-Object {
+            $_.store -eq 'migration_external_identifiers' -and
+            [string](Get-DwImportProperty -InputObject $_.data -Name 'target_store') -eq 'odontogram_events'
+        })
+    if ($projections.Count -eq 0 -or $projectionProvenance.Count -ne $projections.Count) {
+        throw 'Odontogram projection verification found a missing projection or provenance record.'
+    }
+    $report = [ordered]@{
+        mode = 'isolated_odontogram_projection_pilot_verification'
+        verified_utc = [DateTime]::UtcNow.ToString('o')
+        server_host = '127.0.0.1'
+        pilot_patients = $patients.Count
+        projection_records = $projections.Count
+        planned_projections = $planned
+        completed_projections = $completed
+        existing_condition_projections = $existing
+        projections_with_material_color = $materialColors
+        canonical_history_links = $projections.Count
+        provenance_records = $projectionProvenance.Count
+        duplicate_record_ids = 0
+        financial_records_created = 0
+        production_import_authorized = $false
+        contains_patient_values = $false
+        verified = $true
+    }
+    Write-DwImportJson -Path (Join-Path $root 'reports/odontogram-projection-pilot-verification-summary.json') -Value $report
+    return [pscustomobject]$report
+}
+
 function ConvertTo-DwTherapyGroupData {
     [CmdletBinding()]
     param(
@@ -1302,7 +1818,7 @@ function Invoke-DwTherapyCataloguePilot {
     $existingRows = @(Get-DwAllRemoteRows -ServerUrl $server -Headers $headers)
     $allowedStores = @(
         '', 'settings_global', 'patients', 'appointments', 'treatment_history',
-        'therapy_groups', 'procedure_catalog',
+        'odontogram_events', 'therapy_groups', 'procedure_catalog',
         'migration_batches', 'migration_external_identifiers'
     )
     foreach ($row in $existingRows) {
@@ -1509,6 +2025,9 @@ Export-ModuleMember -Function @(
     'Test-DwPilotImport',
     'Invoke-DwTreatmentHistoryPilot',
     'Test-DwTreatmentHistoryPilot',
+    'ConvertTo-DwOdontogramProjectionData',
+    'Invoke-DwOdontogramProjectionPilot',
+    'Test-DwOdontogramProjectionPilot',
     'ConvertTo-DwTherapyGroupData',
     'ConvertTo-DwProcedureCatalogData',
     'Invoke-DwTherapyCataloguePilot',

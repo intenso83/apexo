@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $script:DwStageFormatVersion = '1.1.0'
-$script:DwMappingVersion = '2026-09-05.phase6-surface-snapshot-v1'
+$script:DwMappingVersion = '2026-09-05.phase6-surface-snapshot-v2'
 $script:DwEncryptionIterations = 210000
 $script:DwCriticalTables = @(
     'Customers',
@@ -140,7 +140,11 @@ function ConvertTo-DwDrawingBehavior {
     $normalized = ConvertTo-DwNormalizedText $Value
     switch ($normalized) {
         'DRAW_EMFRAXI' { return 'filling' }
+        'ΕΜΦΡΑΞΗ' { return 'filling' }
+        'DRAW_STEFANI' { return 'crown' }
+        'ΣΤΕΦΆΝΗ' { return 'crown' }
         'DRAW_OPSI' { return 'veneer' }
+        'ΌΨΗ' { return 'veneer' }
         default { return $null }
     }
 }

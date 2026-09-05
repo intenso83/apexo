@@ -115,6 +115,24 @@ void main() {
     expect(event.drawsOnTooth(16), isFalse);
   });
 
+  test('imported custom treatment may link to canonical history', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'tooth',
+      'toothFdi': 11,
+      'surfaces': ['mesial'],
+      'procedureNameSnapshot': 'Legacy custom restoration',
+      'eventKind': 'treatment',
+      'status': 'completed',
+      'treatmentHistoryID': 'history1234567',
+      'migration': {'source_system': 'DentalWin'},
+    });
+
+    expect(event.procedureID, isEmpty);
+    expect(event.treatmentHistoryID, 'history1234567');
+    expect(event.validationErrors(), isEmpty);
+  });
+
   test('bridge remains one event with explicit unit roles', () {
     final event = OdontogramEvent.fromJson({
       'patientID': 'patient1234567',

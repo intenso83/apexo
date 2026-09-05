@@ -1,6 +1,6 @@
 # DentalWin migration tool
 
-This Windows-only tool implements Phases 2 and 3, the isolated Phase 4 patient/appointment pilot, and the isolated Phase 5 treatment-history pilot of the approved DentalWin migration blueprint.
+This Windows-only tool implements Phases 2 and 3, the isolated Phase 4 patient/appointment pilot, the isolated Phase 5 treatment-history pilot, and the guarded odontogram-projection review pilot of the approved DentalWin migration blueprint.
 
 It can:
 
@@ -14,7 +14,9 @@ It can:
 - prove repeat-run idempotency with automated tests;
 - initialize and guard a disposable empty PocketBase test server;
 - import and verify a five-patient, two-appointments-per-patient pilot;
-- import and verify historical DentalWin treatments for only those same five pilot patients.
+- import and verify historical DentalWin treatments for only those same five pilot patients;
+- import DentalWin therapy-catalogue snapshots into that isolated server;
+- create and verify one idempotent odontogram projection per eligible canonical history row.
 
 It cannot:
 
@@ -23,6 +25,7 @@ It cannot:
 - connect to a non-loopback or production Apexo/PocketBase server;
 - import patients outside the guarded five-patient pilot;
 - import medical-history, image, or finance records during the pilot;
+- project invalid, primary, ambiguous multi-tooth, or unknown drawing-behavior rows;
 - connect either pilot to a production or non-loopback server.
 
 ## Requirements
@@ -60,6 +63,21 @@ Phase 5 is a separate, explicitly guarded expansion of the already-approved Phas
 `Test-DwTreatmentHistoryPilot` compares the imported rows with the encrypted private staging data, verifies every patient link and migration guard, rejects duplicate IDs, and checks the exact provenance count. Reports are aggregate-only; patient-level values remain in the ignored private directory.
 
 The pilot UI presents these rows on a separate read-only **Treatment history** tab. It deliberately does not translate uncertain legacy work names into editable Apexo treatments. Unmatched names are marked as legacy custom treatments so that no clinical meaning is invented during migration.
+
+## Guarded odontogram-projection review pilot
+
+The projection pilot is an isolated visual-review layer over the canonical Phase 5 history. It never creates another treatment or a financial record. The five-patient selector prefers otherwise eligible patients with at least one truthfully drawable permanent-tooth event so an owner can inspect visible results without widening the patient cap.
+
+`Invoke-DwOdontogramProjectionPilot` accepts only:
+
+- one valid permanent FDI tooth;
+- one verified DentalWin drawing behavior: filling, crown, or veneer;
+- valid source-row surfaces for fillings, or an explicit whole-tooth target for crowns and veneers;
+- a matching canonical `treatment_history` row from the same guarded batch.
+
+The current mapping recognizes both the internal method-style values and the real Greek DentalWin values `Εμφραξη`, `Στεφάνη`, and `Όψη`. Initial-condition, alternative-plan, and performed-work roles are preserved, while their Apexo statuses remain explicitly provisional pending owner review. Primary teeth, malformed surfaces, unknown drawing modes, and ambiguous multi-tooth values stay in review.
+
+`Test-DwOdontogramProjectionPilot` verifies patient/history links, drawable targets, provenance, deterministic IDs, saved material colors, supported provisional statuses, and the absence of financial fields. Re-running the importer must report the same eligible rows as `already_imported` and create no duplicate projection or provenance rows.
 
 ## Run the committed synthetic dry run
 

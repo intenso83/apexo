@@ -148,6 +148,10 @@ try {
     Assert-Equal -Expected 'facial,oral' -Actual ($cervicalSnapshot.cervical_surfaces -join ',') -Message 'cervical facial and oral locations remain explicit'
     $repeatedSnapshot = ConvertTo-DwSurfaceSnapshot '22'
     Assert-True -Condition (-not $repeatedSnapshot.valid -and $repeatedSnapshot.repeated) -Message 'repeated surface digits are rejected for review'
+    Assert-Equal -Expected 'filling' -Actual (ConvertTo-DwDrawingBehavior 'Εμφραξη') -Message 'real DentalWin filling label is normalized'
+    Assert-Equal -Expected 'crown' -Actual (ConvertTo-DwDrawingBehavior 'Στεφάνη') -Message 'real DentalWin crown label is normalized'
+    Assert-Equal -Expected 'veneer' -Actual (ConvertTo-DwDrawingBehavior 'Όψη') -Message 'real DentalWin veneer label is normalized'
+    Assert-Equal -Expected 'filling' -Actual (ConvertTo-DwDrawingBehavior 'Draw_Emfraxi') -Message 'legacy method-style filling label remains supported'
     Assert-Equal -Expected 4278190335 -Actual (ConvertTo-DwArgbSnapshot -16776961) -Message 'signed DentalWin ARGB is normalized without losing bits'
 
     $reportOne = Get-Content -LiteralPath (Join-Path $stageOne 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -298,6 +302,85 @@ try {
     Assert-Equal -Expected 4278190335 -Actual $historyData.materialColorArgb -Message 'treatment history retains the exact material color'
     Assert-True -Condition ([long]$historyData.date -gt 0) -Message 'treatment pilot converts a valid treatment date'
     Assert-True -Condition ($historyData.migration.treatment_history_pilot -eq $true) -Message 'treatment pilot marks guarded provenance metadata'
+    $projectionSource = [pscustomobject]@{
+        stage_key = 'clinical-work:synthetic-1'
+        original_work_name = 'SYNTHETIC COMPLETED WORK'
+        event_kind = 'clinical_event'
+        date_raw = '2025-04-03T10:30:00'
+        tooth_raw = '11'
+        tooth_fdi = '11'
+        notes = 'synthetic note'
+        status_raw = '1'
+        source_table = 'WorksPelati'
+        source_record_key = 'synthetic-1'
+        chart_role = 'performed_work'
+        surface_code_raw = '24'
+        surfaces = @('occlusalIncisal', 'mesial')
+        cervical_surfaces = @()
+        drawing_behavior_raw = 'Draw_Emfraxi'
+        drawing_behavior = 'filling'
+        drawing_color_raw = -16776961
+        drawing_color_argb = 4278190335
+        multi_tooth_raw = ''
+        charge_raw = '50'
+        credit_raw = '0'
+        total_raw = '50'
+        source_catalog_code = 'SYN-P001'
+        catalog_link_method = 'stable_code'
+    }
+    $projectionData = ConvertTo-DwOdontogramProjectionData `
+        -Event $projectionSource `
+        -TargetPatientId 'syntheticpatient' `
+        -TreatmentHistoryId 'synthetichistory' `
+        -BatchId 'synthetic-batch' `
+        -GuardId 'synthetic-guard' `
+        -MappingVersion 'synthetic-map-v1' `
+        -ProcedureId 'syntheticprocedure' `
+        -TherapyGroupId 'syntheticgroup' `
+        -TherapyGroupName 'Synthetic restorative'
+    Assert-Equal -Expected 'synthetichistory' -Actual $projectionData.treatmentHistoryID -Message 'odontogram projection links the canonical treatment-history record'
+    Assert-Equal -Expected 'syntheticprocedure' -Actual $projectionData.procedureID -Message 'odontogram projection retains a verified catalogue link'
+    Assert-Equal -Expected 'treatment' -Actual $projectionData.eventKind -Message 'performed work projects as a treatment event'
+    Assert-Equal -Expected 'completed' -Actual $projectionData.status -Message 'performed clinical work receives the provisional completed status'
+    Assert-Equal -Expected 'occlusalIncisal,mesial' -Actual ($projectionData.surfaces -join ',') -Message 'odontogram projection retains independent source surfaces'
+    Assert-Equal -Expected 4278190335 -Actual $projectionData.materialColorArgb -Message 'odontogram projection retains the exact source material color'
+    Assert-True -Condition ($null -eq $projectionData.PSObject.Properties['priceSnapshot']) -Message 'odontogram projection does not create a financial snapshot'
+    Assert-Equal -Expected 'synthetic-map-v1' -Actual $projectionData.migration.projection_mapping_version -Message 'odontogram projection records its mapping version'
+
+    $initialProjectionSource = $projectionSource.PSObject.Copy()
+    $initialProjectionSource.stage_key = 'clinical-work:WorksPelatiU:synthetic-2'
+    $initialProjectionSource.chart_role = 'initial_condition'
+    $initialProjectionSource.source_table = 'WorksPelatiU'
+    $initialProjection = ConvertTo-DwOdontogramProjectionData -Event $initialProjectionSource -TargetPatientId 'syntheticpatient' -TreatmentHistoryId 'synthetichistory2' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -MappingVersion 'synthetic-map-v1'
+    Assert-Equal -Expected 'condition' -Actual $initialProjection.eventKind -Message 'initial-condition chart row projects as a condition'
+    Assert-Equal -Expected 'existing' -Actual $initialProjection.status -Message 'initial-condition chart row retains a distinct existing state'
+
+    $planProjectionSource = $projectionSource.PSObject.Copy()
+    $planProjectionSource.stage_key = 'clinical-work:WorksPelatiD:synthetic-3'
+    $planProjectionSource.chart_role = 'alternative_plan'
+    $planProjectionSource.source_table = 'WorksPelatiD'
+    $planProjection = ConvertTo-DwOdontogramProjectionData -Event $planProjectionSource -TargetPatientId 'syntheticpatient' -TreatmentHistoryId 'synthetichistory3' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -MappingVersion 'synthetic-map-v1'
+    Assert-Equal -Expected 'planned' -Actual $planProjection.status -Message 'alternative-plan chart row retains a distinct planned state'
+
+    $crownProjectionSource = $projectionSource.PSObject.Copy()
+    $crownProjectionSource.stage_key = 'clinical-work:synthetic-crown'
+    $crownProjectionSource.drawing_behavior = 'crown'
+    $crownProjectionSource.drawing_behavior_raw = 'Draw_Stefani'
+    $crownProjectionSource.surfaces = @()
+    $crownProjectionSource.surface_code_raw = ''
+    $crownProjection = ConvertTo-DwOdontogramProjectionData -Event $crownProjectionSource -TargetPatientId 'syntheticpatient' -TreatmentHistoryId 'synthetichistory4' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -MappingVersion 'synthetic-map-v1'
+    Assert-Equal -Expected 'wholeTooth' -Actual ($crownProjection.surfaces -join ',') -Message 'crown projection uses an explicit whole-tooth target'
+    Assert-Equal -Expected 'crown' -Actual $crownProjection.overlayKind -Message 'crown projection selects the complete-tooth overlay path'
+
+    $primaryProjectionSource = $projectionSource.PSObject.Copy()
+    $primaryProjectionSource.tooth_fdi = '55'
+    Assert-Throws -Action { ConvertTo-DwOdontogramProjectionData -Event $primaryProjectionSource -TargetPatientId 'syntheticpatient' -TreatmentHistoryId 'synthetichistory5' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -MappingVersion 'synthetic-map-v1' | Out-Null } -Message 'primary teeth remain in review until a visible primary chart exists'
+    $unknownBehaviorSource = $projectionSource.PSObject.Copy()
+    $unknownBehaviorSource.drawing_behavior = ''
+    Assert-Throws -Action { ConvertTo-DwOdontogramProjectionData -Event $unknownBehaviorSource -TargetPatientId 'syntheticpatient' -TreatmentHistoryId 'synthetichistory6' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -MappingVersion 'synthetic-map-v1' | Out-Null } -Message 'unknown DentalWin drawing behavior is not guessed from the treatment name'
+    $multiToothProjectionSource = $projectionSource.PSObject.Copy()
+    $multiToothProjectionSource.multi_tooth_raw = '11,12'
+    Assert-Throws -Action { ConvertTo-DwOdontogramProjectionData -Event $multiToothProjectionSource -TargetPatientId 'syntheticpatient' -TreatmentHistoryId 'synthetichistory7' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard' -MappingVersion 'synthetic-map-v1' | Out-Null } -Message 'ambiguous multi-tooth projection remains in review'
     Assert-Throws -Action {
         ConvertTo-DwTreatmentHistoryData -Event ([pscustomobject]@{
                 stage_key = 'clinical-work:synthetic-invalid'

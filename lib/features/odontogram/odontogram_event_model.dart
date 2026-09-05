@@ -202,7 +202,13 @@ class OdontogramEvent extends Model {
     final errors = <String>[];
     if (patientID.isEmpty) errors.add('patientID');
     if (procedureNameSnapshot.trim().isEmpty) errors.add('procedure');
-    if (eventKind == OdontogramEventKind.treatment && procedureID.isEmpty) {
+    // Native events point at the live catalogue. Imported legacy projections
+    // may instead point at their canonical treatment-history record when no
+    // reliable catalogue match exists. This keeps an honest custom DentalWin
+    // row valid without inventing a catalogue relationship.
+    if (eventKind == OdontogramEventKind.treatment &&
+        procedureID.isEmpty &&
+        treatmentHistoryID.isEmpty) {
       errors.add('procedureID');
     }
     if (toothFdi != null && !isValidFdi(toothFdi!)) {
