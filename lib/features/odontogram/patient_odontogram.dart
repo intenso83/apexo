@@ -835,6 +835,17 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
         'toothFdi': selectedFdi,
       if (selectedTargetScope == TreatmentTargetScope.tooth)
         'surfaces': selectedSurfaces.map((surface) => surface.name).toList(),
+      if (selectedTargetScope == TreatmentTargetScope.tooth &&
+          procedure.defaultCervicalSurfaces.any(
+            (surface) =>
+                selectedSurfaces.any((selected) => selected.name == surface),
+          ))
+        'cervicalSurfaces': procedure.defaultCervicalSurfaces
+            .where(
+              (surface) =>
+                  selectedSurfaces.any((selected) => selected.name == surface),
+            )
+            .toList(),
       if (selectedTargetScope == TreatmentTargetScope.bridge)
         'bridgeUnits': bridgeUnits.map((unit) => unit.toJson()).toList(),
       if (selectedTargetScope == TreatmentTargetScope.removableProsthesis)
@@ -847,6 +858,10 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
       'therapyGroupID': group.id,
       'therapyGroupNameSnapshot': group.title,
       'overlayKind': procedureCatalog.overlayFor(procedure).name,
+      if (procedure.defaultDrawingBehavior != null)
+        'drawingBehavior': procedure.defaultDrawingBehavior!.name,
+      if (procedure.defaultMaterialColorArgb != null)
+        'materialColorArgb': procedure.defaultMaterialColorArgb,
       'priceSnapshot': procedure.basePrice,
       'eventKind': OdontogramEventKind.treatment.name,
       'status': selectedStatus.name,
@@ -1226,7 +1241,7 @@ class _ToothAssetImage extends StatelessWidget {
             IgnorePointer(
               child: OdontogramTreatmentOverlayLayer(
                 key: Key(
-                  'odontogram-overlay-${marker.kind.name}-$fdi-${view.name}',
+                  'odontogram-overlay-${marker.eventID}-${marker.kind.name}-$fdi-${view.name}',
                 ),
                 marker: marker,
                 asset: asset,

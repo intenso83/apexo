@@ -9,16 +9,20 @@ void main() {
       'id': 'event1234567890',
       'patientID': 'patient1234567',
       'toothFdi': 16,
-      'surfaces': ['mesial', 'occlusalIncisal'],
+      'surfaces': ['mesial', 'occlusalIncisal', 'facial'],
+      'cervicalSurfaces': ['facial'],
       'procedureID': 'procedure123456',
       'procedureNameSnapshot': 'Composite filling',
       'therapyGroupID': 'group1234567890',
       'therapyGroupNameSnapshot': 'Restorative',
       'overlayKind': 'filling',
+      'drawingBehavior': 'filling',
+      'materialColorArgb': 0xFF336699,
       'priceSnapshot': 80,
       'eventKind': 'treatment',
       'status': 'completed',
       'recordedAt': 30000000,
+      'treatmentHistoryID': 'history12345678',
       'laboratoryID': 'laboratory-1',
       'laboratoryNameSnapshot': 'Praxis Lab',
       'laboratoryCost': 82.5,
@@ -27,8 +31,36 @@ void main() {
     expect(event.laboratoryID, 'laboratory-1');
     expect(event.laboratoryNameSnapshot, 'Praxis Lab');
     expect(event.laboratoryCost, 82.5);
+    expect(event.drawingBehavior, OdontogramDrawingBehavior.filling);
+    expect(event.materialColorArgb, 0xFF336699);
+    expect(event.treatmentHistoryID, 'history12345678');
     expect(OdontogramEvent.fromJson(event.toJson()).toJson(), event.toJson());
     expect(event.effectiveOverlayKind, OdontogramOverlayKind.filling);
+  });
+
+  test('primary FDI teeth remain explicitly valid migration locations', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'toothFdi': 55,
+      'surfaces': ['occlusalIncisal'],
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Primary molar filling',
+    });
+    expect(isPrimaryFdi(55), isTrue);
+    expect(isPermanentFdi(55), isFalse);
+    expect(event.validationErrors(), isEmpty);
+  });
+
+  test('cervical location must be facial or oral and selected', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'toothFdi': 16,
+      'surfaces': ['mesial'],
+      'cervicalSurfaces': ['facial'],
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Invalid cervical snapshot',
+    });
+    expect(event.validationErrors(), contains('cervicalSurfaces'));
   });
 
   test('legacy event infers its overlay without rewriting the source record',

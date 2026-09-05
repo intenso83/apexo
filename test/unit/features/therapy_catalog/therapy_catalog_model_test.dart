@@ -39,13 +39,31 @@ void main() {
       'targetScope': 'tooth',
       'surfaceSelectionMode': 'optional',
       'defaultSurfaces': ['mesial', 'occlusalIncisal'],
+      'defaultDrawingBehavior': 'filling',
+      'defaultMaterialColorArgb': 0xFFAA5500,
     });
     expect(item.targetScope, TreatmentTargetScope.tooth);
     expect(item.surfaceSelectionMode, SurfaceSelectionMode.optional);
     expect(item.validationErrors(), isEmpty);
+    expect(item.defaultDrawingBehavior, OdontogramDrawingBehavior.filling);
+    expect(item.defaultMaterialColorArgb, 0xFFAA5500);
     expect(
       ProcedureCatalogItem.fromJson(item.toJson()).toJson(),
       item.toJson(),
+    );
+  });
+
+  test('procedure preserves a cervical surface preset independently', () {
+    final item = ProcedureCatalogItem.fromJson({
+      'name': 'Cervical composite',
+      'targetScope': 'tooth',
+      'defaultSurfaces': ['facial'],
+      'defaultCervicalSurfaces': ['facial'],
+    });
+    expect(item.validationErrors(), isEmpty);
+    expect(
+      ProcedureCatalogItem.fromJson(item.toJson()).defaultCervicalSurfaces,
+      ['facial'],
     );
   });
 

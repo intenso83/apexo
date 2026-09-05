@@ -136,7 +136,10 @@
         "euro": 50,
         "donti_required": 1,
         "xronos": 30,
-        "timi_ana_donti": 1
+        "timi_ana_donti": 1,
+        "onomaImage": "124",
+        "onomaImage3": "Draw_Emfraxi",
+        "topa": -16776961
       },
       {
         "id": 302,
@@ -175,6 +178,10 @@
         "memos": "Synthetic completed work",
         "SxedioUerapias": 0,
         "status": 0,
+        "LOGARIASMOIB": "124",
+        "LOGARIASMOIA": "Draw_Emfraxi",
+        "LOGARIASMOIC": "",
+        "OikonomikiID": -16776961,
         "xreosi": 50,
         "pistosi": 50,
         "sinolo": 50
@@ -231,8 +238,50 @@
         "sinolo": 0
       }
     ],
-    "WorksPelatiD": [],
-    "WorksPelatiU": [],
+    "WorksPelatiD": [
+      {
+        "id": 451,
+        "guidss": "30000000-0000-0000-0000-000000000451",
+        "kodikosPelati": 1,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "hmerominia": "2026-03-10T09:00:00",
+        "ergasia": "Συνθετική έμφραξη",
+        "id_code_work": "SYN-P001",
+        "katigoria": 1,
+        "donti": "12",
+        "memos": "Synthetic alternative plan chart row",
+        "status": 0,
+        "LOGARIASMOIB": "7",
+        "LOGARIASMOIA": "Draw_Emfraxi",
+        "LOGARIASMOIC": "",
+        "OikonomikiID": -65536,
+        "xreosi": 0,
+        "pistosi": 0,
+        "sinolo": 0
+      }
+    ],
+    "WorksPelatiU": [
+      {
+        "id": 452,
+        "guidss": "30000000-0000-0000-0000-000000000452",
+        "kodikosPelati": 1,
+        "guidsspelati": "00000000-0000-0000-0000-000000000001",
+        "hmerominia": "2026-03-09T09:00:00",
+        "ergasia": "Συνθετική έμφραξη",
+        "id_code_work": "SYN-P001",
+        "katigoria": 1,
+        "donti": "55",
+        "memos": "Synthetic initial-condition primary tooth row",
+        "status": 0,
+        "LOGARIASMOIB": "8",
+        "LOGARIASMOIA": "Draw_Emfraxi",
+        "LOGARIASMOIC": "",
+        "OikonomikiID": -16711936,
+        "xreosi": 0,
+        "pistosi": 0,
+        "sinolo": 0
+      }
+    ],
     "Appointments2": [
       {
         "id": 501,

@@ -18,6 +18,7 @@ class OdontogramEvent extends Model {
   TreatmentTargetScope targetScope = TreatmentTargetScope.tooth;
   int? toothFdi;
   List<String> surfaces = [];
+  List<String> cervicalSurfaces = [];
   List<BridgeUnit> bridgeUnits = [];
   DentalArch arch = DentalArch.unspecified;
   List<RemovableComponent> removableComponents = [];
@@ -26,6 +27,8 @@ class OdontogramEvent extends Model {
   String therapyGroupID = '';
   String therapyGroupNameSnapshot = '';
   OdontogramOverlayKind? overlayKind;
+  OdontogramDrawingBehavior? drawingBehavior;
+  int? materialColorArgb;
   double? priceSnapshot;
   OdontogramEventKind eventKind = OdontogramEventKind.treatment;
   OdontogramEventStatus status = OdontogramEventStatus.planned;
@@ -33,6 +36,7 @@ class OdontogramEvent extends Model {
   String appointmentID = '';
   String notes = '';
   String supersedesEventID = '';
+  String treatmentHistoryID = '';
   String laboratoryID = '';
   String laboratoryNameSnapshot = '';
   double? laboratoryCost;
@@ -83,6 +87,8 @@ class OdontogramEvent extends Model {
     patientID = json['patientID']?.toString() ?? patientID;
     toothFdi = _asNullableInt(json['toothFdi']);
     surfaces = List<String>.from(json['surfaces'] ?? const <String>[]);
+    cervicalSurfaces =
+        List<String>.from(json['cervicalSurfaces'] ?? const <String>[]);
     bridgeUnits = _mapList(json['bridgeUnits'], BridgeUnit.fromJson);
     arch = enumByName(DentalArch.values, json['arch'], arch);
     removableComponents = _mapList(
@@ -104,6 +110,11 @@ class OdontogramEvent extends Model {
       OdontogramOverlayKind.values,
       json['overlayKind'],
     );
+    drawingBehavior = nullableEnumByName(
+      OdontogramDrawingBehavior.values,
+      json['drawingBehavior'],
+    );
+    materialColorArgb = _asNullableInt(json['materialColorArgb']);
     priceSnapshot = _asNullableDouble(json['priceSnapshot']);
     eventKind = enumByName(
       OdontogramEventKind.values,
@@ -123,6 +134,8 @@ class OdontogramEvent extends Model {
     notes = json['notes']?.toString() ?? notes;
     supersedesEventID =
         json['supersedesEventID']?.toString() ?? supersedesEventID;
+    treatmentHistoryID =
+        json['treatmentHistoryID']?.toString() ?? treatmentHistoryID;
     laboratoryID = json['laboratoryID']?.toString() ?? laboratoryID;
     laboratoryNameSnapshot =
         json['laboratoryNameSnapshot']?.toString() ?? laboratoryNameSnapshot;
@@ -137,6 +150,9 @@ class OdontogramEvent extends Model {
     json['targetScope'] = targetScope.name;
     if (toothFdi != null) json['toothFdi'] = toothFdi;
     if (surfaces.isNotEmpty) json['surfaces'] = surfaces;
+    if (cervicalSurfaces.isNotEmpty) {
+      json['cervicalSurfaces'] = cervicalSurfaces;
+    }
     if (bridgeUnits.isNotEmpty) {
       json['bridgeUnits'] = bridgeUnits.map((unit) => unit.toJson()).toList();
     }
@@ -155,6 +171,12 @@ class OdontogramEvent extends Model {
       json['therapyGroupNameSnapshot'] = therapyGroupNameSnapshot;
     }
     if (overlayKind != null) json['overlayKind'] = overlayKind!.name;
+    if (drawingBehavior != null) {
+      json['drawingBehavior'] = drawingBehavior!.name;
+    }
+    if (materialColorArgb != null) {
+      json['materialColorArgb'] = materialColorArgb;
+    }
     if (priceSnapshot != null) json['priceSnapshot'] = priceSnapshot;
     json['eventKind'] = eventKind.name;
     json['status'] = status.name;
@@ -163,6 +185,9 @@ class OdontogramEvent extends Model {
     if (notes.isNotEmpty) json['notes'] = notes;
     if (supersedesEventID.isNotEmpty) {
       json['supersedesEventID'] = supersedesEventID;
+    }
+    if (treatmentHistoryID.isNotEmpty) {
+      json['treatmentHistoryID'] = treatmentHistoryID;
     }
     if (laboratoryID.isNotEmpty) json['laboratoryID'] = laboratoryID;
     if (laboratoryNameSnapshot.isNotEmpty) {
@@ -180,7 +205,7 @@ class OdontogramEvent extends Model {
     if (eventKind == OdontogramEventKind.treatment && procedureID.isEmpty) {
       errors.add('procedureID');
     }
-    if (toothFdi != null && !isPermanentFdi(toothFdi!)) {
+    if (toothFdi != null && !isValidFdi(toothFdi!)) {
       errors.add('toothFdi');
     }
     const validSurfaces = {
@@ -196,6 +221,18 @@ class OdontogramEvent extends Model {
     }
     if (surfaces.contains('wholeTooth') && surfaces.length > 1) {
       errors.add('surfaces');
+    }
+    const validCervicalSurfaces = {'facial', 'oral'};
+    if (cervicalSurfaces.any(
+      (surface) =>
+          !validCervicalSurfaces.contains(surface) ||
+          !surfaces.contains(surface),
+    )) {
+      errors.add('cervicalSurfaces');
+    }
+    if (materialColorArgb != null &&
+        (materialColorArgb! < 0 || materialColorArgb! > 0xFFFFFFFF)) {
+      errors.add('materialColorArgb');
     }
     switch (targetScope) {
       case TreatmentTargetScope.patient:
@@ -251,7 +288,7 @@ class OdontogramEvent extends Model {
         toothNumbers.toSet().length != toothNumbers.length) {
       errors.add('bridgeUnits');
     }
-    if (toothNumbers.any((fdi) => !isPermanentFdi(fdi))) {
+    if (toothNumbers.any((fdi) => !isValidFdi(fdi))) {
       errors.add('bridgeUnits');
     }
     final hasPontic =
@@ -269,7 +306,7 @@ class OdontogramEvent extends Model {
     final errors = <String>[];
     if (removableComponents.any(
       (component) =>
-          !isPermanentFdi(component.toothFdi) ||
+          !isValidFdi(component.toothFdi) ||
           !archContainsTooth(arch, component.toothFdi),
     )) {
       errors.add('removableComponents');

@@ -141,7 +141,16 @@ bool isPermanentFdi(int fdi) {
   return quadrant >= 1 && quadrant <= 4 && position >= 1 && position <= 8;
 }
 
-bool isUpperFdi(int fdi) => fdi ~/ 10 == 1 || fdi ~/ 10 == 2;
+bool isPrimaryFdi(int fdi) {
+  final quadrant = fdi ~/ 10;
+  final position = fdi % 10;
+  return quadrant >= 5 && quadrant <= 8 && position >= 1 && position <= 5;
+}
+
+bool isValidFdi(int fdi) => isPermanentFdi(fdi) || isPrimaryFdi(fdi);
+
+bool isUpperFdi(int fdi) =>
+    fdi ~/ 10 == 1 || fdi ~/ 10 == 2 || fdi ~/ 10 == 5 || fdi ~/ 10 == 6;
 
 bool archContainsTooth(DentalArch arch, int fdi) {
   return switch (arch) {

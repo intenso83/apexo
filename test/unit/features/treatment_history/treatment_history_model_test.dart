@@ -1,3 +1,4 @@
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/treatment_history/treatment_history_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,6 +13,13 @@ void main() {
       'date': 29000000,
       'toothRaw': '11',
       'toothFdi': '11',
+      'sourceTable': 'WorksPelati',
+      'sourceRecordKey': '401',
+      'chartRole': 'performed_work',
+      'surfaces': ['mesial', 'occlusalIncisal', 'facial'],
+      'cervicalSurfaces': ['facial'],
+      'drawingBehavior': 'filling',
+      'materialColorArgb': 0xFF0066CC,
       'notes': 'Imported note',
       'chargeRaw': '50',
       'catalogLinkMethod': 'stable_code',
@@ -28,6 +36,13 @@ void main() {
     final roundTrip = TreatmentHistoryEntry.fromJson(entry.toJson());
     expect(roundTrip.treatmentName, 'Composite restoration');
     expect(roundTrip.therapyGroup, 'Restorative');
+    expect(roundTrip.sourceTable, 'WorksPelati');
+    expect(roundTrip.sourceRecordKey, '401');
+    expect(roundTrip.chartRole, 'performed_work');
+    expect(roundTrip.surfaces, ['mesial', 'occlusalIncisal', 'facial']);
+    expect(roundTrip.cervicalSurfaces, ['facial']);
+    expect(roundTrip.drawingBehavior, OdontogramDrawingBehavior.filling);
+    expect(roundTrip.materialColorArgb, 0xFF0066CC);
     expect(roundTrip.notes, 'Imported note');
     expect(roundTrip.migration['pilot'], isTrue);
   });

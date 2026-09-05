@@ -12,9 +12,12 @@ class ProcedureCatalogItem extends Model {
   int? durationMinutes;
   ProcedureHandlingMode? handlingMode;
   OdontogramOverlayKind? odontogramOverlay;
+  OdontogramDrawingBehavior? defaultDrawingBehavior;
+  int? defaultMaterialColorArgb;
   TreatmentTargetScope? targetScope;
   SurfaceSelectionMode surfaceSelectionMode = SurfaceSelectionMode.optional;
   List<String> defaultSurfaces = [];
+  List<String> defaultCervicalSurfaces = [];
   bool hidden = false;
   bool? requiresLaboratory;
   Map<String, dynamic> migration = {};
@@ -41,6 +44,11 @@ class ProcedureCatalogItem extends Model {
       OdontogramOverlayKind.values,
       json['odontogramOverlay'],
     );
+    defaultDrawingBehavior = nullableEnumByName(
+      OdontogramDrawingBehavior.values,
+      json['defaultDrawingBehavior'],
+    );
+    defaultMaterialColorArgb = _asNullableInt(json['defaultMaterialColorArgb']);
     targetScope = nullableEnumByName(
       TreatmentTargetScope.values,
       json['targetScope'],
@@ -52,6 +60,9 @@ class ProcedureCatalogItem extends Model {
     );
     defaultSurfaces = List<String>.from(
       json['defaultSurfaces'] ?? const <String>[],
+    );
+    defaultCervicalSurfaces = List<String>.from(
+      json['defaultCervicalSurfaces'] ?? const <String>[],
     );
     hidden = json['hidden'] == true;
     requiresLaboratory = _asNullableBool(json['requiresLaboratory']);
@@ -75,10 +86,19 @@ class ProcedureCatalogItem extends Model {
     if (odontogramOverlay != null) {
       json['odontogramOverlay'] = odontogramOverlay!.name;
     }
+    if (defaultDrawingBehavior != null) {
+      json['defaultDrawingBehavior'] = defaultDrawingBehavior!.name;
+    }
+    if (defaultMaterialColorArgb != null) {
+      json['defaultMaterialColorArgb'] = defaultMaterialColorArgb;
+    }
     if (targetScope != null) json['targetScope'] = targetScope!.name;
     json['surfaceSelectionMode'] = surfaceSelectionMode.name;
     if (defaultSurfaces.isNotEmpty) {
       json['defaultSurfaces'] = defaultSurfaces;
+    }
+    if (defaultCervicalSurfaces.isNotEmpty) {
+      json['defaultCervicalSurfaces'] = defaultCervicalSurfaces;
     }
     if (hidden) json['hidden'] = true;
     if (requiresLaboratory != null) {
@@ -110,6 +130,7 @@ class ProcedureCatalogItem extends Model {
       defaultSurfaces.remove('wholeTooth');
     } else {
       defaultSurfaces = [...mode.automaticSurfaces];
+      defaultCervicalSurfaces.clear();
     }
     toothRequired = mode.targetScope != TreatmentTargetScope.patient;
   }
@@ -156,6 +177,19 @@ class ProcedureCatalogItem extends Model {
     }
     if (defaultSurfaces.contains('wholeTooth') && defaultSurfaces.length > 1) {
       errors.add('defaultSurfaces');
+    }
+    const validCervicalSurfaces = {'facial', 'oral'};
+    if (defaultCervicalSurfaces.any(
+      (surface) =>
+          !validCervicalSurfaces.contains(surface) ||
+          !defaultSurfaces.contains(surface),
+    )) {
+      errors.add('defaultCervicalSurfaces');
+    }
+    if (defaultMaterialColorArgb != null &&
+        (defaultMaterialColorArgb! < 0 ||
+            defaultMaterialColorArgb! > 0xFFFFFFFF)) {
+      errors.add('defaultMaterialColorArgb');
     }
     if (surfaceSelectionMode == SurfaceSelectionMode.notApplicable &&
         defaultSurfaces.isNotEmpty) {

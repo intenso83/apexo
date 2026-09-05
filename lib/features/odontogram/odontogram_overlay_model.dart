@@ -15,6 +15,17 @@ enum OdontogramOverlayKind {
   bridge,
 }
 
+/// The immutable drawing recipe captured on a clinical event.
+///
+/// This is intentionally narrower than [OdontogramOverlayKind]. DentalWin
+/// stores the way a restoration was drawn separately from the clinical
+/// category, and crown and veneer artwork must therefore remain distinct.
+enum OdontogramDrawingBehavior {
+  filling,
+  crown,
+  veneer,
+}
+
 /// Conservative compatibility classifier for catalogue items that predate the
 /// explicit odontogram-overlay setting.
 ///

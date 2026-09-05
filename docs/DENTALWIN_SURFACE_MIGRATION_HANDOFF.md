@@ -2,7 +2,7 @@
 
 Date: 2026-09-04
 Last planning reconciliation: 2026-09-05
-Status: Analysis incorporated into odontogram and migration planning; implementation is not authorized or started.
+Status: Phase 1 implementation is in progress. The protected-staging, immutable-snapshot, and layered-rendering slice was completed and verified on 2026-09-05; real-data import remains disabled.
 
 ## Task provenance
 
@@ -13,11 +13,11 @@ Status: Analysis incorporated into odontogram and migration planning; implementa
 - Local reference: `C:\Users\evris\Documents\ChatGPT\Apexo fork\DentalWin_reference\DentalWin`.
 - Original analysis artifact: `C:\Users\evris\.codex\visualizations\2026\09\04\01a06e11-bb84-7473-86bc-60c3360e1272\DentalWin-surface-analysis.md`. Its complete text is preserved below.
 
-This note was created at the user's request to save the work and make it traceable from the main development task. Only this documentation file was added during this handoff. No application, importer, asset, or database changes were made by this research task. Existing workspace changes belong to other ongoing work. This file has not been committed or pushed by this task.
+This note was created at the user's request to save the work and make it traceable from the main development task. The original research task changed documentation only. On 2026-09-05 the user explicitly authorized implementation after creating and pushing recovery tag `milestone/pre-dentalwin-surface-migration-2026-09-05` at commit `60940cf`.
 
 ## User intent and decision state
 
-The user requested a deep comparison of the tooth pieces with the existing odontogram and explicitly said not to make changes yet. Follow-up discussion established interest in replicating actual DentalWin treatments, their selected surfaces, and selectable colors. The feasibility conclusion is positive. This is a proposed direction, not a claim that reconstruction is already implemented or a request to begin implementation automatically. Main project planning should continue in Explore Apexo fork changes.
+The user first requested a deep comparison of the tooth pieces with the existing odontogram and explicitly said not to make changes. Follow-up discussion established interest in replicating actual DentalWin treatments, their selected surfaces, and selectable colors. On 2026-09-05, after the protected Git/GitHub recovery milestone was created, the user authorized implementation. The first conservative slice now preserves the verified source facts through staging and Apexo snapshots and supports independent overlay layers; projection creation and real-data import remain separate gated work.
 
 ## Planning reconciliation and decision register
 
@@ -72,7 +72,7 @@ This section is the current planning source of truth for DentalWin surface migra
 
 ### Migration-pipeline revision
 
-No importer changes are authorized yet. When authorized, the next mapping version should proceed in this order:
+Implementation is now authorized. Mapping version `2026-09-05.phase6-surface-snapshot-v1` proceeds in this order:
 
 1. Extend protected staging for catalogue defaults: raw and normalized surface codes, drawing behavior, packed ARGB color, and any verified multi-tooth behavior.
 2. Extend protected clinical-work staging for `LOGARIASMOIB`, `LOGARIASMOIA`, `OikonomikiID`, and `LOGARIASMOIC`, retaining both raw and normalized forms.
@@ -120,7 +120,19 @@ The aggregate expectations retained for this gate are 2,572 filling-render rows 
 
 ### Change-control rule
 
-Planning changes must be recorded in this decision register with a date and the evidence or owner decision that caused the change. Until the user explicitly authorizes implementation, do not modify the event schema, catalogue schema, renderer, assets, staging format, importer, or database for this work.
+Planning changes must be recorded in this decision register with a date and the evidence or owner decision that caused the change. The 2026-09-05 authorization covers implementation and synthetic/isolated verification. It does not authorize importing into a production PocketBase instance or mutating the original DentalWin databases.
+
+### Implementation log — 2026-09-05
+
+- Created and pushed the protected pre-implementation recovery milestone at `60940cf`.
+- Began staging-format v1.1. Valid DentalWin surface digits are normalized without treatment-name inference; repeated or malformed values are retained and sent to review.
+- Added explicit chart roles for `WorksPelatiU`, `WorksPelatiD`, and `WorksPelati` while preserving the existing `WorksPelati` stage keys used by the five-patient pilot.
+- Began immutable event/catalogue snapshots for cervical location, drawing behavior, packed ARGB material color, and canonical treatment-history linkage.
+- Replaced same-kind overlay collapsing with deterministic, supersession-aware layering. Saved material color is independent from the status outline.
+- Veneer events are deliberately not rendered with crown artwork while the verified `_o` mask package is absent; they remain visible in event history/counts.
+- Static analysis completed without issues. Thirty-five focused Flutter model/overlay/catalogue/history/widget tests and all 91 synthetic, encrypted-staging, read-only Access, and isolated-import migration assertions pass.
+- A broad Flutter run completed with 1,864 passing tests. Its five live-backend failures require the optional local PocketBase service and include a shared Hive lock; one existing image golden differs by 2.23% in shader-raster output. The focused odontogram visual and behavior checks are otherwise green, and the golden baseline was not silently replaced.
+- No production data import, financial record creation, or DentalWin database write is part of this phase.
 
 ## Proposed design
 
@@ -144,7 +156,7 @@ These are observations of a changing shared checkout on 2026-09-04; recheck the 
 
 Existing docs such as `docs/ODONTOGRAM_THERAPY_FOUNDATION.md`, `docs/DENTALWIN_MIGRATION_BLUEPRINT.md`, and `docs/DENTALWIN_PHASE5_TREATMENT_HISTORY_PILOT.md` should be reconciled during future planning. Any earlier inference that surfaces are unavailable because mdft fields or dedicated chart tables are empty is superseded by the verified save/load mapping below.
 
-## Recommended next validation, pending implementation authorization
+## Recommended next validation before projection/import authorization
 
 Use an isolated test dataset to compare an MOD filling, a cervical filling, two independent restorations on one tooth, a crown, a veneer, and a planned treatment later completed. Validate tooth/surfaces/date/status, original color and blending, layer order, source linkage, and repeat-import behavior. The counts below identify candidates, not fully validated imports. Primary teeth, unusual or multi-tooth values, unknown drawing modes, and missing/misnamed asset cases need explicit review. Exact 2D visual fidelity has not been demonstrated in a live side-by-side test. DentalWin Cloud and complete 3D parity are outside the verified scope.
 

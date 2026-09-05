@@ -1,4 +1,4 @@
-# Private staging format v1
+# Private staging format v1.1
 
 The Phase 2/3 staging format separates safe aggregate reports from protected row-level content.
 
@@ -94,6 +94,23 @@ A review record contains only the minimum identifiers needed to find its protect
 - source record key.
 
 Review decisions and patient-visible values belong in protected storage.
+
+## Odontogram surface snapshots (v1.1)
+
+Procedure rows preserve DentalWin `onomaImage`, `onomaImage3`, and `topa` as
+raw values beside `default_surfaces`, `default_cervical_surfaces`, normalized
+drawing behavior, and unsigned packed ARGB color when each value is valid.
+
+Clinical work rows from `WorksPelatiU`, `WorksPelatiD`, and `WorksPelati`
+preserve their source table and chart role (`initial_condition`,
+`alternative_plan`, or `performed_work`). They retain the original
+`LOGARIASMOIB`, `LOGARIASMOIA`, `OikonomikiID`, and `LOGARIASMOIC` values beside
+normalized surfaces, cervical locations, drawing behavior, and color.
+
+Only digits `1`, `2`, `4`, `5`, `6`, `7`, and `8` are normalized. Repeated,
+unknown, or mixed surface values remain raw and create an explicit review item.
+Unknown drawing behavior and invalid packed color follow the same rule; the
+pipeline does not infer replacements from treatment names.
 
 ## Binary fields
 

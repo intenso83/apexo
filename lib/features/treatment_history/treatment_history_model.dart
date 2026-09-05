@@ -1,4 +1,5 @@
 import 'package:apexo/core/model.dart';
+import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 
 class TreatmentHistoryEntry extends Model {
   String patientID = '';
@@ -8,6 +9,13 @@ class TreatmentHistoryEntry extends Model {
   String dateRaw = '';
   String toothFdi = '';
   String toothRaw = '';
+  String sourceTable = '';
+  String sourceRecordKey = '';
+  String chartRole = '';
+  List<String> surfaces = [];
+  List<String> cervicalSurfaces = [];
+  OdontogramDrawingBehavior? drawingBehavior;
+  int? materialColorArgb;
   String notes = '';
   String statusRaw = '';
   String chargeRaw = '';
@@ -38,6 +46,14 @@ class TreatmentHistoryEntry extends Model {
     dateRaw = json['dateRaw']?.toString() ?? dateRaw;
     toothFdi = json['toothFdi']?.toString() ?? toothFdi;
     toothRaw = json['toothRaw']?.toString() ?? toothRaw;
+    sourceTable = json['sourceTable']?.toString() ?? sourceTable;
+    sourceRecordKey = json['sourceRecordKey']?.toString() ?? sourceRecordKey;
+    chartRole = json['chartRole']?.toString() ?? chartRole;
+    surfaces = List<String>.from(json['surfaces'] ?? const <String>[]);
+    cervicalSurfaces =
+        List<String>.from(json['cervicalSurfaces'] ?? const <String>[]);
+    drawingBehavior = _drawingBehaviorByName(json['drawingBehavior']);
+    materialColorArgb = _asNullableInt(json['materialColorArgb']);
     notes = json['notes']?.toString() ?? notes;
     statusRaw = json['statusRaw']?.toString() ?? statusRaw;
     chargeRaw = json['chargeRaw']?.toString() ?? chargeRaw;
@@ -64,6 +80,21 @@ class TreatmentHistoryEntry extends Model {
     if (dateRaw.isNotEmpty) json['dateRaw'] = dateRaw;
     if (toothFdi.isNotEmpty) json['toothFdi'] = toothFdi;
     if (toothRaw.isNotEmpty) json['toothRaw'] = toothRaw;
+    if (sourceTable.isNotEmpty) json['sourceTable'] = sourceTable;
+    if (sourceRecordKey.isNotEmpty) {
+      json['sourceRecordKey'] = sourceRecordKey;
+    }
+    if (chartRole.isNotEmpty) json['chartRole'] = chartRole;
+    if (surfaces.isNotEmpty) json['surfaces'] = surfaces;
+    if (cervicalSurfaces.isNotEmpty) {
+      json['cervicalSurfaces'] = cervicalSurfaces;
+    }
+    if (drawingBehavior != null) {
+      json['drawingBehavior'] = drawingBehavior!.name;
+    }
+    if (materialColorArgb != null) {
+      json['materialColorArgb'] = materialColorArgb;
+    }
     if (notes.isNotEmpty) json['notes'] = notes;
     if (statusRaw.isNotEmpty) json['statusRaw'] = statusRaw;
     if (chargeRaw.isNotEmpty) json['chargeRaw'] = chargeRaw;
@@ -82,4 +113,19 @@ class TreatmentHistoryEntry extends Model {
   TreatmentHistoryEntry copy(bool blank) {
     return TreatmentHistoryEntry.fromJson(blank ? {} : toJson());
   }
+}
+
+OdontogramDrawingBehavior? _drawingBehaviorByName(Object? value) {
+  final name = value?.toString();
+  if (name == null || name.isEmpty) return null;
+  for (final behavior in OdontogramDrawingBehavior.values) {
+    if (behavior.name == name) return behavior;
+  }
+  return null;
+}
+
+int? _asNullableInt(Object? value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }

@@ -9,46 +9,71 @@ import 'treatment_target.dart';
 
 class OdontogramOverlayMarker {
   const OdontogramOverlayMarker({
+    this.eventID = '',
     required this.kind,
     required this.status,
     this.bridgeRole,
     this.surfaces = const {},
+    this.cervicalSurfaces = const {},
+    this.drawingBehavior,
+    this.materialColorArgb,
     this.procedureName = '',
   });
 
+  final String eventID;
   final OdontogramOverlayKind kind;
   final OdontogramEventStatus status;
   final BridgeUnitRole? bridgeRole;
   final Set<DentalSurface> surfaces;
+  final Set<DentalSurface> cervicalSurfaces;
+  final OdontogramDrawingBehavior? drawingBehavior;
+  final int? materialColorArgb;
   final String procedureName;
 }
 
-/// Returns at most one current marker of each kind for a tooth.
+/// Returns every current, independently drawable event for a tooth.
 ///
-/// Events arrive newest-first from the store, so the first non-cancelled event
-/// wins for each visual kind. A treatment without an explicit tooth mapping is
-/// intentionally kept in history but is not painted here.
+/// Cancelled and explicitly superseded events are excluded. Remaining events
+/// are painted oldest-first, with a stable source-row/event-ID tie-breaker, so
+/// overlapping DentalWin restorations are preserved rather than collapsed.
 List<OdontogramOverlayMarker> odontogramOverlayMarkersForTooth(
   Iterable<OdontogramEvent> events,
   int fdi,
 ) {
-  final seen = <OdontogramOverlayKind>{};
+  final source = events.toList(growable: false);
+  final supersededEventIDs = source
+      .where((event) => event.status != OdontogramEventStatus.cancelled)
+      .map((event) => event.supersedesEventID)
+      .where((id) => id.isNotEmpty)
+      .toSet();
+  final drawable = source
+      .where(
+        (event) =>
+            event.status != OdontogramEventStatus.cancelled &&
+            !supersededEventIDs.contains(event.id) &&
+            event.drawsOnTooth(fdi) &&
+            event.effectiveOverlayKind != OdontogramOverlayKind.none,
+      )
+      .toList()
+    ..sort(_compareEventPaintOrder);
   final result = <OdontogramOverlayMarker>[];
-  for (final event in events) {
-    if (event.status == OdontogramEventStatus.cancelled ||
-        !event.drawsOnTooth(fdi)) {
-      continue;
-    }
+  for (final event in drawable) {
     final kind = event.effectiveOverlayKind;
-    if (kind == OdontogramOverlayKind.none || !seen.add(kind)) continue;
     result.add(
       OdontogramOverlayMarker(
+        eventID: event.id,
         kind: kind,
         status: event.status,
         surfaces: event.surfaces
             .map(_surfaceByName)
             .whereType<DentalSurface>()
             .toSet(),
+        cervicalSurfaces: event.cervicalSurfaces
+            .map(_surfaceByName)
+            .whereType<DentalSurface>()
+            .toSet(),
+        drawingBehavior: event.drawingBehavior,
+        materialColorArgb: event.materialColorArgb,
         procedureName: event.procedureNameSnapshot,
         bridgeRole: event.bridgeUnits
             .where((unit) => unit.toothFdi == fdi)
@@ -57,9 +82,33 @@ List<OdontogramOverlayMarker> odontogramOverlayMarkersForTooth(
       ),
     );
   }
-  result
-      .sort((a, b) => _paintPriority(a.kind).compareTo(_paintPriority(b.kind)));
   return List.unmodifiable(result);
+}
+
+int _compareEventPaintOrder(OdontogramEvent first, OdontogramEvent second) {
+  final byDate = first.recordedAt.compareTo(second.recordedAt);
+  if (byDate != 0) return byDate;
+  final firstSource = _sourceOrderKey(first);
+  final secondSource = _sourceOrderKey(second);
+  final firstNumber = _trailingNumber(firstSource);
+  final secondNumber = _trailingNumber(secondSource);
+  if (firstNumber != null &&
+      secondNumber != null &&
+      firstNumber != secondNumber) {
+    return firstNumber.compareTo(secondNumber);
+  }
+  final bySource = firstSource.compareTo(secondSource);
+  return bySource != 0 ? bySource : first.id.compareTo(second.id);
+}
+
+String _sourceOrderKey(OdontogramEvent event) =>
+    event.migration['source_record_key']?.toString() ??
+    event.migration['source_stage_key']?.toString() ??
+    event.id;
+
+int? _trailingNumber(String value) {
+  final match = RegExp(r'(\d+)$').firstMatch(value);
+  return match == null ? null : int.tryParse(match.group(1)!);
 }
 
 DentalSurface? _surfaceByName(String value) =>
@@ -92,6 +141,12 @@ class OdontogramTreatmentOverlayLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!odontogramOverlayVisibleInView(marker.kind, asset.view)) {
+      return const SizedBox.shrink();
+    }
+    if (marker.drawingBehavior == OdontogramDrawingBehavior.veneer) {
+      // DentalWin veneers require the dedicated `_o` mask package. Until that
+      // verified asset is available, retain the event/count without silently
+      // substituting crown artwork.
       return const SizedBox.shrink();
     }
     final material = switch (marker.kind) {
@@ -128,6 +183,7 @@ class _CrownMaterialImage extends StatelessWidget {
     final color = odontogramTreatmentMaterialColor(
       marker.kind,
       procedureName: marker.procedureName,
+      materialColorArgb: marker.materialColorArgb,
     );
     Widget image = ShaderMask(
       blendMode: BlendMode.srcIn,
@@ -195,7 +251,10 @@ class _FillingMaterialImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = odontogramTreatmentMaterialColor(marker.kind);
+    final color = odontogramTreatmentMaterialColor(
+      marker.kind,
+      materialColorArgb: marker.materialColorArgb,
+    );
     Widget image = ShaderMask(
       blendMode: BlendMode.modulate,
       shaderCallback: (bounds) => RadialGradient(
@@ -247,7 +306,11 @@ class _FillingSurfaceClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant _FillingSurfaceClipper oldClipper) =>
       oldClipper.asset.fdi != asset.fdi ||
       oldClipper.asset.view != asset.view ||
-      !_sameSurfaces(oldClipper.marker.surfaces, marker.surfaces);
+      !_sameSurfaces(oldClipper.marker.surfaces, marker.surfaces) ||
+      !_sameSurfaces(
+        oldClipper.marker.cervicalSurfaces,
+        marker.cervicalSurfaces,
+      );
 }
 
 class OdontogramTreatmentOverlayPainter extends CustomPainter {
@@ -265,15 +328,9 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
     final baseMaterialColor = odontogramTreatmentMaterialColor(
       marker.kind,
       procedureName: marker.procedureName,
+      materialColorArgb: marker.materialColorArgb,
     );
-    final materialColor = marker.status == OdontogramEventStatus.planned
-        ? Color.lerp(
-            baseMaterialColor,
-            const Color(0xFF90CAF9),
-            0.58,
-          )!
-            .withValues(alpha: 0.74)
-        : baseMaterialColor;
+    final materialColor = baseMaterialColor;
     switch (marker.kind) {
       case OdontogramOverlayKind.none:
         return;
@@ -336,6 +393,7 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
     }
     final mesialOnLeft = asset.flipHorizontally;
     if (asset.view == OdontogramView.occlusalIncisal) {
+      if (marker.cervicalSurfaces.contains(surface)) return Path();
       final center = Offset(size.width * 0.5, size.height * 0.5);
       final rect = switch (surface) {
         DentalSurface.mesial => Rect.fromCenter(
@@ -382,7 +440,9 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
       return Path();
     }
     final upper = asset.jaw == OdontogramJaw.upper;
-    final crownCenterY = size.height * (upper ? 0.75 : 0.25);
+    final cervical = marker.cervicalSurfaces.contains(surface);
+    final crownCenterY = size.height *
+        (cervical ? (upper ? 0.58 : 0.42) : (upper ? 0.75 : 0.25));
     final sideX = switch (surface) {
       DentalSurface.mesial => size.width * (mesialOnLeft ? 0.31 : 0.69),
       DentalSurface.distal => size.width * (mesialOnLeft ? 0.69 : 0.31),
@@ -396,8 +456,8 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
         ),
       DentalSurface.facial || DentalSurface.oral => Rect.fromCenter(
           center: Offset(size.width * 0.5, crownCenterY),
-          width: size.width * 0.36,
-          height: size.height * 0.20,
+          width: size.width * (cervical ? 0.42 : 0.36),
+          height: size.height * (cervical ? 0.09 : 0.20),
         ),
       DentalSurface.occlusalIncisal => Rect.fromCenter(
           center: Offset(
@@ -883,8 +943,14 @@ class OdontogramTreatmentOverlayPainter extends CustomPainter {
     return oldDelegate.marker.kind != marker.kind ||
         oldDelegate.marker.status != marker.status ||
         oldDelegate.marker.bridgeRole != marker.bridgeRole ||
+        oldDelegate.marker.drawingBehavior != marker.drawingBehavior ||
+        oldDelegate.marker.materialColorArgb != marker.materialColorArgb ||
         oldDelegate.marker.procedureName != marker.procedureName ||
         !_sameSurfaces(oldDelegate.marker.surfaces, marker.surfaces) ||
+        !_sameSurfaces(
+          oldDelegate.marker.cervicalSurfaces,
+          marker.cervicalSurfaces,
+        ) ||
         oldDelegate.asset.fdi != asset.fdi ||
         oldDelegate.asset.view != asset.view;
   }
@@ -963,7 +1029,13 @@ Color odontogramStatusOverlayColor(OdontogramEventStatus status) =>
 Color odontogramTreatmentMaterialColor(
   OdontogramOverlayKind kind, {
   String procedureName = '',
+  int? materialColorArgb,
 }) {
+  if (materialColorArgb != null &&
+      materialColorArgb >= 0 &&
+      materialColorArgb <= 0xFFFFFFFF) {
+    return Color(materialColorArgb);
+  }
   final procedure = procedureName.toLowerCase();
   return switch (kind) {
     OdontogramOverlayKind.none => const Color(0x00000000),
@@ -992,14 +1064,4 @@ double _materialOpacity(OdontogramEventStatus status) => switch (status) {
       OdontogramEventStatus.planned => 0.40,
       OdontogramEventStatus.completed => 0.76,
       OdontogramEventStatus.cancelled => 0.25,
-    };
-
-int _paintPriority(OdontogramOverlayKind kind) => switch (kind) {
-      OdontogramOverlayKind.none => 0,
-      OdontogramOverlayKind.filling => 10,
-      OdontogramOverlayKind.crown => 20,
-      OdontogramOverlayKind.rootCanal => 30,
-      OdontogramOverlayKind.implant => 40,
-      OdontogramOverlayKind.bridge => 50,
-      OdontogramOverlayKind.extraction => 100,
     };

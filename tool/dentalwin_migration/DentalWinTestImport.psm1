@@ -867,6 +867,11 @@ function ConvertTo-DwTreatmentHistoryData {
         toothFdi = [string](Get-DwImportProperty -InputObject $Event -Name 'tooth_fdi')
         notes = [string](Get-DwImportProperty -InputObject $Event -Name 'notes')
         statusRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'status_raw')
+        sourceTable = [string](Get-DwImportProperty -InputObject $Event -Name 'source_table' -Default 'WorksPelati')
+        sourceRecordKey = [string](Get-DwImportProperty -InputObject $Event -Name 'source_record_key')
+        chartRole = [string](Get-DwImportProperty -InputObject $Event -Name 'chart_role' -Default 'performed_work')
+        surfaces = @(Get-DwImportProperty -InputObject $Event -Name 'surfaces' -Default @())
+        cervicalSurfaces = @(Get-DwImportProperty -InputObject $Event -Name 'cervical_surfaces' -Default @())
         chargeRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'charge_raw')
         creditRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'credit_raw')
         totalRaw = [string](Get-DwImportProperty -InputObject $Event -Name 'total_raw')
@@ -879,12 +884,24 @@ function ConvertTo-DwTreatmentHistoryData {
             source_stage_key = $stageKey
             source_system = 'DentalWin'
             source_link_method = 'patient_stage_key'
+            source_surface_code = [string](Get-DwImportProperty -InputObject $Event -Name 'surface_code_raw')
+            source_drawing_behavior = [string](Get-DwImportProperty -InputObject $Event -Name 'drawing_behavior_raw')
+            source_color_argb = Get-DwImportProperty -InputObject $Event -Name 'drawing_color_raw'
+            source_multi_tooth = Get-DwImportProperty -InputObject $Event -Name 'multi_tooth_raw'
             pilot = $true
             treatment_history_pilot = $true
         }
     }
     $dateMinutes = ConvertTo-DwMinuteEpoch (Get-DwImportProperty -InputObject $Event -Name 'date_raw')
     if ($null -ne $dateMinutes) { $data.date = $dateMinutes }
+    $drawingBehavior = [string](Get-DwImportProperty -InputObject $Event -Name 'drawing_behavior')
+    if (-not [string]::IsNullOrWhiteSpace($drawingBehavior)) {
+        $data.drawingBehavior = $drawingBehavior
+    }
+    $drawingColorArgb = Get-DwImportProperty -InputObject $Event -Name 'drawing_color_argb'
+    if ($null -ne $drawingColorArgb) {
+        $data.materialColorArgb = [int64]$drawingColorArgb
+    }
     return $data
 }
 
@@ -1228,12 +1245,17 @@ function ConvertTo-DwProcedureCatalogData {
         therapyGroupSourceID = [string](Get-DwImportProperty -InputObject $Procedure -Name 'therapy_group_source_id')
         sourceCode = [string](Get-DwImportProperty -InputObject $Procedure -Name 'source_code')
         basePrice = $basePrice
+        defaultSurfaces = @(Get-DwImportProperty -InputObject $Procedure -Name 'default_surfaces' -Default @())
+        defaultCervicalSurfaces = @(Get-DwImportProperty -InputObject $Procedure -Name 'default_cervical_surfaces' -Default @())
         hidden = $false
         migration = [ordered]@{
             batch_id = $BatchId
             guard_id = $GuardId
             source_stage_key = $stageKey
             source_system = 'DentalWin'
+            source_surface_code = [string](Get-DwImportProperty -InputObject $Procedure -Name 'surface_code_raw')
+            source_drawing_behavior = [string](Get-DwImportProperty -InputObject $Procedure -Name 'drawing_behavior_raw')
+            source_color_argb = Get-DwImportProperty -InputObject $Procedure -Name 'drawing_color_raw'
             pilot = $true
             therapy_catalogue_pilot = $true
         }
@@ -1241,6 +1263,14 @@ function ConvertTo-DwProcedureCatalogData {
     if ($null -ne $toothRequired) { $data.toothRequired = $toothRequired }
     if ($null -ne $perToothPrice) { $data.perToothPrice = $perToothPrice }
     if ($hasDuration) { $data.durationMinutes = $duration }
+    $drawingBehavior = [string](Get-DwImportProperty -InputObject $Procedure -Name 'drawing_behavior')
+    if (-not [string]::IsNullOrWhiteSpace($drawingBehavior)) {
+        $data.defaultDrawingBehavior = $drawingBehavior
+    }
+    $drawingColorArgb = Get-DwImportProperty -InputObject $Procedure -Name 'drawing_color_argb'
+    if ($null -ne $drawingColorArgb) {
+        $data.defaultMaterialColorArgb = [int64]$drawingColorArgb
+    }
     return $data
 }
 

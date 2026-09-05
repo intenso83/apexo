@@ -220,7 +220,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(
-        const Key('odontogram-overlay-rootCanal-11-facial'),
+        Key('odontogram-overlay-${event.id}-rootCanal-11-facial'),
       ),
       findsOneWidget,
     );
@@ -252,6 +252,7 @@ void main() {
 
     void addToothEvent(int fdi, String overlay, String status) {
       odontogramEvents.set(OdontogramEvent.fromJson({
+        'id': 'event-$overlay-$fdi',
         'patientID': 'patient1234567',
         'toothFdi': fdi,
         'surfaces': ['wholeTooth'],
@@ -268,6 +269,7 @@ void main() {
     addToothEvent(14, 'extraction', 'planned');
     addToothEvent(16, 'implant', 'completed');
     odontogramEvents.set(OdontogramEvent.fromJson({
+      'id': 'event-bridge',
       'patientID': 'patient1234567',
       'targetScope': 'bridge',
       'procedureID': 'procedure-bridge',
@@ -301,18 +303,18 @@ void main() {
     );
 
     for (final expectation in const [
-      ('crown', 11),
-      ('rootCanal', 13),
-      ('extraction', 14),
-      ('implant', 16),
-      ('bridge', 24),
-      ('bridge', 25),
-      ('bridge', 26),
+      ('event-crown-11', 'crown', 11),
+      ('event-rootCanal-13', 'rootCanal', 13),
+      ('event-extraction-14', 'extraction', 14),
+      ('event-implant-16', 'implant', 16),
+      ('event-bridge', 'bridge', 24),
+      ('event-bridge', 'bridge', 25),
+      ('event-bridge', 'bridge', 26),
     ]) {
       expect(
         find.byKey(
           Key(
-            'odontogram-overlay-${expectation.$1}-${expectation.$2}-facial',
+            'odontogram-overlay-${expectation.$1}-${expectation.$2}-${expectation.$3}-facial',
           ),
         ),
         findsOneWidget,

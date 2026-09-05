@@ -1,8 +1,8 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$script:DwStageFormatVersion = '1.0.0'
-$script:DwMappingVersion = '2026-09-02.phase4-medical-v1'
+$script:DwStageFormatVersion = '1.1.0'
+$script:DwMappingVersion = '2026-09-05.phase6-surface-snapshot-v1'
 $script:DwEncryptionIterations = 210000
 $script:DwCriticalTables = @(
     'Customers',
@@ -75,6 +75,91 @@ function ConvertTo-DwNormalizedText {
         return ''
     }
     return (([string]$Value).Trim() -replace '\s+', ' ').ToUpperInvariant()
+}
+
+function ConvertTo-DwSurfaceSnapshot {
+    param($Value)
+
+    $raw = if ($null -eq $Value) { '' } else { [string]$Value }
+    $snapshot = [ordered]@{
+        raw = $raw
+        valid = $true
+        repeated = $false
+        surfaces = @()
+        cervical_surfaces = @()
+    }
+    if ([string]::IsNullOrEmpty($raw)) {
+        return [pscustomobject]$snapshot
+    }
+    if ($raw -notmatch '^[1245678]+$') {
+        $snapshot.valid = $false
+        return [pscustomobject]$snapshot
+    }
+
+    $seenDigits = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($character in $raw.ToCharArray()) {
+        if (-not $seenDigits.Add([string]$character)) {
+            $snapshot.valid = $false
+            $snapshot.repeated = $true
+        }
+    }
+    if (-not $snapshot.valid) {
+        return [pscustomobject]$snapshot
+    }
+
+    $surfaceMap = @{
+        '1' = 'distal'
+        '2' = 'occlusalIncisal'
+        '4' = 'mesial'
+        '5' = 'facial'
+        '6' = 'oral'
+        '7' = 'facial'
+        '8' = 'oral'
+    }
+    $surfaces = [System.Collections.Generic.List[string]]::new()
+    $cervical = [System.Collections.Generic.List[string]]::new()
+    foreach ($character in $raw.ToCharArray()) {
+        $digit = [string]$character
+        $surface = [string]$surfaceMap[$digit]
+        if (-not $surfaces.Contains($surface)) { [void]$surfaces.Add($surface) }
+        if ($digit -eq '7' -and -not $cervical.Contains('facial')) {
+            [void]$cervical.Add('facial')
+        }
+        if ($digit -eq '8' -and -not $cervical.Contains('oral')) {
+            [void]$cervical.Add('oral')
+        }
+    }
+    $snapshot.surfaces = @($surfaces)
+    $snapshot.cervical_surfaces = @($cervical)
+    return [pscustomobject]$snapshot
+}
+
+function ConvertTo-DwDrawingBehavior {
+    param($Value)
+
+    $normalized = ConvertTo-DwNormalizedText $Value
+    switch ($normalized) {
+        'DRAW_EMFRAXI' { return 'filling' }
+        'DRAW_OPSI' { return 'veneer' }
+        default { return $null }
+    }
+}
+
+function ConvertTo-DwArgbSnapshot {
+    param($Value)
+
+    if ($null -eq $Value -or [string]::IsNullOrWhiteSpace([string]$Value)) {
+        return $null
+    }
+    $parsed = [int64]0
+    if (-not [int64]::TryParse([string]$Value, [ref]$parsed)) {
+        return $null
+    }
+    if ($parsed -lt -2147483648 -or $parsed -gt 4294967295) {
+        return $null
+    }
+    if ($parsed -lt 0) { $parsed += 4294967296 }
+    return $parsed
 }
 
 function ConvertTo-DwSafeFileName {
@@ -1074,6 +1159,23 @@ function Invoke-DwSyntheticDryRun {
         if (-not $groupIds.Contains($groupId)) {
             Add-DwReview -Reviews $reviews -ReasonCode 'uncategorized_catalog_work' -SourceTable 'WooksTools' -SourceRecordKey $rowKey
         }
+        $surfaceSnapshot = ConvertTo-DwSurfaceSnapshot (Get-DwProperty -InputObject $row -Name 'onomaImage')
+        if (-not $surfaceSnapshot.valid) {
+            $surfaceReason = if ($surfaceSnapshot.repeated) { 'surface_code_repeated' } else { 'surface_code_invalid' }
+            Add-DwReview -Reviews $reviews -ReasonCode $surfaceReason -SourceTable 'WooksTools' -SourceRecordKey $rowKey
+        }
+        $drawingBehaviorRaw = [string](Get-DwProperty -InputObject $row -Name 'onomaImage3' -Default '')
+        $drawingBehavior = ConvertTo-DwDrawingBehavior $drawingBehaviorRaw
+        if (-not [string]::IsNullOrWhiteSpace($drawingBehaviorRaw) -and $null -eq $drawingBehavior) {
+            Add-DwReview -Reviews $reviews -ReasonCode 'drawing_behavior_unknown' -SourceTable 'WooksTools' -SourceRecordKey $rowKey
+        }
+        $drawingColorRaw = Get-DwProperty -InputObject $row -Name 'topa'
+        $drawingColorArgb = ConvertTo-DwArgbSnapshot $drawingColorRaw
+        if ($null -ne $drawingColorRaw -and
+            -not [string]::IsNullOrWhiteSpace([string]$drawingColorRaw) -and
+            $null -eq $drawingColorArgb) {
+            Add-DwReview -Reviews $reviews -ReasonCode 'drawing_color_invalid' -SourceTable 'WooksTools' -SourceRecordKey $rowKey
+        }
         [void]$catalog.Add([ordered]@{
                 stage_key = "procedure:$rowKey"
                 source_code = $code
@@ -1083,72 +1185,123 @@ function Invoke-DwSyntheticDryRun {
                 tooth_required_raw = Get-DwProperty -InputObject $row -Name 'donti_required'
                 duration_minutes_raw = Get-DwProperty -InputObject $row -Name 'xronos'
                 per_tooth_price_raw = Get-DwProperty -InputObject $row -Name 'timi_ana_donti'
+                surface_code_raw = $surfaceSnapshot.raw
+                default_surfaces = @($surfaceSnapshot.surfaces)
+                default_cervical_surfaces = @($surfaceSnapshot.cervical_surfaces)
+                drawing_behavior_raw = $drawingBehaviorRaw
+                drawing_behavior = $drawingBehavior
+                drawing_color_raw = $drawingColorRaw
+                drawing_color_argb = $drawingColorArgb
             })
         Add-DwExternalIdentifier -List $externalIdentifiers -Keys $externalKeys -Reviews $reviews -SourceTable 'WooksTools' -SourceRecordKey $rowKey -TargetEntityType 'procedure_catalog' -TargetStageKey "procedure:$rowKey" -DatabaseFingerprint $databaseFingerprint
     }
 
-    $index = 0
-    foreach ($row in Get-DwRows -Fixture $fixture -Table 'WorksPelati') {
-        $index++
-        $rowKey = Get-DwRowKey -Row $row -FallbackIndex $index
-        $numericId = [string](Get-DwProperty -InputObject $row -Name 'kodikosPelati' -Default '')
-        $patientGuid = [string](Get-DwProperty -InputObject $row -Name 'guidsspelati' -Default '')
-        $patientStageKey = if ($patientsByGuid.ContainsKey($patientGuid)) {
-            $patientsByGuid[$patientGuid]
-        }
-        elseif ($patientsById.ContainsKey($numericId)) {
-            $patientsById[$numericId]
-        }
-        else {
-            $null
-        }
-        if ($null -eq $patientStageKey) {
-            Add-DwReview -Reviews $reviews -ReasonCode 'orphan_clinical_work' -SourceTable 'WorksPelati' -SourceRecordKey $rowKey -Severity 'error'
-        }
+    $clinicalTableRoles = @(
+        [pscustomobject]@{ table = 'WorksPelatiU'; chart_role = 'initial_condition' },
+        [pscustomobject]@{ table = 'WorksPelatiD'; chart_role = 'alternative_plan' },
+        [pscustomobject]@{ table = 'WorksPelati'; chart_role = 'performed_work' }
+    )
+    foreach ($tableSpec in $clinicalTableRoles) {
+        $sourceTable = [string]$tableSpec.table
+        $chartRole = [string]$tableSpec.chart_role
+        $index = 0
+        foreach ($row in Get-DwRows -Fixture $fixture -Table $sourceTable) {
+            $index++
+            $rowKey = Get-DwRowKey -Row $row -FallbackIndex $index
+            $stageKey = if ($sourceTable -eq 'WorksPelati') {
+                "clinical-work:$rowKey"
+            }
+            else {
+                "clinical-work:$sourceTable`:$rowKey"
+            }
+            $numericId = [string](Get-DwProperty -InputObject $row -Name 'kodikosPelati' -Default '')
+            $patientGuid = [string](Get-DwProperty -InputObject $row -Name 'guidsspelati' -Default '')
+            $patientStageKey = if ($patientsByGuid.ContainsKey($patientGuid)) {
+                $patientsByGuid[$patientGuid]
+            }
+            elseif ($patientsById.ContainsKey($numericId)) {
+                $patientsById[$numericId]
+            }
+            else {
+                $null
+            }
+            if ($null -eq $patientStageKey) {
+                Add-DwReview -Reviews $reviews -ReasonCode 'orphan_clinical_work' -SourceTable $sourceTable -SourceRecordKey $rowKey -Severity 'error'
+            }
 
-        $workCode = [string](Get-DwProperty -InputObject $row -Name 'id_code_work' -Default '')
-        $workName = [string](Get-DwProperty -InputObject $row -Name 'ergasia' -Default '')
-        $normalizedName = ConvertTo-DwNormalizedText $workName
-        $catalogMethod = 'legacy_custom'
-        if (-not [string]::IsNullOrWhiteSpace($workCode) -and $catalogCodes.Contains($workCode)) {
-            $catalogMethod = 'stable_code'
-        }
-        elseif (-not [string]::IsNullOrWhiteSpace($normalizedName) -and
-            $catalogNameCounts.ContainsKey($normalizedName) -and
-            $catalogNameCounts[$normalizedName] -eq 1) {
-            $catalogMethod = 'unique_exact_name'
-        }
-        else {
-            Add-DwReview -Reviews $reviews -ReasonCode 'unmatched_catalog_work' -SourceTable 'WorksPelati' -SourceRecordKey $rowKey -Severity 'info'
-        }
+            $workCode = [string](Get-DwProperty -InputObject $row -Name 'id_code_work' -Default '')
+            $workName = [string](Get-DwProperty -InputObject $row -Name 'ergasia' -Default '')
+            $normalizedName = ConvertTo-DwNormalizedText $workName
+            $catalogMethod = 'legacy_custom'
+            if (-not [string]::IsNullOrWhiteSpace($workCode) -and $catalogCodes.Contains($workCode)) {
+                $catalogMethod = 'stable_code'
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($normalizedName) -and
+                $catalogNameCounts.ContainsKey($normalizedName) -and
+                $catalogNameCounts[$normalizedName] -eq 1) {
+                $catalogMethod = 'unique_exact_name'
+            }
+            else {
+                Add-DwReview -Reviews $reviews -ReasonCode 'unmatched_catalog_work' -SourceTable $sourceTable -SourceRecordKey $rowKey -Severity 'info'
+            }
 
-        $rawTooth = [string](Get-DwProperty -InputObject $row -Name 'donti' -Default '')
-        $parsedTooth = $null
-        if ($rawTooth -match '^(1[1-8]|2[1-8]|3[1-8]|4[1-8]|5[1-5]|6[1-5]|7[1-5]|8[1-5])$') {
-            $parsedTooth = $rawTooth
-        }
-        elseif (-not [string]::IsNullOrWhiteSpace($rawTooth) -and $rawTooth -ne '00') {
-            Add-DwReview -Reviews $reviews -ReasonCode 'ambiguous_or_invalid_tooth' -SourceTable 'WorksPelati' -SourceRecordKey $rowKey
-        }
+            $rawTooth = [string](Get-DwProperty -InputObject $row -Name 'donti' -Default '')
+            $parsedTooth = $null
+            if ($rawTooth -match '^(1[1-8]|2[1-8]|3[1-8]|4[1-8]|5[1-5]|6[1-5]|7[1-5]|8[1-5])$') {
+                $parsedTooth = $rawTooth
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($rawTooth) -and $rawTooth -ne '00') {
+                Add-DwReview -Reviews $reviews -ReasonCode 'ambiguous_or_invalid_tooth' -SourceTable $sourceTable -SourceRecordKey $rowKey
+            }
 
-        $isPlan = (Get-DwProperty -InputObject $row -Name 'SxedioUerapias' -Default 0) -eq 1
-        [void]$clinicalEvents.Add([ordered]@{
-                stage_key = "clinical-work:$rowKey"
-                patient_stage_key = $patientStageKey
-                original_work_name = $workName
-                source_catalog_code = $workCode
-                catalog_link_method = $catalogMethod
-                event_kind = if ($isPlan) { 'treatment_plan_item' } else { 'clinical_event' }
-                date_raw = Get-DwProperty -InputObject $row -Name 'hmerominia'
-                tooth_raw = $rawTooth
-                tooth_fdi = $parsedTooth
-                notes = [string](Get-DwProperty -InputObject $row -Name 'memos' -Default '')
-                status_raw = Get-DwProperty -InputObject $row -Name 'status'
-                charge_raw = Get-DwProperty -InputObject $row -Name 'xreosi'
-                credit_raw = Get-DwProperty -InputObject $row -Name 'pistosi'
-                total_raw = Get-DwProperty -InputObject $row -Name 'sinolo'
-            })
-        Add-DwExternalIdentifier -List $externalIdentifiers -Keys $externalKeys -Reviews $reviews -SourceTable 'WorksPelati' -SourceRecordKey $rowKey -TargetEntityType $(if ($isPlan) { 'treatment_plan_item' } else { 'clinical_event' }) -TargetStageKey "clinical-work:$rowKey" -DatabaseFingerprint $databaseFingerprint
+            $surfaceSnapshot = ConvertTo-DwSurfaceSnapshot (Get-DwProperty -InputObject $row -Name 'LOGARIASMOIB')
+            if (-not $surfaceSnapshot.valid) {
+                $surfaceReason = if ($surfaceSnapshot.repeated) { 'surface_code_repeated' } else { 'surface_code_invalid' }
+                Add-DwReview -Reviews $reviews -ReasonCode $surfaceReason -SourceTable $sourceTable -SourceRecordKey $rowKey
+            }
+            $drawingBehaviorRaw = [string](Get-DwProperty -InputObject $row -Name 'LOGARIASMOIA' -Default '')
+            $drawingBehavior = ConvertTo-DwDrawingBehavior $drawingBehaviorRaw
+            if (-not [string]::IsNullOrWhiteSpace($drawingBehaviorRaw) -and $null -eq $drawingBehavior) {
+                Add-DwReview -Reviews $reviews -ReasonCode 'drawing_behavior_unknown' -SourceTable $sourceTable -SourceRecordKey $rowKey
+            }
+            $drawingColorRaw = Get-DwProperty -InputObject $row -Name 'OikonomikiID'
+            $drawingColorArgb = ConvertTo-DwArgbSnapshot $drawingColorRaw
+            if ($null -ne $drawingColorRaw -and
+                -not [string]::IsNullOrWhiteSpace([string]$drawingColorRaw) -and
+                $null -eq $drawingColorArgb) {
+                Add-DwReview -Reviews $reviews -ReasonCode 'drawing_color_invalid' -SourceTable $sourceTable -SourceRecordKey $rowKey
+            }
+
+            $isPlan = (Get-DwProperty -InputObject $row -Name 'SxedioUerapias' -Default 0) -eq 1
+            [void]$clinicalEvents.Add([ordered]@{
+                    stage_key = $stageKey
+                    source_table = $sourceTable
+                    source_record_key = $rowKey
+                    chart_role = $chartRole
+                    patient_stage_key = $patientStageKey
+                    original_work_name = $workName
+                    source_catalog_code = $workCode
+                    catalog_link_method = $catalogMethod
+                    event_kind = if ($isPlan) { 'treatment_plan_item' } else { 'clinical_event' }
+                    date_raw = Get-DwProperty -InputObject $row -Name 'hmerominia'
+                    tooth_raw = $rawTooth
+                    tooth_fdi = $parsedTooth
+                    surface_code_raw = $surfaceSnapshot.raw
+                    surfaces = @($surfaceSnapshot.surfaces)
+                    cervical_surfaces = @($surfaceSnapshot.cervical_surfaces)
+                    drawing_behavior_raw = $drawingBehaviorRaw
+                    drawing_behavior = $drawingBehavior
+                    drawing_color_raw = $drawingColorRaw
+                    drawing_color_argb = $drawingColorArgb
+                    multi_tooth_raw = Get-DwProperty -InputObject $row -Name 'LOGARIASMOIC'
+                    notes = [string](Get-DwProperty -InputObject $row -Name 'memos' -Default '')
+                    status_raw = Get-DwProperty -InputObject $row -Name 'status'
+                    charge_raw = Get-DwProperty -InputObject $row -Name 'xreosi'
+                    credit_raw = Get-DwProperty -InputObject $row -Name 'pistosi'
+                    total_raw = Get-DwProperty -InputObject $row -Name 'sinolo'
+                })
+            Add-DwExternalIdentifier -List $externalIdentifiers -Keys $externalKeys -Reviews $reviews -SourceTable $sourceTable -SourceRecordKey $rowKey -TargetEntityType $(if ($isPlan) { 'treatment_plan_item' } else { 'clinical_event' }) -TargetStageKey $stageKey -DatabaseFingerprint $databaseFingerprint
+        }
     }
 
     $index = 0
@@ -1578,6 +1731,9 @@ function Invoke-DwPrivateDryRun {
 }
 
 Export-ModuleMember -Function @(
+    'ConvertTo-DwArgbSnapshot',
+    'ConvertTo-DwDrawingBehavior',
+    'ConvertTo-DwSurfaceSnapshot',
     'Get-DwFileHashHex',
     'Invoke-DwInventory',
     'Invoke-DwSyntheticDryRun',

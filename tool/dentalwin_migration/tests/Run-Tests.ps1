@@ -141,12 +141,20 @@ try {
     Assert-Equal -Expected 0 -Actual $resultOne.DuplicateExternalKeys -Message 'external source keys are unique'
     Assert-Equal -Expected $resultOne.BatchId -Actual $resultTwo.BatchId -Message 'repeat run has the same deterministic batch identity'
     Assert-Equal -Expected $fixtureHashBefore -Actual (Get-DwFileHashHex -Path $fixturePath) -Message 'synthetic source hash is unchanged'
+    $modSnapshot = ConvertTo-DwSurfaceSnapshot '124'
+    Assert-True -Condition $modSnapshot.valid -Message 'MOD surface digits are accepted'
+    Assert-Equal -Expected 'distal,occlusalIncisal,mesial' -Actual ($modSnapshot.surfaces -join ',') -Message 'surface digits map without name inference'
+    $cervicalSnapshot = ConvertTo-DwSurfaceSnapshot '78'
+    Assert-Equal -Expected 'facial,oral' -Actual ($cervicalSnapshot.cervical_surfaces -join ',') -Message 'cervical facial and oral locations remain explicit'
+    $repeatedSnapshot = ConvertTo-DwSurfaceSnapshot '22'
+    Assert-True -Condition (-not $repeatedSnapshot.valid -and $repeatedSnapshot.repeated) -Message 'repeated surface digits are rejected for review'
+    Assert-Equal -Expected 4278190335 -Actual (ConvertTo-DwArgbSnapshot -16776961) -Message 'signed DentalWin ARGB is normalized without losing bits'
 
     $reportOne = Get-Content -LiteralPath (Join-Path $stageOne 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $reportTwo = Get-Content -LiteralPath (Join-Path $stageTwo 'reports/summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     Assert-Equal -Expected 3 -Actual $reportOne.staged_counts.patients -Message 'all synthetic patients are staged'
     Assert-Equal -Expected 4 -Actual $reportOne.staged_counts.patient_contacts -Message 'all synthetic contacts are accounted for'
-    Assert-Equal -Expected 4 -Actual $reportOne.staged_counts.clinical_events_and_plan_items -Message 'all synthetic work rows are preserved'
+    Assert-Equal -Expected 6 -Actual $reportOne.staged_counts.clinical_events_and_plan_items -Message 'all three DentalWin chart-role populations are preserved'
     Assert-Equal -Expected 3 -Actual $reportOne.staged_counts.appointments -Message 'all synthetic appointments are preserved'
     Assert-Equal -Expected ($reportOne.staged_counts | ConvertTo-Json -Compress) -Actual ($reportTwo.staged_counts | ConvertTo-Json -Compress) -Message 'repeat run produces the same staged counts'
     Assert-Equal -Expected 1 -Actual $reportOne.review_reason_counts.appointment_name_match_candidate -Message 'name-only appointment remains a review candidate'
@@ -171,6 +179,16 @@ try {
     Assert-Equal -Expected 'Synthetic general medical note' -Actual $linkedHistory.general_notes -Message 'medical-history general notes are preserved'
     Assert-Equal -Expected 1 -Actual $linkedHistory.cardiovascular_raw -Message 'confirmed cardiovascular source flag is staged raw'
     Assert-Equal -Expected 1 -Actual @($events | Where-Object event_kind -eq 'treatment_plan_item').Count -Message 'treatment-plan membership is preserved'
+    $performedSurface = $events | Where-Object stage_key -eq 'clinical-work:401'
+    Assert-Equal -Expected 'distal,occlusalIncisal,mesial' -Actual ($performedSurface.surfaces -join ',') -Message 'performed-work surfaces are normalized from the source row'
+    Assert-Equal -Expected 'filling' -Actual $performedSurface.drawing_behavior -Message 'verified filling behavior is normalized'
+    Assert-Equal -Expected 4278190335 -Actual $performedSurface.drawing_color_argb -Message 'performed-work ARGB is preserved as an unsigned snapshot'
+    $alternativeSurface = $events | Where-Object stage_key -eq 'clinical-work:WorksPelatiD:451'
+    Assert-Equal -Expected 'alternative_plan' -Actual $alternativeSurface.chart_role -Message 'alternative plan chart role remains explicit'
+    Assert-Equal -Expected 'facial' -Actual ($alternativeSurface.cervical_surfaces -join ',') -Message 'facial cervical restoration remains explicit'
+    $initialSurface = $events | Where-Object stage_key -eq 'clinical-work:WorksPelatiU:452'
+    Assert-Equal -Expected 'initial_condition' -Actual $initialSurface.chart_role -Message 'initial-condition chart role remains explicit'
+    Assert-Equal -Expected '55' -Actual $initialSurface.tooth_fdi -Message 'valid primary FDI tooth is retained distinctly'
     Assert-Equal -Expected 16 -Actual $reviews.Count -Message 'protected review rows reconcile with aggregate report'
     Assert-Equal -Expected $external.Count -Actual @($external.external_key | Sort-Object -Unique).Count -Message 'decrypted external keys contain no duplicates'
 
@@ -253,6 +271,17 @@ try {
             tooth_fdi = '11'
             notes = 'synthetic note'
             status_raw = '1'
+            source_table = 'WorksPelati'
+            source_record_key = 'synthetic-1'
+            chart_role = 'performed_work'
+            surface_code_raw = '24'
+            surfaces = @('occlusalIncisal', 'mesial')
+            cervical_surfaces = @()
+            drawing_behavior_raw = 'Draw_Emfraxi'
+            drawing_behavior = 'filling'
+            drawing_color_raw = -16776961
+            drawing_color_argb = 4278190335
+            multi_tooth_raw = ''
             charge_raw = '50'
             credit_raw = '0'
             total_raw = '50'
@@ -264,6 +293,9 @@ try {
     Assert-Equal -Expected 'clinical_event' -Actual $historyData.eventKind -Message 'treatment pilot preserves completed-versus-plan semantics'
     Assert-Equal -Expected '11' -Actual $historyData.toothFdi -Message 'treatment pilot preserves normalized FDI tooth identity'
     Assert-Equal -Expected 'Synthetic restorative' -Actual $historyData.therapyGroup -Message 'treatment pilot carries the matched therapy group'
+    Assert-Equal -Expected 'occlusalIncisal,mesial' -Actual ($historyData.surfaces -join ',') -Message 'treatment history retains the canonical surface snapshot'
+    Assert-Equal -Expected 'filling' -Actual $historyData.drawingBehavior -Message 'treatment history retains the verified drawing behavior'
+    Assert-Equal -Expected 4278190335 -Actual $historyData.materialColorArgb -Message 'treatment history retains the exact material color'
     Assert-True -Condition ([long]$historyData.date -gt 0) -Message 'treatment pilot converts a valid treatment date'
     Assert-True -Condition ($historyData.migration.treatment_history_pilot -eq $true) -Message 'treatment pilot marks guarded provenance metadata'
     Assert-Throws -Action {
@@ -292,10 +324,20 @@ try {
             tooth_required_raw = 'true'
             duration_minutes_raw = ''
             per_tooth_price_raw = $null
+            surface_code_raw = '24'
+            default_surfaces = @('occlusalIncisal', 'mesial')
+            default_cervical_surfaces = @()
+            drawing_behavior_raw = 'Draw_Emfraxi'
+            drawing_behavior = 'filling'
+            drawing_color_raw = -16776961
+            drawing_color_argb = 4278190335
         }) -TargetGroupId 'syntheticgroup1' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard'
     Assert-Equal -Expected 'syntheticgroup1' -Actual $catalogProcedureData.therapyGroupID -Message 'catalogue procedure links to its deterministic target group'
     Assert-Equal -Expected 80.5 -Actual $catalogProcedureData.basePrice -Message 'catalogue pilot parses the source price invariantly'
     Assert-True -Condition ($catalogProcedureData.toothRequired -eq $true) -Message 'catalogue pilot preserves an explicit tooth-required flag'
+    Assert-Equal -Expected 'occlusalIncisal,mesial' -Actual ($catalogProcedureData.defaultSurfaces -join ',') -Message 'catalogue pilot preserves verified default surfaces'
+    Assert-Equal -Expected 'filling' -Actual $catalogProcedureData.defaultDrawingBehavior -Message 'catalogue pilot preserves the verified drawing behavior'
+    Assert-Equal -Expected 4278190335 -Actual $catalogProcedureData.defaultMaterialColorArgb -Message 'catalogue pilot preserves the exact default material color'
     Assert-True -Condition ($null -eq $catalogProcedureData.PSObject.Properties['durationMinutes']) -Message 'catalogue pilot does not invent missing duration'
     $backupTestRoot = Join-Path $testRoot 'phase4-backup-test'
     [System.IO.Directory]::CreateDirectory($backupTestRoot) | Out-Null
