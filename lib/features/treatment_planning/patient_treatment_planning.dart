@@ -652,8 +652,9 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
   ) {
     final groups =
         therapyGroups.ordered.where((group) => !group.hidden).toList();
-    if (selectedGroupID == null && groups.isNotEmpty) {
-      selectedGroupID = groups.first.id;
+    if (!groups.any((group) => group.id == selectedGroupID)) {
+      selectedGroupID = groups.firstOrNull?.id;
+      selectedProcedureID = null;
     }
     final procedures = procedureCatalog
         .forGroup(selectedGroupID ?? '')
@@ -661,10 +662,10 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         .toList();
     if (initializedProcedureGroupID != selectedGroupID) {
       initializedProcedureGroupID = selectedGroupID;
-      selectedProcedureID = procedures.isEmpty ? null : procedures.first.id;
+      selectedProcedureID = null;
     } else if (selectedProcedureID != null &&
         !procedures.any((procedure) => procedure.id == selectedProcedureID)) {
-      selectedProcedureID = procedures.isEmpty ? null : procedures.first.id;
+      selectedProcedureID = null;
     }
     return Container(
       padding: const EdgeInsets.all(12),

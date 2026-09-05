@@ -1,3 +1,4 @@
+import 'package:apexo/common_widgets/tag_input.dart';
 import 'package:apexo/features/patients/patient_model.dart';
 import 'package:apexo/features/therapy_catalog/procedure_catalog_model.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
@@ -34,8 +35,15 @@ void main() {
       'handlingMode': 'wholeTooth',
       'odontogramOverlay': 'rootCanal',
     });
+    final iconProcedure = ProcedureCatalogItem.fromJson({
+      'id': 'procedure86174',
+      'name': 'Icon',
+      'therapyGroupID': group.id,
+      'sourceCode': '86174',
+    });
     therapyGroups.set(group);
     procedureCatalog.set(procedure);
+    procedureCatalog.set(iconProcedure);
 
     tester.view.physicalSize = const Size(1500, 1800);
     tester.view.devicePixelRatio = 1;
@@ -67,6 +75,31 @@ void main() {
     await tester.tap(find.byKey(const Key('new-treatment-plan')));
     await tester.pumpAndSettle();
     expect(treatmentPlans.forPatient(patient.id), hasLength(1));
+
+    expect(
+      tester
+          .widget<TagInputWidget>(
+            find.byKey(const Key('treatment-plan-procedure-picker')),
+          )
+          .initialValue,
+      isEmpty,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('add-treatment-plan-item')),
+          )
+          .onPressed,
+      isNull,
+    );
+    final openProcedureList = find.descendant(
+      of: find.byKey(const Key('treatment-plan-procedure-picker')),
+      matching: find.byIcon(WindowsIcons.chevron_down),
+    );
+    await tester.tap(openProcedureList);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(procedure.title).last);
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('add-treatment-plan-item')));
     await tester.pumpAndSettle();

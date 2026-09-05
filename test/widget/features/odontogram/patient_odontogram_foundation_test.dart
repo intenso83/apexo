@@ -1,3 +1,4 @@
+import 'package:apexo/common_widgets/tag_input.dart';
 import 'package:apexo/features/odontogram/odontogram_event_model.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/odontogram/dental_surface_selector.dart';
@@ -15,7 +16,7 @@ import '../../../helpers/pump_app.dart';
 
 void main() {
   testWidgets(
-      'uses structured DentalWin defaults in an editable surface selector',
+      'requires an explicit procedure choice before applying DentalWin defaults',
       (tester) async {
     launch.enterLocalDemo();
     therapyGroups.observableMap.clear();
@@ -35,8 +36,15 @@ void main() {
       'defaultDrawingBehavior': 'filling',
       'defaultSurfaces': ['mesial', 'facial'],
     });
+    final iconProcedure = ProcedureCatalogItem.fromJson({
+      'id': 'procedure86174',
+      'sourceCode': '86174',
+      'name': 'Icon',
+      'therapyGroupID': group.id,
+    });
     therapyGroups.set(group);
     procedureCatalog.set(procedure);
+    procedureCatalog.set(iconProcedure);
 
     tester.view.physicalSize = const Size(1400, 1800);
     tester.view.devicePixelRatio = 1;
@@ -55,6 +63,25 @@ void main() {
         ),
       ),
     );
+
+    expect(
+      tester
+          .widget<TagInputWidget>(
+            find.byKey(const Key('procedure-selector')),
+          )
+          .initialValue,
+      isEmpty,
+    );
+    expect(find.byKey(const Key('automatic-procedure-handling')), findsNothing);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('record-treatment-event')),
+          )
+          .onPressed,
+      isNull,
+    );
+    await _chooseProcedure(tester, procedure.title);
 
     final selector = tester.widget<DentalSurfaceSelector>(
       find.byKey(DentalSurfaceSelector.rootKey(11)),
@@ -185,6 +212,8 @@ void main() {
       ),
     );
 
+    await _chooseProcedure(tester, procedure.title);
+
     final unspecified = tester.widget<ToggleButton>(
       find.byKey(const Key('surface-unspecified')),
     );
@@ -251,6 +280,8 @@ void main() {
         ),
       ),
     );
+
+    await _chooseProcedure(tester, bridgeProcedure.title);
 
     expect(find.text('Bridge units'), findsOneWidget);
     expect(find.byKey(const Key('add-bridge-unit')), findsOneWidget);
@@ -340,6 +371,8 @@ void main() {
         ),
       ),
     );
+
+    await _chooseProcedure(tester, procedure.title);
 
     expect(find.byKey(const Key('whole-tooth-automatic')), findsOneWidget);
     expect(find.byKey(const Key('surface-unspecified')), findsNothing);
@@ -485,4 +518,18 @@ Future<void> _tapSurface(
       rect.top + rect.height * normalized.dy,
     ),
   );
+}
+
+Future<void> _chooseProcedure(
+  WidgetTester tester,
+  String procedureTitle,
+) async {
+  final openProcedureList = find.descendant(
+    of: find.byKey(const Key('procedure-selector')),
+    matching: find.byIcon(WindowsIcons.chevron_down),
+  );
+  await tester.tap(openProcedureList);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(procedureTitle).last);
+  await tester.pumpAndSettle();
 }

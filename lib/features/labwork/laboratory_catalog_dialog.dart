@@ -348,7 +348,7 @@ class _LaboratoryEditorState extends State<_LaboratoryEditor> {
   Widget _priceRow(ProcedureCatalogItem procedure) {
     final lab = widget.laboratory;
     final group = therapyGroups.get(procedure.therapyGroupID)?.title ?? '';
-    final saved = lab.laboratoryProcedurePrices[procedure.id];
+    final saved = expenses.laboratoryPrice(lab.id, procedure.id);
     return Row(
       children: [
         Expanded(
@@ -372,14 +372,8 @@ class _LaboratoryEditorState extends State<_LaboratoryEditor> {
             mode: SpinButtonPlacementMode.compact,
             placeholder: txt('notSet'),
             onChanged: widget.canEdit
-                ? (value) {
-                    if (value == null || value <= 0) {
-                      lab.laboratoryProcedurePrices.remove(procedure.id);
-                    } else {
-                      lab.laboratoryProcedurePrices[procedure.id] = value;
-                    }
-                    expenses.set(lab);
-                  }
+                ? (value) =>
+                    expenses.setLaboratoryPrice(lab, procedure.id, value)
                 : null,
           ),
         ),

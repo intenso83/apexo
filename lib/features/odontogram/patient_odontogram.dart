@@ -76,7 +76,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             .toList(growable: false);
         if (!groups.any((group) => group.id == selectedGroupID)) {
           selectedGroupID = groups.firstOrNull?.id ?? '';
-          selectedProcedureID = '';
+          _clearProcedureSelection();
         }
         final procedures = procedureCatalog
             .forGroup(selectedGroupID)
@@ -84,12 +84,10 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             .toList(growable: false);
         if (initializedProcedureGroupID != selectedGroupID) {
           initializedProcedureGroupID = selectedGroupID;
-          selectedProcedureID = procedures.firstOrNull?.id ?? '';
-          _applyProcedureDefaults(procedures.firstOrNull);
+          _clearProcedureSelection();
         } else if (selectedProcedureID.isNotEmpty &&
             !procedures.any((item) => item.id == selectedProcedureID)) {
-          selectedProcedureID = procedures.firstOrNull?.id ?? '';
-          _applyProcedureDefaults(procedures.firstOrNull);
+          _clearProcedureSelection();
         }
         final events = odontogramEvents.forPatient(widget.patientID);
         return Column(
@@ -162,9 +160,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
               onChanged: canEdit
                   ? (value) => setState(() {
                         selectedGroupID = value ?? '';
-                        selectedProcedureID = '';
-                        selectedLaboratoryID = '';
-                        selectedLaboratoryCost = 0;
+                        _clearProcedureSelection();
                       })
                   : null,
             ),
@@ -733,12 +729,13 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   void _selectProcedure(String procedureID) {
     setState(() {
       selectedProcedureID = procedureID;
-      selectedLaboratoryID = '';
-      selectedLaboratoryCost = 0;
-      bridgeUnits.clear();
-      removableComponents.clear();
       _applyProcedureDefaults(procedureCatalog.get(procedureID));
     });
+  }
+
+  void _clearProcedureSelection() {
+    selectedProcedureID = '';
+    _applyProcedureDefaults(null);
   }
 
   void _selectTooth(int fdi, bool extendSelection) {
@@ -806,6 +803,13 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   }
 
   void _applyProcedureDefaults(ProcedureCatalogItem? procedure) {
+    selectedTargetScope = TreatmentTargetScope.tooth;
+    bridgeRangeAnchorFdi = null;
+    selectedSurfaces.clear();
+    bridgeUnits.clear();
+    removableComponents.clear();
+    selectedLaboratoryID = '';
+    selectedLaboratoryCost = 0;
     if (procedure == null) return;
     final handlingMode = procedureCatalog.handlingDecision(procedure).mode;
     selectedTargetScope = handlingMode.targetScope;

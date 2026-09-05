@@ -4,6 +4,7 @@ library;
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/expenses/expense_model.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
+import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/services/perm.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +14,12 @@ void main() {
   group('Expenses store', () {
     setUp(() {
       expenses.observableMap.clear();
+      procedureCatalog.debugSetCanonicalAliases(const {});
       login.savedPermissions = Perm.full;
+    });
+
+    tearDown(() {
+      procedureCatalog.debugSetCanonicalAliases(const {});
     });
 
     test('singleton is Expenses instance', () {
@@ -126,6 +132,40 @@ void main() {
       );
       expect(expenses.laboratoryPrice('lab-a', 'crown'), 75);
       expect(expenses.laboratoryPrice('lab-a', 'unknown'), isNull);
+    });
+
+    test(
+        'laboratory prices follow a canonical procedure without losing aliases',
+        () {
+      procedureCatalog.debugSetCanonicalAliases({
+        'crown-old': 'crown-current',
+      });
+      final laboratory = Expense.fromJson({
+        'id': 'lab',
+        'isSupplier': true,
+        'isLaboratory': true,
+        'supplierName': 'Lab',
+        'laboratoryProcedurePrices': {
+          'crown-old': 70,
+        },
+      });
+      expenses.set(laboratory);
+
+      expect(expenses.laboratoryPrice('lab', 'crown-current'), 70);
+
+      // A current-ID price wins if an old alias key also exists.
+      laboratory.laboratoryProcedurePrices['crown-current'] = 90;
+      expenses.set(laboratory);
+      expect(expenses.laboratoryPrice('lab', 'crown-old'), 90);
+
+      expenses.setLaboratoryPrice(laboratory, 'crown-old', 110);
+      expect(laboratory.laboratoryProcedurePrices, {
+        'crown-current': 110,
+      });
+      expect(expenses.laboratoryPrice('lab', 'crown-current'), 110);
+
+      expenses.setLaboratoryPrice(laboratory, 'crown-current', null);
+      expect(laboratory.laboratoryProcedurePrices, isEmpty);
     });
 
     test('suppliers, supplierMap, and ordersPerSupplier group correctly', () {

@@ -1,4 +1,5 @@
 import 'package:apexo/features/login/login_controller.dart';
+import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/services/launch.dart';
 import 'package:apexo/services/network.dart';
 import 'package:apexo/utils/hash.dart';
@@ -170,9 +171,34 @@ class Expenses extends Store<Expense> {
   }
 
   double? laboratoryPrice(String laboratoryID, String procedureID) {
-    final value =
-        supplierMap[laboratoryID]?.laboratoryProcedurePrices[procedureID];
-    return value == null || value <= 0 ? null : value;
+    final prices = supplierMap[laboratoryID]?.laboratoryProcedurePrices;
+    if (prices == null) return null;
+    // Prefer a price saved against the current-server procedure ID. Fall back
+    // to a retained prior-batch alias so catalogue reconciliation does not
+    // silently detach an existing laboratory price list.
+    for (final logicalID in procedureCatalog.logicalRecordIDs(procedureID)) {
+      final value = prices[logicalID];
+      if (value != null && value > 0) return value;
+    }
+    return null;
+  }
+
+  /// Saves against the canonical procedure ID and removes superseded alias
+  /// keys for that same logical procedure. Unrelated prices are untouched.
+  void setLaboratoryPrice(
+    Expense laboratory,
+    String procedureID,
+    double? value,
+  ) {
+    final logicalIDs = procedureCatalog.logicalRecordIDs(procedureID);
+    laboratory.laboratoryProcedurePrices.removeWhere(
+      (id, _) => logicalIDs.contains(id),
+    );
+    if (value != null && value > 0) {
+      laboratory.laboratoryProcedurePrices[
+          procedureCatalog.canonicalID(procedureID)] = value;
+    }
+    set(laboratory);
   }
 
   Map<String, Expense>? _cachedSupplierMap;
