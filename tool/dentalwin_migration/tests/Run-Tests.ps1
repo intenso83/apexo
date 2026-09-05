@@ -420,8 +420,89 @@ try {
     Assert-True -Condition ($catalogProcedureData.toothRequired -eq $true) -Message 'catalogue pilot preserves an explicit tooth-required flag'
     Assert-Equal -Expected 'occlusalIncisal,mesial' -Actual ($catalogProcedureData.defaultSurfaces -join ',') -Message 'catalogue pilot preserves verified default surfaces'
     Assert-Equal -Expected 'filling' -Actual $catalogProcedureData.defaultDrawingBehavior -Message 'catalogue pilot preserves the verified drawing behavior'
+    Assert-Equal -Expected 'surfaceBased' -Actual $catalogProcedureData.handlingMode -Message 'verified filling defaults emit explicit surface-based handling'
+    Assert-Equal -Expected 'tooth' -Actual $catalogProcedureData.targetScope -Message 'verified filling defaults emit an explicit tooth target'
+    Assert-Equal -Expected 'optional' -Actual $catalogProcedureData.surfaceSelectionMode -Message 'verified filling surfaces remain editable per treatment'
     Assert-Equal -Expected 4278190335 -Actual $catalogProcedureData.defaultMaterialColorArgb -Message 'catalogue pilot preserves the exact default material color'
     Assert-True -Condition ($null -eq $catalogProcedureData.PSObject.Properties['durationMinutes']) -Message 'catalogue pilot does not invent missing duration'
+    $incisalReconstructionData = ConvertTo-DwProcedureCatalogData -Procedure ([pscustomobject]@{
+            stage_key = 'procedure:86107'
+            source_code = '86107'
+            name = 'Ανασύσταση κοπτικής γωνίας m'
+            therapy_group_source_id = '1'
+            base_price = '0'
+            tooth_required_raw = $null
+            duration_minutes_raw = $null
+            per_tooth_price_raw = $null
+            surface_code_raw = '45'
+            default_surfaces = @('mesial', 'facial')
+            default_cervical_surfaces = @()
+            drawing_behavior_raw = 'Εμφραξη'
+            drawing_behavior = 'filling'
+            drawing_color_raw = $null
+            drawing_color_argb = $null
+        }) -TargetGroupId 'syntheticgroup1' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard'
+    Assert-Equal -Expected '86107' -Actual $incisalReconstructionData.sourceCode -Message 'source procedure 86107 remains traceable'
+    Assert-Equal -Expected 'surfaceBased' -Actual $incisalReconstructionData.handlingMode -Message 'procedure 86107 uses its verified filling metadata instead of translated-name guessing'
+    Assert-Equal -Expected 'tooth' -Actual $incisalReconstructionData.targetScope -Message 'procedure 86107 targets the selected tooth'
+    Assert-Equal -Expected 'optional' -Actual $incisalReconstructionData.surfaceSelectionMode -Message 'procedure 86107 surfaces can be modified after applying its preset'
+    $crownCatalogData = ConvertTo-DwProcedureCatalogData -Procedure ([pscustomobject]@{
+            stage_key = 'procedure:synthetic-crown'
+            source_code = 'SYN-CROWN'
+            name = 'Synthetic crown'
+            therapy_group_source_id = '1'
+            base_price = '0'
+            tooth_required_raw = 'true'
+            duration_minutes_raw = $null
+            per_tooth_price_raw = $null
+            surface_code_raw = ''
+            default_surfaces = @()
+            default_cervical_surfaces = @()
+            drawing_behavior_raw = 'Στεφάνη'
+            drawing_behavior = 'crown'
+            drawing_color_raw = $null
+            drawing_color_argb = $null
+        }) -TargetGroupId 'syntheticgroup1' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard'
+    Assert-Equal -Expected 'wholeTooth' -Actual $crownCatalogData.handlingMode -Message 'verified crown behavior emits whole-tooth handling'
+    Assert-Equal -Expected 'automaticWholeTooth' -Actual $crownCatalogData.surfaceSelectionMode -Message 'verified crown behavior selects the whole tooth automatically'
+    Assert-Equal -Expected 'wholeTooth' -Actual ($crownCatalogData.defaultSurfaces -join ',') -Message 'verified crown behavior emits the canonical whole-tooth surface'
+    $unknownCatalogData = ConvertTo-DwProcedureCatalogData -Procedure ([pscustomobject]@{
+            stage_key = 'procedure:synthetic-unknown'
+            source_code = 'SYN-UNKNOWN'
+            name = 'Synthetic unknown'
+            therapy_group_source_id = '1'
+            base_price = '0'
+            tooth_required_raw = 'true'
+            duration_minutes_raw = $null
+            per_tooth_price_raw = $null
+            surface_code_raw = '4'
+            default_surfaces = @('mesial')
+            default_cervical_surfaces = @()
+            drawing_behavior_raw = 'Unknown_Draw'
+            drawing_behavior = ''
+            drawing_color_raw = $null
+            drawing_color_argb = $null
+        }) -TargetGroupId 'syntheticgroup1' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard'
+    Assert-True -Condition ($null -eq $unknownCatalogData.PSObject.Properties['handlingMode']) -Message 'unknown drawing behavior stays unset for review'
+    Assert-True -Condition ($null -eq $unknownCatalogData.PSObject.Properties['targetScope']) -Message 'unknown drawing behavior does not invent a target scope'
+    $noToothFillingData = ConvertTo-DwProcedureCatalogData -Procedure ([pscustomobject]@{
+            stage_key = 'procedure:synthetic-no-tooth'
+            source_code = 'SYN-NO-TOOTH'
+            name = 'Synthetic filling without a tooth'
+            therapy_group_source_id = '1'
+            base_price = '0'
+            tooth_required_raw = 'false'
+            duration_minutes_raw = $null
+            per_tooth_price_raw = $null
+            surface_code_raw = '4'
+            default_surfaces = @('mesial')
+            default_cervical_surfaces = @()
+            drawing_behavior_raw = 'Εμφραξη'
+            drawing_behavior = 'filling'
+            drawing_color_raw = $null
+            drawing_color_argb = $null
+        }) -TargetGroupId 'syntheticgroup1' -BatchId 'synthetic-batch' -GuardId 'synthetic-guard'
+    Assert-True -Condition ($null -eq $noToothFillingData.PSObject.Properties['handlingMode']) -Message 'an explicit no-tooth source flag blocks automatic surface handling'
     $backupTestRoot = Join-Path $testRoot 'phase4-backup-test'
     [System.IO.Directory]::CreateDirectory($backupTestRoot) | Out-Null
     $backupTestFile = Join-Path $backupTestRoot 'data.db'

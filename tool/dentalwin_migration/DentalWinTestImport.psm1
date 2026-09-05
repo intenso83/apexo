@@ -1753,6 +1753,8 @@ function ConvertTo-DwProcedureCatalogData {
     $hasDuration = [int]::TryParse([string]$durationValue, [ref]$duration) -and $duration -gt 0
     $toothRequired = ConvertTo-DwNullableBoolean (Get-DwImportProperty -InputObject $Procedure -Name 'tooth_required_raw')
     $perToothPrice = ConvertTo-DwNullableBoolean (Get-DwImportProperty -InputObject $Procedure -Name 'per_tooth_price_raw')
+    $defaultSurfaces = @(Get-DwImportProperty -InputObject $Procedure -Name 'default_surfaces' -Default @())
+    $defaultCervicalSurfaces = @(Get-DwImportProperty -InputObject $Procedure -Name 'default_cervical_surfaces' -Default @())
 
     $data = [ordered]@{
         title = $name.Trim()
@@ -1761,8 +1763,8 @@ function ConvertTo-DwProcedureCatalogData {
         therapyGroupSourceID = [string](Get-DwImportProperty -InputObject $Procedure -Name 'therapy_group_source_id')
         sourceCode = [string](Get-DwImportProperty -InputObject $Procedure -Name 'source_code')
         basePrice = $basePrice
-        defaultSurfaces = @(Get-DwImportProperty -InputObject $Procedure -Name 'default_surfaces' -Default @())
-        defaultCervicalSurfaces = @(Get-DwImportProperty -InputObject $Procedure -Name 'default_cervical_surfaces' -Default @())
+        defaultSurfaces = $defaultSurfaces
+        defaultCervicalSurfaces = $defaultCervicalSurfaces
         hidden = $false
         migration = [ordered]@{
             batch_id = $BatchId
@@ -1782,6 +1784,33 @@ function ConvertTo-DwProcedureCatalogData {
     $drawingBehavior = [string](Get-DwImportProperty -InputObject $Procedure -Name 'drawing_behavior')
     if (-not [string]::IsNullOrWhiteSpace($drawingBehavior)) {
         $data.defaultDrawingBehavior = $drawingBehavior
+    }
+    $editableSurfaces = @('mesial', 'distal', 'facial', 'oral', 'occlusalIncisal')
+    $invalidDefaultSurfaces = @($defaultSurfaces | Where-Object {
+            [string]::IsNullOrWhiteSpace([string]$_) -or [string]$_ -notin $editableSurfaces
+        })
+    $invalidCervicalSurfaces = @($defaultCervicalSurfaces | Where-Object {
+            [string]$_ -notin @('facial', 'oral') -or [string]$_ -notin $defaultSurfaces
+        })
+    $hasVerifiedSurfaceDefaults = (
+        $defaultSurfaces.Count -gt 0 -and
+        $invalidDefaultSurfaces.Count -eq 0 -and
+        @($defaultSurfaces | Sort-Object -Unique).Count -eq $defaultSurfaces.Count -and
+        $invalidCervicalSurfaces.Count -eq 0
+    )
+    if ($toothRequired -ne $false -and $drawingBehavior -eq 'filling' -and $hasVerifiedSurfaceDefaults) {
+        $data.handlingMode = 'surfaceBased'
+        $data.targetScope = 'tooth'
+        $data.surfaceSelectionMode = 'optional'
+    }
+    elseif ($toothRequired -ne $false -and $drawingBehavior -in @('crown', 'veneer')) {
+        # These are the two verified DentalWin complete-tooth drawing paths.
+        # Unknown drawing modes stay unset for explicit review.
+        $data.handlingMode = 'wholeTooth'
+        $data.targetScope = 'tooth'
+        $data.surfaceSelectionMode = 'automaticWholeTooth'
+        $data.defaultSurfaces = @('wholeTooth')
+        $data.defaultCervicalSurfaces = @()
     }
     $drawingColorArgb = Get-DwImportProperty -InputObject $Procedure -Name 'drawing_color_argb'
     if ($null -ne $drawingColorArgb) {

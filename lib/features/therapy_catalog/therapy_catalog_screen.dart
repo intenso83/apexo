@@ -1,5 +1,6 @@
 import 'package:apexo/common_widgets/button_styles.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
+import 'package:apexo/features/odontogram/dental_surface_selector.dart';
 import 'package:apexo/features/odontogram/odontogram_assets.dart';
 import 'package:apexo/features/odontogram/odontogram_overlay_model.dart';
 import 'package:apexo/features/odontogram/treatment_target.dart';
@@ -597,34 +598,30 @@ Future<void> _showProcedureDialog(
                 if (handlingMode == ProcedureHandlingMode.surfaceBased) ...[
                   const SizedBox(height: 10),
                   Text(txt('catalogueSurfacePreset')),
-                  const SizedBox(height: 7),
-                  Wrap(
-                    spacing: 7,
-                    runSpacing: 7,
-                    children: [
-                      ToggleButton(
-                        checked: defaultSurfaces.isEmpty,
-                        onChanged: (_) => setDialogState(defaultSurfaces.clear),
-                        child: Text(txt('surfaceUnspecified')),
-                      ),
-                      ...DentalSurface.values
-                          .where(
-                            (surface) => surface != DentalSurface.wholeTooth,
-                          )
-                          .map(
-                            (surface) => ToggleButton(
-                              checked: defaultSurfaces.contains(surface),
-                              onChanged: (selected) => setDialogState(() {
-                                if (selected) {
-                                  defaultSurfaces.add(surface);
-                                } else {
-                                  defaultSurfaces.remove(surface);
-                                }
-                              }),
-                              child: Text(_catalogueSurfaceLabel(surface)),
-                            ),
-                          ),
-                    ],
+                  const SizedBox(height: 9),
+                  Center(
+                    child: DentalSurfaceSelector(
+                      fdi: 16,
+                      selectedSurfaces: defaultSurfaces,
+                      dimension: 148,
+                      surfaceLabelBuilder: (surface, _) =>
+                          _catalogueSurfaceLabel(surface),
+                      onChanged: (surfaces) => setDialogState(() {
+                        defaultSurfaces
+                          ..clear()
+                          ..addAll(surfaces);
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: ToggleButton(
+                      key: const Key('catalogue-surface-unspecified'),
+                      checked: defaultSurfaces.isEmpty,
+                      onChanged: (_) => setDialogState(defaultSurfaces.clear),
+                      child: Text(txt('surfaceUnspecified')),
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(

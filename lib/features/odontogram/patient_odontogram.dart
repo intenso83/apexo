@@ -14,10 +14,12 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 
 import 'odontogram_assets.dart';
+import 'dental_surface_selector.dart';
 import 'odontogram_event_model.dart';
 import 'odontogram_event_store.dart';
 import 'odontogram_overlay_model.dart';
 import 'odontogram_overlay_painter.dart';
+import 'selected_tooth_treatment_panel.dart';
 import 'treatment_target.dart';
 
 class PatientOdontogram extends StatefulWidget {
@@ -99,12 +101,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
               severity: InfoBarSeverity.info,
             ),
             const SizedBox(height: 12),
-            PatientOdontogramChart(
-              selectedFdis: {selectedFdi},
-              bridgeUnits: bridgeUnits,
-              events: events,
-              onSelected: _selectTooth,
-            ),
+            _buildChartAndSelectedToothHistory(events),
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
@@ -290,6 +287,51 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
     );
   }
 
+  Widget _buildChartAndSelectedToothHistory(
+    List<OdontogramEvent> events,
+  ) {
+    final chart = PatientOdontogramChart(
+      selectedFdis: {selectedFdi},
+      bridgeUnits: bridgeUnits,
+      events: events,
+      onSelected: _selectTooth,
+    );
+    final selectedToothHistory = SelectedToothTreatmentPanel(
+      selectedFdi: selectedFdi,
+      events: events,
+      maxListHeight: 330,
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const chartWidth = 980.0;
+        const gap = 12.0;
+        final availablePanelWidth = constraints.maxWidth - chartWidth - gap;
+        if (availablePanelWidth >= 260) {
+          final panelWidth = availablePanelWidth.clamp(260.0, 420.0).toDouble();
+          return Row(
+            key: const Key('odontogram-chart-history-wide'),
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: chartWidth, child: chart),
+              const SizedBox(width: gap),
+              SizedBox(width: panelWidth, child: selectedToothHistory),
+            ],
+          );
+        }
+        return Column(
+          key: const Key('odontogram-chart-history-stacked'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            chart,
+            const SizedBox(height: gap),
+            selectedToothHistory,
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildLaboratorySelector(ProcedureCatalogItem procedure) {
     final laboratories = expenses.laboratories;
     final selected = laboratories.any((lab) => lab.id == selectedLaboratoryID)
@@ -421,42 +463,50 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('${txt('tooth')} $selectedFdi · ${txt('toothSurfaces')}'),
-        const SizedBox(height: 7),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            ToggleButton(
-              key: const Key('surface-unspecified'),
-              checked: selectedSurfaces.isEmpty,
-              onChanged:
-                  canEdit ? (_) => setState(selectedSurfaces.clear) : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(txt('surfaceUnspecified')),
-              ),
+            DentalSurfaceSelector(
+              fdi: selectedFdi,
+              selectedSurfaces: selectedSurfaces,
+              enabled: canEdit,
+              surfaceLabelBuilder: (surface, fdi) => _surfaceText(surface, fdi),
+              onChanged: (surfaces) => setState(() {
+                selectedSurfaces
+                  ..clear()
+                  ..addAll(surfaces);
+              }),
             ),
-            ...DentalSurface.values
-                .where((surface) => surface != DentalSurface.wholeTooth)
-                .map(
-                  (surface) => ToggleButton(
-                    key: Key('surface-${surface.name}'),
-                    checked: selectedSurfaces.contains(surface),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ToggleButton(
+                    key: const Key('surface-unspecified'),
+                    checked: selectedSurfaces.isEmpty,
                     onChanged: canEdit
-                        ? (selected) => setState(() {
-                              if (selected) {
-                                selectedSurfaces.add(surface);
-                              } else {
-                                selectedSurfaces.remove(surface);
-                              }
-                            })
+                        ? (_) => setState(selectedSurfaces.clear)
                         : null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(_surfaceText(surface, selectedFdi)),
+                      child: Text(txt('surfaceUnspecified')),
                     ),
                   ),
-                ),
+                  if (selectedSurfaces.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      selectedSurfaces
+                          .map((surface) => _surfaceText(surface, selectedFdi))
+                          .join(' · '),
+                      key: const Key('selected-surface-summary'),
+                      style: FluentTheme.of(context).typography.caption,
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
         if (procedure != null && procedure.defaultSurfaces.isNotEmpty) ...[

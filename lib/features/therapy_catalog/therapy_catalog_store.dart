@@ -90,6 +90,8 @@ class ProcedureCatalog extends Store<ProcedureCatalogItem> {
         rule: 'legacy_fields',
       );
     }
+    final structured = _structuredHandlingDecision(item);
+    if (structured != null) return structured;
     final classified = classifyProcedureHandling(
       procedureName: item.title,
       groupName: therapyGroups.get(item.therapyGroupID)?.title ?? '',
@@ -106,12 +108,70 @@ class ProcedureCatalog extends Store<ProcedureCatalogItem> {
   }
 
   OdontogramOverlayKind overlayFor(ProcedureCatalogItem item) {
-    return item.odontogramOverlay ??
+    final explicit = item.odontogramOverlay;
+    if (explicit != null) return explicit;
+    final fromDrawingBehavior = switch (item.defaultDrawingBehavior) {
+      OdontogramDrawingBehavior.filling => OdontogramOverlayKind.filling,
+      OdontogramDrawingBehavior.crown ||
+      OdontogramDrawingBehavior.veneer =>
+        OdontogramOverlayKind.crown,
+      null => null,
+    };
+    return fromDrawingBehavior ??
         inferOdontogramOverlay(
           procedureName: item.title,
           groupName: therapyGroups.get(item.therapyGroupID)?.title ?? '',
           targetScope: handlingDecision(item).mode.targetScope,
         );
+  }
+
+  /// Uses verified structured DentalWin defaults before falling back to words
+  /// in a translated procedure name. Older pilot records predate the explicit
+  /// handling-mode fields but already retain these drawing and surface facts.
+  ProcedureHandlingDecision? _structuredHandlingDecision(
+    ProcedureCatalogItem item,
+  ) {
+    if (item.toothRequired == false) return null;
+    switch (item.defaultDrawingBehavior) {
+      case OdontogramDrawingBehavior.filling:
+        if (!_hasValidEditableSurfaceDefaults(item)) return null;
+        return const ProcedureHandlingDecision(
+          mode: ProcedureHandlingMode.surfaceBased,
+          inferred: true,
+          needsReview: false,
+          rule: 'structured_filling_defaults',
+        );
+      case OdontogramDrawingBehavior.crown:
+      case OdontogramDrawingBehavior.veneer:
+        return const ProcedureHandlingDecision(
+          mode: ProcedureHandlingMode.wholeTooth,
+          inferred: true,
+          needsReview: false,
+          rule: 'structured_whole_tooth_drawing',
+        );
+      case null:
+        return null;
+    }
+  }
+
+  bool _hasValidEditableSurfaceDefaults(ProcedureCatalogItem item) {
+    const editable = {
+      'mesial',
+      'distal',
+      'facial',
+      'oral',
+      'occlusalIncisal',
+    };
+    final surfaces = item.defaultSurfaces;
+    if (surfaces.isEmpty ||
+        surfaces.any((surface) => !editable.contains(surface)) ||
+        surfaces.toSet().length != surfaces.length) {
+      return false;
+    }
+    const cervical = {'facial', 'oral'};
+    return item.defaultCervicalSurfaces.every(
+      (surface) => cervical.contains(surface) && surfaces.contains(surface),
+    );
   }
 
   bool requiresLaboratory(ProcedureCatalogItem item) {

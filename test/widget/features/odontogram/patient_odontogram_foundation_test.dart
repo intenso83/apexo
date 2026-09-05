@@ -1,5 +1,7 @@
 import 'package:apexo/features/odontogram/odontogram_event_model.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
+import 'package:apexo/features/odontogram/dental_surface_selector.dart';
+import 'package:apexo/features/odontogram/odontogram_assets.dart';
 import 'package:apexo/features/odontogram/patient_odontogram.dart';
 import 'package:apexo/features/therapy_catalog/procedure_catalog_model.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
@@ -12,6 +14,139 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../helpers/pump_app.dart';
 
 void main() {
+  testWidgets(
+      'uses structured DentalWin defaults in an editable surface selector',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    final group = TherapyGroup.fromJson({
+      'id': 'group1234567890',
+      'name': 'Οδον. Χειρουργική 1',
+    });
+    final procedure = ProcedureCatalogItem.fromJson({
+      'id': 'procedure86107',
+      'sourceCode': '86107',
+      'name': 'Ανασύσταση κοπτικής γωνίας m',
+      'therapyGroupID': group.id,
+      'toothRequired': true,
+      'defaultDrawingBehavior': 'filling',
+      'defaultSurfaces': ['mesial', 'facial'],
+    });
+    therapyGroups.set(group);
+    procedureCatalog.set(procedure);
+
+    tester.view.physicalSize = const Size(1400, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1400,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    final selector = tester.widget<DentalSurfaceSelector>(
+      find.byKey(DentalSurfaceSelector.rootKey(11)),
+    );
+    expect(
+      selector.selectedSurfaces,
+      unorderedEquals({DentalSurface.mesial, DentalSurface.facial}),
+    );
+    expect(find.byKey(const Key('automatic-procedure-handling')), findsOne);
+
+    await _tapSurface(tester, fdi: 11, surface: DentalSurface.mesial);
+    await _tapSurface(tester, fdi: 11, surface: DentalSurface.distal);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('record-treatment-event')));
+    await tester.pump();
+
+    final event = odontogramEvents.forPatient('patient1234567').single;
+    expect(event.targetScope.name, 'tooth');
+    expect(event.toothFdi, 11);
+    expect(
+      event.surfaces,
+      unorderedEquals(['distal', 'facial']),
+    );
+    expect(event.overlayKind?.name, 'filling');
+    expect(event.drawsOnTooth(11), isTrue);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('shows the selected tooth history beside a wide odontogram',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    odontogramEvents.set(OdontogramEvent.fromJson({
+      'id': 'selectedtooth46event',
+      'patientID': 'patient1234567',
+      'targetScope': 'tooth',
+      'toothFdi': 46,
+      'surfaces': ['occlusalIncisal'],
+      'procedureID': 'procedure123456',
+      'procedureNameSnapshot': 'Completed restoration 46',
+      'therapyGroupNameSnapshot': 'Restorative',
+      'status': 'completed',
+    }));
+
+    tester.view.physicalSize = const Size(1400, 1500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1400,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('odontogram-chart-history-wide')), findsOne);
+    final selectedPanel =
+        find.byKey(const Key('selected-tooth-treatment-panel'));
+    expect(
+      find.descendant(
+        of: selectedPanel,
+        matching: find.text('Completed restoration 46'),
+      ),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('odontogram-tooth-46')));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: selectedPanel,
+        matching: find.text('Completed restoration 46'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('records a tooth treatment without selecting a surface',
       (tester) async {
     launch.enterLocalDemo();
@@ -324,4 +459,30 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
+}
+
+Future<void> _tapSurface(
+  WidgetTester tester, {
+  required int fdi,
+  required DentalSurface surface,
+}) async {
+  final rect = tester.getRect(
+    find.byKey(DentalSurfaceSelector.rootKey(fdi)),
+  );
+  final mesialOnLeft = fdi ~/ 10 == 2 || fdi ~/ 10 == 3;
+  final normalized = switch (surface) {
+    DentalSurface.mesial => Offset(mesialOnLeft ? 0.15 : 0.85, 0.50),
+    DentalSurface.distal => Offset(mesialOnLeft ? 0.85 : 0.15, 0.50),
+    DentalSurface.facial => const Offset(0.50, 0.85),
+    DentalSurface.oral => const Offset(0.50, 0.15),
+    DentalSurface.occlusalIncisal => const Offset(0.50, 0.50),
+    DentalSurface.wholeTooth =>
+      throw ArgumentError('Whole tooth is not a selectable zone'),
+  };
+  await tester.tapAt(
+    Offset(
+      rect.left + rect.width * normalized.dx,
+      rect.top + rect.height * normalized.dy,
+    ),
+  );
 }

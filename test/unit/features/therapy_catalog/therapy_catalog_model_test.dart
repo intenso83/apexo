@@ -262,6 +262,71 @@ void main() {
     expect(decision.needsReview, isTrue);
   });
 
+  test('verified imported surface defaults outrank translated-name guessing',
+      () {
+    final item = ProcedureCatalogItem.fromJson({
+      'sourceCode': '86107',
+      'name': 'Ανασύσταση κοπτικής γωνίας m',
+      'toothRequired': true,
+      'defaultDrawingBehavior': 'filling',
+      'defaultSurfaces': ['mesial', 'facial'],
+    });
+
+    final decision = procedureCatalog.handlingDecision(item);
+    expect(decision.mode, ProcedureHandlingMode.surfaceBased);
+    expect(decision.inferred, isTrue);
+    expect(decision.needsReview, isFalse);
+    expect(decision.rule, 'structured_filling_defaults');
+    expect(procedureCatalog.overlayFor(item), OdontogramOverlayKind.filling);
+  });
+
+  test('invalid imported filling defaults remain in the review fallback', () {
+    final item = ProcedureCatalogItem.fromJson({
+      'sourceCode': '86107',
+      'name': 'Ανασύσταση κοπτικής γωνίας m',
+      'toothRequired': true,
+      'defaultDrawingBehavior': 'filling',
+      'defaultSurfaces': ['unknown'],
+    });
+
+    final decision = procedureCatalog.handlingDecision(item);
+    expect(decision.mode, ProcedureHandlingMode.patientLevel);
+    expect(decision.needsReview, isTrue);
+    expect(decision.rule, 'safe_fallback');
+  });
+
+  test('explicit user handling and overlay override structured import hints',
+      () {
+    final item = ProcedureCatalogItem.fromJson({
+      'sourceCode': '86107',
+      'name': 'Ανασύσταση κοπτικής γωνίας m',
+      'handlingMode': 'patientLevel',
+      'odontogramOverlay': 'none',
+      'toothRequired': true,
+      'defaultDrawingBehavior': 'filling',
+      'defaultSurfaces': ['mesial', 'facial'],
+    });
+
+    final decision = procedureCatalog.handlingDecision(item);
+    expect(decision.mode, ProcedureHandlingMode.patientLevel);
+    expect(decision.inferred, isFalse);
+    expect(decision.rule, 'explicit');
+    expect(procedureCatalog.overlayFor(item), OdontogramOverlayKind.none);
+  });
+
+  test('verified crown drawing supplies a whole-tooth compatibility mode', () {
+    final item = ProcedureCatalogItem.fromJson({
+      'name': 'Legacy translated label',
+      'defaultDrawingBehavior': 'crown',
+    });
+
+    final decision = procedureCatalog.handlingDecision(item);
+    expect(decision.mode, ProcedureHandlingMode.wholeTooth);
+    expect(decision.needsReview, isFalse);
+    expect(decision.rule, 'structured_whole_tooth_drawing');
+    expect(procedureCatalog.overlayFor(item), OdontogramOverlayKind.crown);
+  });
+
   test('recognized name wins over the old no-tooth import hint', () {
     therapyGroups.observableMap.clear();
     procedureCatalog.observableMap.clear();
