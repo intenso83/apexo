@@ -365,15 +365,15 @@ abstract class DF {
 
   static String full(DateTime date) {
     final df = localSettings.dateFormat.startsWith("d") == true
-        ? "📅 EE dd / MM / yyyy 🕒 hh:mm a"
-        : "📅 EE MM / dd / yyyy 🕒 hh:mm a";
+        ? "📅 EE dd / MM / yyyy 🕒 HH:mm"
+        : "📅 EE MM / dd / yyyy 🕒 HH:mm";
     return DateFormat(df, locale.s.$code).format(date);
   }
 
   static String fullCompact(DateTime date) {
     final df = localSettings.dateFormat.startsWith("d") == true
-        ? "📅 dd / MM / yyyy 🕒 hh:mm a"
-        : "📅 MM / dd / yyyy 🕒 hh:mm a";
+        ? "📅 dd / MM / yyyy 🕒 HH:mm"
+        : "📅 MM / dd / yyyy 🕒 HH:mm";
     return DateFormat(df, locale.s.$code).format(date);
   }
 
@@ -388,8 +388,12 @@ abstract class DF {
     return DateFormat("EE", locale.s.$code).format(date);
   }
 
+  static String clock(DateTime date) {
+    return DateFormat("HH:mm", locale.s.$code).format(date);
+  }
+
   static String time(DateTime date) {
-    return DateFormat("🕒 hh:mm a", locale.s.$code).format(date);
+    return "🕒 ${clock(date)}";
   }
 
   static bool get isPersianCalendar =>

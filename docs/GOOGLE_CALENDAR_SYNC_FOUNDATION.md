@@ -1,7 +1,7 @@
 # Google Calendar sync foundation
 
-Status: **live Web OAuth and manual synchronization implemented; private Google
-Cloud credentials are still required for a real-account test**
+Status: **live Web OAuth, manual synchronization, and low-traffic automatic
+synchronization implemented; Android authorization/import remains planned**
 
 This milestone includes the data model, Google Calendar API transport,
 privacy-safe mapping, incremental-sync rules, conflict detection, per-user
@@ -31,10 +31,19 @@ refresh tokens.
 
 - Only events created and privately marked by Apexo are read back. Personal
   Google events are not turned into patient appointments.
-- The default event title is `Dental appointment`.
-- Patient names are an explicit opt-in.
-- Clinical notes, treatment names, teeth, phone numbers, prices, and payment
-  information are never exported by the mapper.
+- The event title is configurable as `Dental appointment` or the selected
+  patient's name. The owner requires patient names for the practice workflow.
+- Telephone, mobile, email, and address are independently configurable for the
+  Google description. The owner has explicitly requested all four for the
+  practice workflow; the UI must continue to make clear that enabling them
+  copies those details to Google.
+- The product-wide privacy defaults remain a generic title with telephone,
+  mobile, and email enabled and address disabled. The owner's rehearsal account
+  must be explicitly configured for **patient-name title** and all four contact
+  fields before its calendar acceptance test; this is a per-user opt-in, not an
+  automatic beta migration.
+- Clinical notes, treatment names, teeth, prices, and payment information are
+  never exported by the mapper.
 - Deleting a Google event does not silently delete or archive the clinical
   appointment in Apexo. It creates a sync issue for review.
 - A simultaneous edit in both systems creates a conflict instead of applying
@@ -101,12 +110,31 @@ current UI accepts `primary` or a manually entered calendar ID.
 
 ## Production scheduling
 
-The first live-test milestone exposes manual synchronization. A later
-production milestone can add debounced sync after appointment changes and a
-periodic refresh while an in-memory authorization remains valid. Google push
-notifications require a public HTTPS webhook and are not guaranteed to deliver
-every change, so they should be an optimisation rather than the source of
-truth.
+The Web client exposes manual synchronization and debounced synchronization
+after appointment changes while an in-memory authorization remains valid.
+Google push notifications require a public HTTPS webhook and are not guaranteed
+to deliver every change, so they should be an optimisation rather than the
+source of truth.
+
+## Android companion decision — 2026-09-06
+
+Android is deferred until the desktop migration beta is validated, but Google
+Calendar support is a required part of its first useful release. The mobile
+implementation must support patient selection, patient-name titles, the four
+approved contact-detail fields, tap-to-call, and ordinary Android copy/paste.
+The periodontal chart is explicitly excluded from Android.
+
+The intended quick-entry workflow uses a dedicated Apexo Google calendar. An
+event created directly with the normal Google Calendar application is imported
+as an unlinked appointment and then linked to a patient in Apexo. Apexo may
+suggest one exact, unique patient-name match, but must not silently bind an
+ordinary calendar title to a medical record. From a selected Apexo patient, an
+Android action may also launch the system Calendar event editor with the
+patient/contact details prefilled.
+
+This requires a native Android OAuth/token implementation; the current Web
+token flow cannot be reused directly. See `ANDROID_COMPANION_PLAN.md` for the
+security and delivery gates.
 
 ## Official references
 

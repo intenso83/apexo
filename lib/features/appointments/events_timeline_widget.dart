@@ -401,9 +401,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
       final i = h - _startHour;
       final slotH = _slotHeights.isEmpty ? _hourHeight : _slotHeights[i];
       final y = _slotTops.isEmpty ? i * _hourHeight : _slotTops[i];
-      final label = h == 0
-          ? ""
-          : intl.DateFormat('h a', loc).format(DateTime(2020, 1, 1, h));
+      final label = h == 0 ? "" : DF.clock(DateTime(2020, 1, 1, h));
       hourLabels.add(Positioned(
         left: 0,
         top: y - 10,
@@ -834,9 +832,7 @@ class _CalendarTimelineViewState extends State<CalendarTimelineView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                    intl.DateFormat("h:mm a", locale.s.$code)
-                        .format(targetTime),
+                Text(DF.clock(targetTime),
                     style: const TextStyle(
                         fontSize: 18,
                         color: Color(0xFFFFFFFF),

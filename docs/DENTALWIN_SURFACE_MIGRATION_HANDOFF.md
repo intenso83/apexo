@@ -1,7 +1,7 @@
 # DentalWin surface migration: continuity and handoff
 
 Date: 2026-09-04
-Last planning reconciliation: 2026-09-05
+Last planning reconciliation: 2026-09-06
 Status: Phase 2 isolated projection review is ready. Protected staging, immutable snapshots, layered rendering, and a five-patient loopback-only odontogram pilot were completed and verified on 2026-09-05; production import remains disabled.
 
 ## Task provenance
@@ -159,6 +159,64 @@ Planning changes must be recorded in this decision register with a date and the 
 - Verified the migrated PocketBase catalogue grouping before changing data: `Εμφυτεύματα` has 13 procedures, `Οδον. Χειρουργική 1` has 25, and no procedure references an unknown group. The incorrect visible choices were therefore a client picker-state defect, not a migration mapping defect.
 - Corrected the reusable dependent search picker so a treatment-group change refreshes both pointer suggestions and keyboard-navigation state even when the old and new procedure selections are empty. Added a direct `Οδον. Χειρουργική 1` → `Εμφυτεύματα` odontogram regression test; the same correction applies to treatment planning.
 - Replaced the odontogram clinical-status dropdown with five responsive, mutually exclusive one-click buttons. Each status has a distinct icon and localized label. At the owner's request, `completed` is the default for newly entered odontogram treatments; the saved event continues to use the existing status field without a schema or migration change.
+
+### Working-beta migration rehearsal plan — 2026-09-06
+
+The owner now wants to rehearse a serious migration with real DentalWin data in a working beta that can be carried between the practice and home. Android is explicitly outside this first rehearsal. This is a new planning goal, not authorization for a production import or for removing the existing safety locks.
+
+#### Current readiness boundary
+
+- The current standalone `ApexoDentalWinMigrator.exe` performs compatibility checks, read-only inventory, encrypted staging, and aggregate reporting only. It never writes to Apexo.
+- The only implemented importer remains the deliberately guarded loopback pilot. It is hard-limited to five patients and two appointments per selected patient; treatment history and odontogram projections are limited to those same guarded patients. It must not be presented or repurposed as a full-clinic importer.
+- A serious rehearsal therefore requires a new full-cohort **rehearsal importer and verifier**. It must preserve the current source-read-only, deterministic identity, idempotency, review-queue, no-finance, and rollback guarantees while using a newly initialized, explicitly identified rehearsal server.
+- Demo mode and `Proceed offline` are not valid targets for real migration. They use device-local application storage, do not provide the server-side provenance and reconciliation records required by the migration, and are unsafe for carrying one authoritative dataset between computers.
+- The existing mapping-v2 staging is useful as a development baseline, but not automatically the final rehearsal source: it contains 1,129 patients, 2,113 contacts, 4,253 appointments, 13,818 rows across the three chart-role work tables, and 9,797 review items. Only 1,801 appointments have the deterministic patient-GUID link; 497 are name-match candidates and 1,955 are unresolved. A calendar migration cannot be called complete unless the remaining 2,452 appointments are either safely presented as unlinked legacy events or explicitly accounted for in review.
+
+#### Portable beta architecture
+
+- A paid or hosted PocketBase service is not required for the rehearsal, but the PocketBase engine remains required as the authoritative data store. Package the compiled Apexo **Web** build, a pinned PocketBase runtime, schema/migrations, one loopback-only launcher, and the rehearsal `pb_data` tree as one portable kit. The Web build must be served by that PocketBase instance at the fixed loopback origin because the present Google Calendar authorization path is Web-only; the native Windows build is not the calendar-capable rehearsal client.
+- If the kit is carried between computers, use an encrypted removable SSD (preferred over an ordinary USB flash drive), one Windows computer at a time, and a clean stop/eject sequence. Never start two copies against the same `pb_data`, copy it while PocketBase is running, or treat the carried drive as the only backup.
+- Carry the dedicated `Data/BrowserProfile` with `pb_data` and include both directories in every complete portable backup. Flutter/Hive state is not wholly disposable: treatment plans and some settings remain browser-local, so clearing or omitting this profile can lose rehearsal work that PocketBase cannot rebuild. Google authorization is still device-sensitive and outside the migration record-count acceptance criteria; expect to reauthorize after a browser restart, token expiry, or transfer to another Windows account/computer. Never use a normal or incognito browser profile for this rehearsal.
+- Before travel, create and verify a separate PocketBase backup on a different encrypted device. A lost, stolen, corrupted, or abruptly removed portable drive must be recoverable without touching the DentalWin source.
+- Do not include the DentalWin source copy, encrypted staging, or staging key in the routine carry kit after the rehearsal import. They are recovery/migration materials with a different access boundary from the application data.
+
+#### Proposed first serious rehearsal scope
+
+The first full-cohort rehearsal should include only domains that already have a verified target and verifier path:
+
+1. therapy groups and the procedure catalogue;
+2. all DentalWin patients and structured contacts, using source identity rather than name matching;
+3. only appointments with a deterministic DentalWin patient GUID link, plus explicitly unlinked legacy appointments if the target presentation and review workflow are implemented before the run;
+4. canonical read-only treatment history for all patients;
+5. eligible permanent-tooth odontogram projections linked one-to-one to canonical history, using mapping `2026-09-05.phase6-surface-snapshot-v2` or an explicitly versioned successor.
+
+Keep these domains staged or review-only in the first rehearsal: name-only appointment candidates, primary teeth, invalid or multi-tooth references, unknown drawing modes, missing restoration artwork, unverified treatment lifecycle/status relationships, medical-history activation, patient documents/binary images, appointment audit logs, recalls, secondary work tables beyond their currently verified chart role, and all finance. No migrated treatment or odontogram projection may create an active charge, payment, balance, or invoice.
+
+#### Required operator sequence
+
+1. Close DentalWin and make a new complete copy of the final source folder. Do not use the live folder and do not omit linked image/document directories.
+2. Record SHA-256 fingerprints and an aggregate inventory from that copy. Compare its counts with the 2026-08-26 source snapshot; explain every change rather than assuming the old staging remains current.
+3. Run a new encrypted private dry run into a new empty directory with its key stored separately. Verify source hashes again after extraction and verify every protected envelope and checksum.
+4. Produce an aggregate go/no-go report: source/staged row equations, deterministic versus unresolved appointment counts, treatment/catalogue links, odontogram eligibility and review reasons, and an explicit zero-active-finance statement.
+5. Initialize a brand-new loopback-only portable PocketBase rehearsal server. Pin its runtime/schema versions, create an immutable pre-import backup, verify the backup by opening or restoring it in an isolated directory, and write a guard containing the source fingerprint, staging batch, mapping version, allowed stores, and server-data identity.
+6. Import in bounded checkpoints: catalogue; patients/contacts; deterministic appointments; canonical treatment history; eligible odontogram projections. Stop after each checkpoint, reconcile counts/links/duplicate IDs, and take a named checksum-verified target snapshot.
+7. Run the same batch a second time. Acceptance requires zero new clinical records, zero new charges, and every eligible row reported as `already_imported` or an explicitly approved versioned update.
+8. Have the owner inspect a private representative sample in the application: Greek names and contacts, dates/times, a patient with multiple appointments, catalogue-linked and custom work, O/MO/OD/MOD and cervical fillings, overlapping restorations, crowns, veneers, general/no-tooth work, and review-only exceptions. Patient identifiers used for sampling must remain in a protected local checklist, not in Git or aggregate reports.
+9. Reconcile the complete rehearsal: source rows equal imported/linked/already-imported/review/excluded/error rows for every included table; every imported child has its required parent; all provenance identities are unique; DentalWin hashes are unchanged; target backup restore is proven.
+10. Only after owner sign-off should the portable kit be used for workflow testing at the practice and home. It remains a disposable rehearsal data set. A later production cutover requires a fresh final DentalWin snapshot, a fresh dry run, a separate backup and approval, and an explicit policy for any edits made in the rehearsal beta.
+
+#### Inputs and decisions required from the owner
+
+- A fresh complete DentalWin folder copy made while DentalWin is closed, or confirmation that the existing 2026-08-26 copy is intentionally the rehearsal source.
+- An encrypted removable SSD or other approved local storage location, plus a different encrypted destination for backups. The encryption recovery key must be stored separately.
+- Confirmation that the first rehearsal may exclude active finance, binaries/documents, medical-history activation, unresolved/name-only appointments, primary teeth, and other review-only rows as listed above.
+- A short private list of representative patients/cases to inspect, referenced by DentalWin IDs rather than placed in Git documentation.
+- Owner decisions on treatment statuses and cancellation semantics before those values can be treated as more than provisional display metadata.
+- A workflow decision: edits made in the rehearsal are either disposable feedback, exported separately for review, or preserved through a later, explicitly designed rebase/cutover process. They must not silently overwrite a newer DentalWin snapshot.
+
+#### Exact next deliverable and acceptance gate
+
+The next implementation deliverable is **not** a production migration. It is a versioned full-cohort rehearsal-import package consisting of: a loopback-only portable launcher; a newly guarded importer for the five approved domains above; checkpoint backup/restore scripts; aggregate reconciliation and idempotency verifiers; a private exception-review file; and an operator runbook with stop/eject/recovery instructions. It is accepted only when automated synthetic tests, an empty-server full-cohort rehearsal, repeat-import zero-duplication checks, complete row accounting, and a demonstrated restoration from the pre-import backup all pass.
 
 ## Proposed design
 

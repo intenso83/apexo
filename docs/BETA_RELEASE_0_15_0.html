@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Apexo Clinical Beta 0.15.0-beta.2</title>
+  <title>Apexo Clinical Beta 0.15.0-beta.3</title>
   <style>
     :root { color-scheme: light; --ink:#18364a; --blue:#2477c9; --soft:#edf7fb; --line:#c8dce8; }
     * { box-sizing:border-box; }
@@ -24,16 +24,16 @@
 </head>
 <body>
 <main>
-  <header><h1>Apexo Clinical Beta</h1><p>Version 0.15.0-beta.2 · colleague feedback build · 4 September 2026</p></header>
+  <header><h1>Apexo Clinical Beta</h1><p>Version 0.15.0-beta.3 · colleague feedback build · 6 September 2026</p></header>
   <section class="notice"><strong>Start safely:</strong> extract the ZIP, open <code>Apexo-Windows-Portable/apexo.exe</code>, and choose <strong>Demo</strong>. It now opens on the dedicated Clinical Beta home. Back up PocketBase before testing with real clinic data.</section>
   <section>
     <h2>Clinical additions</h2>
     <div class="grid">
       <div class="card"><strong>Therapy catalogue</strong>Editable groups, source colours, prices, durations, five automatic workflows and reviewed Greek/English/German names.</div>
-      <div class="card"><strong>Odontogram</strong>Permanent dentition, precise surfaces, bridges and removable prosthetics, plus planned/completed clinical overlays.</div>
+      <div class="card"><strong>Odontogram</strong>Permanent dentition, editable DentalWin-style surfaces, tooth-specific history, filtered treatment groups, one-click statuses, bridges and removable prosthetics.</div>
       <div class="card"><strong>Treatment planning</strong>Alternative plans, internal discounts, patient-facing A4 PDFs, consent records and completion into treatment history.</div>
       <div class="card"><strong>Periodontal chart</strong>Six-site rapid entry, PD/GM/CAL and clinical markers, lightweight graphs, patient PDF and blank handwriting form.</div>
-      <div class="card"><strong>Calendar workflow</strong>Patient search, contact details, patient-file link and per-user Google Calendar synchronization.</div>
+      <div class="card"><strong>Calendar workflow</strong>Patient search, contact details, patient-file link, 24-hour time display and per-user Google Calendar synchronization.</div>
       <div class="card"><strong>Patient record</strong>Responsive contact/demographic data and immutable, dated medical-history revisions.</div>
     </div>
   </section>
@@ -53,6 +53,7 @@
       <li>A real clinic keeps its own catalogue; this practice's list is never inserted automatically.</li>
       <li>Treatment plans remain local to this device in this beta. Completing an item creates the clinical event, never a payment.</li>
       <li>Periodontal charting currently covers permanent teeth; voice entry is reserved but not enabled.</li>
+      <li>Google's privacy-safe defaults use the generic “Dental appointment” title and omit address. For this practice, explicitly select the patient-name title and enable telephone, mobile, email and address for the testing user.</li>
     </ul>
   </section>
   <footer>For a useful report, include the action, expected result, actual result and a screenshot.</footer>

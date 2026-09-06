@@ -16,7 +16,6 @@ import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/utils/constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:intl/intl.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
@@ -186,10 +185,8 @@ class StatsScreen extends StatelessWidget {
                         txt("distributionOfAppointments"),
                         StyledRadarChart(
                           data: [chartsCtrl.timeOfDayDistribution],
-                          labels: List.generate(
-                              24,
-                              (index) => DateFormat("hh a", locale.s.$code)
-                                  .format(DateTime(0, 0, 0, index))),
+                          labels: List.generate(24,
+                              (index) => DF.clock(DateTime(2020, 1, 1, index))),
                         ),
                         constraints.maxWidth,
                         context,

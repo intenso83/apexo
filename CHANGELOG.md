@@ -1,3 +1,13 @@
+### ____0.15.0-beta.3____
+
+- Clinical workflow refinements
+    - Made odontogram surfaces editable, added treatment filtering and status buttons, and made Completed the default treatment status.
+    - Standardized appointment times and pickers on 24-hour formatting.
+
+- Portable beta and platform planning
+    - Added portable USB beta packaging and tooling.
+    - Added migration and Android planning only; no real migration is included, and Android is not yet implemented.
+
 ### ____0.15.0-beta.2____
 
 - Colleague beta navigation fix

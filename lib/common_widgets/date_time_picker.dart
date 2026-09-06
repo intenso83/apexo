@@ -3,7 +3,33 @@ import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
-    show showTimePicker, showDatePicker, TimeOfDay;
+    show MediaQuery, TimeOfDay, showDatePicker, showTimePicker;
+
+/// Opens the Material time picker with a clinic-wide 24-hour clock.
+Future<DateTime?> show24HourTimePicker({
+  required BuildContext context,
+  required DateTime initialValue,
+}) async {
+  final time = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay(
+      hour: initialValue.hour,
+      minute: initialValue.minute,
+    ),
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+      child: child!,
+    ),
+  );
+  if (time == null) return null;
+  return DateTime(
+    initialValue.year,
+    initialValue.month,
+    initialValue.day,
+    time.hour,
+    time.minute,
+  );
+}
 
 class DateTimePicker extends StatefulWidget {
   final DateTime initValue;
@@ -76,13 +102,11 @@ class DateTimePickerState extends State<DateTimePicker> {
     DateTime selected = value;
 
     if (widget.pickTime) {
-      TimeOfDay time = await showTimePicker(
+      selected = await show24HourTimePicker(
             context: context,
-            initialTime: TimeOfDay(hour: value.hour, minute: value.minute),
+            initialValue: selected,
           ) ??
-          TimeOfDay(hour: selected.hour, minute: selected.minute);
-      selected = DateTime(
-          selected.year, selected.month, selected.day, time.hour, time.minute);
+          selected;
     } else {
       selected = await showDatePicker(
             context: context,

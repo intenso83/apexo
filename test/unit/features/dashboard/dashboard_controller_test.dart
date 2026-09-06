@@ -172,13 +172,15 @@ void main() {
 
     test('todayAppointments is sorted and excludes missing-patient concerns',
         () {
+      final now = DateTime.now();
+      final midday = DateTime(now.year, now.month, now.day, 12);
       final later = testAppointment(
         id: 'dash-later',
-        date: DateTime.now().add(const Duration(hours: 1)),
+        date: midday.add(const Duration(hours: 1)),
       );
       final earlier = testAppointment(
         id: 'dash-earlier',
-        date: DateTime.now().subtract(const Duration(hours: 1)),
+        date: midday.subtract(const Duration(hours: 1)),
       );
       appointments.setAll([later, earlier]);
       injectedApptIds.addAll([later.id, earlier.id]);
