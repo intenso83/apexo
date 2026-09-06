@@ -201,19 +201,7 @@ class _PanelScreenState extends State<PanelScreen> {
   }
 
   BoxDecoration _panelWorkspaceDecoration(FluentThemeData theme) {
-    if (theme.brightness == Brightness.dark) {
-      return BoxDecoration(color: theme.scaffoldBackgroundColor);
-    }
-    return const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFF8FCFD),
-          Color(0xFFEDF7F8),
-        ],
-      ),
-    );
+    return localSettings.themePreset.workspaceDecoration(theme.brightness);
   }
 
   Widget _buildBottomControls() {

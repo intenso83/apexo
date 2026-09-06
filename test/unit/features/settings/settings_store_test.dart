@@ -3,6 +3,7 @@ import 'package:apexo/features/appointments/calendar_widget.dart';
 import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
 import 'package:apexo/features/settings/settings_model.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
+import 'package:apexo/features/settings/theme_presets.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -180,6 +181,22 @@ void main() {
       expect(localSettings.selectedTheme, isA<ThemeMode>());
     });
 
+    test('theme preset defaults to the compatible classic palette', () {
+      final settings = LocalSettings();
+      expect(settings.themePreset, ApexoThemePreset.classic);
+    });
+
+    test('theme preset persists and invalid legacy values fall back safely',
+        () {
+      final settings = LocalSettings();
+      settings.fromJson({'themePreset': 'warmSand'});
+      expect(settings.themePreset, ApexoThemePreset.warmSand);
+      expect(settings.toJson()['themePreset'], 'warmSand');
+
+      settings.fromJson({'themePreset': 'unknown'});
+      expect(settings.themePreset, ApexoThemePreset.classic);
+    });
+
     test('dentalNotation defaults to "p"', () {
       expect(localSettings.dentalNotation, 'p');
     });
@@ -224,6 +241,7 @@ void main() {
         'transcriptionLocale': 'es',
         'dentalNotation': 'f',
         'selectedTheme': 1,
+        'themePreset': 'sage',
         'aiToken': 'token',
         'aiTokenExpiry': expiry.millisecondsSinceEpoch,
         'calendarEventsViewMode': EventsViewMode.timeline.index,
@@ -252,6 +270,7 @@ void main() {
       expect(localSettings.transcriptionOutputLocale, 'es');
       expect(localSettings.dentalNotation, 'f');
       expect(localSettings.selectedTheme, ThemeMode.dark);
+      expect(localSettings.themePreset, ApexoThemePreset.sage);
       expect(localSettings.aiToken, 'token');
       expect(localSettings.aiTokenExpiry!.millisecondsSinceEpoch,
           expiry.millisecondsSinceEpoch);

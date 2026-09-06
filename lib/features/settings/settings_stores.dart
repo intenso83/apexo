@@ -19,6 +19,7 @@ import '../../core/save_remote.dart';
 import '../network_actions/network_actions_controller.dart';
 import '../../services/login.dart';
 import 'settings_model.dart';
+import 'theme_presets.dart';
 import '../../core/store.dart';
 
 const _storeNameGlobal = "settings_global";
@@ -205,6 +206,7 @@ class LocalSettings extends ObservablePersistingObject {
   String dateFormat = "dd/MM/yyyy";
   String calendarSystem = "gregorian";
   ThemeMode selectedTheme = ThemeMode.light;
+  ApexoThemePreset themePreset = ApexoThemePreset.classic;
   int selectedLocale = 0;
   String dentalNotation = "p";
   String? aiToken;
@@ -294,6 +296,7 @@ class LocalSettings extends ObservablePersistingObject {
     dentalNotation = json["dentalNotation"] ?? dentalNotation;
     selectedTheme =
         json["selectedTheme"] == 1 ? ThemeMode.dark : ThemeMode.light;
+    themePreset = themePresetFromId(json["themePreset"]?.toString());
     aiToken = json["aiToken"] as String?;
     aiTokenExpiry = json["aiTokenExpiry"] != null
         ? DateTime.fromMillisecondsSinceEpoch(json["aiTokenExpiry"] as int)
@@ -342,6 +345,7 @@ class LocalSettings extends ObservablePersistingObject {
       "dentalNotation": dentalNotation,
       "transcriptionLocale": transcriptionLocaleNonFinal,
       "selectedTheme": selectedTheme == ThemeMode.dark ? 1 : 0,
+      "themePreset": themePreset.name,
       "lastSeenVersion": lastSeenVersion,
       "calendarEventsViewMode": calendarEventsViewMode.index,
       "dicomViewerPrefs": dicomViewerPrefs,

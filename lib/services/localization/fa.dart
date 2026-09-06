@@ -820,6 +820,16 @@ class Fa implements En {
     "language": "زبان",
     "language_desc":
         "زبان رابط کاربری برای منوها، دکمه‌ها و اطلاعات مورد استفاده در سراسر برنامه.",
+    "appearanceSettingsGroup": "ظاهر",
+    "appearanceSettingsGroup_desc":
+        "یک ترکیب رنگ آرام و هماهنگ برای این دستگاه انتخاب کنید.",
+    "themePreset": "پوسته رابط کاربری",
+    "themePreset_desc":
+        "رنگ تأکیدی و سطوح اصلی را تغییر می‌دهد. رنگ‌های وضعیت بالینی ثابت می‌مانند؛ برای حالت تیره از دکمه ماه استفاده کنید.",
+    "themePresetClassic": "کلاسیک",
+    "themePresetAegean": "اژه",
+    "themePresetSage": "سبز مریم‌گلی",
+    "themePresetWarmSand": "شن گرم",
     "startingDayOfWeek": "روز شروع هفته",
     "startingDayOfWeek_desc": "روزی از هفته که هفته از آن شروع می‌شود.",
     "dateFormat": "فرمت تاریخ",

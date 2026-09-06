@@ -4,6 +4,10 @@
     - Made odontogram surfaces editable, added treatment filtering and status buttons, and made Completed the default treatment status.
     - Standardized appointment times and pickers on 24-hour formatting.
 
+- Appearance refinements
+    - Added four coordinated interface themes: Classic, Aegean, Sage, and Warm Sand.
+    - Kept theme selection local to each device, supported light and dark mode, and preserved clinical status and urgency colours.
+
 - Portable beta and platform planning
     - Added portable USB beta packaging and tooling.
     - Added migration and Android planning only; no real migration is included, and Android is not yet implemented.

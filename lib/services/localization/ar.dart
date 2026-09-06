@@ -814,6 +814,16 @@ class Ar implements En {
     "language": "اللغة",
     "language_desc":
         "لغة واجهة المستخدم للقوائم والأزرار والمعلومات المستخدمة في التطبيق.",
+    "appearanceSettingsGroup": "المظهر",
+    "appearanceSettingsGroup_desc":
+        "اختر مجموعة ألوان هادئة ومنسقة لهذا الجهاز.",
+    "themePreset": "سمة الواجهة",
+    "themePreset_desc":
+        "يغير لون التمييز والأسطح الرئيسية. تبقى ألوان الحالات السريرية كما هي؛ استخدم زر القمر للوضع الداكن.",
+    "themePresetClassic": "كلاسيكي",
+    "themePresetAegean": "إيجي",
+    "themePresetSage": "مريمية",
+    "themePresetWarmSand": "رمال دافئة",
     "startingDayOfWeek": "يوم بداية الأسبوع",
     "startingDayOfWeek_desc": "اليوم الذي يبدأ فيه الأسبوع.",
     "dateFormat": "تنسيق التاريخ",

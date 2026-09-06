@@ -25,6 +25,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'settings_model.dart';
 import 'settings_stores.dart';
+import 'theme_presets.dart';
 
 enum InputType { text, multiline, dropDown, none }
 
@@ -50,6 +51,45 @@ const supportedCurrencyCodes = <String>[
 final currencyPickerOptions = supportedCurrencyCodes
     .map((code) => ComboBoxItem(value: code, child: Text(code)))
     .toList();
+
+class ThemePresetOption extends StatelessWidget {
+  final ApexoThemePreset preset;
+
+  const ThemePresetOption({
+    super.key,
+    required this.preset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = FluentTheme.of(context).inactiveColor.withAlpha(45);
+    return Row(
+      key: Key('theme_preset_option_${preset.name}'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          key: Key('theme_preset_swatches_${preset.name}'),
+          mainAxisSize: MainAxisSize.min,
+          children: preset.previewColors
+              .map(
+                (color) => Container(
+                  width: 15,
+                  height: 15,
+                  decoration: BoxDecoration(
+                    color: color,
+                    border: Border.all(color: borderColor),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(width: 9),
+        Txt(txt(preset.labelKey)),
+      ],
+    );
+  }
+}
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -140,6 +180,35 @@ class SettingsScreen extends StatelessWidget {
               localSettings.notifyAndPersist();
               networkActions.resync();
             },
+          ),
+          _SettingsGroup(
+            key: const Key('appearance_settings_group'),
+            title: txt('appearanceSettingsGroup'),
+            description: txt('appearanceSettingsGroup_desc'),
+            icon: FluentIcons.color,
+            children: [
+              SettingsItem(
+                title: txt('themePreset'),
+                identifier: 'themePreset',
+                description: txt('themePreset_desc'),
+                icon: FluentIcons.color_solid,
+                inputType: InputType.dropDown,
+                scope: Scope.device,
+                options: ApexoThemePreset.values
+                    .map(
+                      (preset) => ComboBoxItem(
+                        value: preset.name,
+                        child: ThemePresetOption(preset: preset),
+                      ),
+                    )
+                    .toList(),
+                initValue: localSettings.themePreset.name,
+                apply: (newVal) {
+                  localSettings.themePreset = themePresetFromId(newVal);
+                  localSettings.notifyAndPersist();
+                },
+              ),
+            ],
           ),
           _SettingsGroup(
             key: const Key('calendar_settings_group'),

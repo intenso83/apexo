@@ -55,21 +55,22 @@ class ApexoApp extends StatelessWidget {
     return StreamBuilder(
         stream: localSettings.stream,
         builder: (context, snapshot) {
+          final brightness = localSettings.selectedTheme == ThemeMode.dark
+              ? Brightness.dark
+              : Brightness.light;
+          final appTheme = localSettings.themePreset.themeData(brightness);
           return FluentApp(
             title: "Apexo",
             key: WK.fluentApp,
             locale: Locale(locale.s.$code),
-            theme: localSettings.selectedTheme == ThemeMode.dark
-                ? FluentThemeData.dark()
-                : FluentThemeData.light(),
+            theme: appTheme,
             home: CupertinoTheme(
-              data: localSettings.selectedTheme == ThemeMode.dark
-                  ? const CupertinoThemeData(brightness: Brightness.dark)
-                  : const CupertinoThemeData(brightness: Brightness.light),
+              data: CupertinoThemeData(
+                brightness: brightness,
+                primaryColor: appTheme.accentColor,
+              ),
               child: FluentTheme(
-                data: localSettings.selectedTheme == ThemeMode.dark
-                    ? FluentThemeData.dark()
-                    : FluentThemeData(),
+                data: appTheme,
                 child: MStreamBuilder(
                   streams: [
                     version.isOutdated.stream,
@@ -383,6 +384,10 @@ class _NavScreenTitleState extends State<NavScreenTitle> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = FluentTheme.of(context);
+    final foreground = theme.brightness == Brightness.dark
+        ? Colors.white
+        : theme.inactiveColor;
     return FlyoutTarget(
       controller: controller,
       child: GestureDetector(
@@ -412,10 +417,11 @@ class _NavScreenTitleState extends State<NavScreenTitle> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(50),
             color: launch.open() == Open.staff
-                ? Colors.white
-                : Colors.grey.withValues(alpha: 0.6),
+                ? theme.cardColor
+                : theme.inactiveBackgroundColor,
             border: Border.all(
-                color: FluentTheme.of(context).inactiveColor.withAlpha(40)),
+              color: theme.inactiveColor.withAlpha(40),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -425,21 +431,21 @@ class _NavScreenTitleState extends State<NavScreenTitle> {
                 launch.open() == Open.staff
                     ? routes.currentRoute.icon
                     : WindowsIcons.lock,
-                color: Colors.grey,
+                color: foreground,
               ),
               launch.open() == Open.staff
                   ? Txt(
                       routes.currentRoute.title,
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: foreground),
                     )
                   : launch.open() == Open.patient
                       ? Txt(
                           txt("patientSide"),
-                          style: const TextStyle(color: Colors.grey),
+                          style: TextStyle(color: foreground),
                         )
                       : Txt(
                           txt("login"),
-                          style: const TextStyle(color: Colors.grey),
+                          style: TextStyle(color: foreground),
                         )
             ],
           ),

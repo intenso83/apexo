@@ -833,6 +833,16 @@ class El implements En {
     "language": "Γλώσσα",
     "language_desc":
         "Η γλώσσα διεπαφής για τα μενού, τα κουμπιά και τις πληροφορίες σε όλη την εφαρμογή.",
+    "appearanceSettingsGroup": "Εμφάνιση",
+    "appearanceSettingsGroup_desc":
+        "Επιλέξτε έναν ήρεμο, επιμελημένο συνδυασμό χρωμάτων για αυτή τη συσκευή.",
+    "themePreset": "Θέμα εμφάνισης",
+    "themePreset_desc":
+        "Αλλάζει το βασικό χρώμα και τις κύριες επιφάνειες. Τα κλινικά χρώματα κατάστασης παραμένουν ίδια· χρησιμοποιήστε το κουμπί σελήνης για σκοτεινή λειτουργία.",
+    "themePresetClassic": "Κλασικό",
+    "themePresetAegean": "Αιγαίο",
+    "themePresetSage": "Φασκόμηλο",
+    "themePresetWarmSand": "Ζεστή άμμος",
     "startingDayOfWeek": "Πρώτη ημέρα της εβδομάδας",
     "startingDayOfWeek_desc": "Η ημέρα από την οποία ξεκινά η εβδομάδα.",
     "dateFormat": "Μορφή ημερομηνίας",

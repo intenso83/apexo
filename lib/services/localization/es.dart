@@ -835,6 +835,16 @@ class Es implements En {
     "language": "Idioma",
     "language_desc":
         "El idioma de la interfaz para los menús, botones e información usada en toda la aplicación.",
+    "appearanceSettingsGroup": "Apariencia",
+    "appearanceSettingsGroup_desc":
+        "Elige una combinación de colores serena y cuidada para este dispositivo.",
+    "themePreset": "Tema de la interfaz",
+    "themePreset_desc":
+        "Cambia el color de acento y las superficies principales. Los colores de estado clínico no cambian; usa el botón de luna para el modo oscuro.",
+    "themePresetClassic": "Clásico",
+    "themePresetAegean": "Egeo",
+    "themePresetSage": "Salvia",
+    "themePresetWarmSand": "Arena cálida",
     "startingDayOfWeek": "Primer día de la semana",
     "startingDayOfWeek_desc": "El día de la semana en que comienza la semana.",
     "dateFormat": "Formato de fecha",

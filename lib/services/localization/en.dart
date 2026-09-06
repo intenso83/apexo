@@ -825,6 +825,16 @@ class En {
     "language": "Language",
     "language_desc":
         "The interface language for the menus, buttons, and info used across the app.",
+    "appearanceSettingsGroup": "Appearance",
+    "appearanceSettingsGroup_desc":
+        "Choose a calm, curated colour combination for this device.",
+    "themePreset": "Interface theme",
+    "themePreset_desc":
+        "Changes the accent and main surfaces. Clinical status colours remain unchanged; use the moon button for dark mode.",
+    "themePresetClassic": "Classic",
+    "themePresetAegean": "Aegean",
+    "themePresetSage": "Sage",
+    "themePresetWarmSand": "Warm sand",
     "startingDayOfWeek": "Starting day of week",
     "startingDayOfWeek_desc": "The day of the week that the week starts on.",
     "dateFormat": "Date format",
