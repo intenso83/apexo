@@ -158,6 +158,7 @@ Planning changes must be recorded in this decision register with a date and the 
 
 - Verified the migrated PocketBase catalogue grouping before changing data: `Εμφυτεύματα` has 13 procedures, `Οδον. Χειρουργική 1` has 25, and no procedure references an unknown group. The incorrect visible choices were therefore a client picker-state defect, not a migration mapping defect.
 - Corrected the reusable dependent search picker so a treatment-group change refreshes both pointer suggestions and keyboard-navigation state even when the old and new procedure selections are empty. Added a direct `Οδον. Χειρουργική 1` → `Εμφυτεύματα` odontogram regression test; the same correction applies to treatment planning.
+- Replaced the odontogram clinical-status dropdown with five responsive, mutually exclusive one-click buttons. Each status has a distinct icon and localized label. At the owner's request, `completed` is the default for newly entered odontogram treatments; the saved event continues to use the existing status field without a schema or migration change.
 
 ## Proposed design
 

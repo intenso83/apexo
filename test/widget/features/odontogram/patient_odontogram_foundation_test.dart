@@ -113,6 +113,92 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('selects and records treatment status with one click',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    final group = TherapyGroup.fromJson({
+      'id': 'statusgroup12345',
+      'name': 'Status test group',
+    });
+    final procedure = ProcedureCatalogItem.fromJson({
+      'id': 'statusprocedure1',
+      'name': 'Status test treatment',
+      'therapyGroupID': group.id,
+      'handlingMode': 'wholeTooth',
+      'targetScope': 'tooth',
+      'surfaceSelectionMode': 'automaticWholeTooth',
+      'defaultSurfaces': ['wholeTooth'],
+    });
+    therapyGroups.set(group);
+    procedureCatalog.set(procedure);
+
+    tester.view.physicalSize = const Size(1200, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1000,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    const icons = {
+      OdontogramEventStatus.existing: FluentIcons.history,
+      OdontogramEventStatus.monitor: FluentIcons.view,
+      OdontogramEventStatus.planned: FluentIcons.calendar,
+      OdontogramEventStatus.completed: FluentIcons.completed,
+      OdontogramEventStatus.cancelled: FluentIcons.cancel,
+    };
+    for (final entry in icons.entries) {
+      final button = find.byKey(
+        Key('odontogram-status-${entry.key.name}'),
+      );
+      expect(button, findsOneWidget);
+      expect(
+        find.descendant(of: button, matching: find.byIcon(entry.value)),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<ToggleButton>(button).checked,
+        entry.key == OdontogramEventStatus.completed,
+      );
+    }
+    expect(find.byType(ComboBox<OdontogramEventStatus>), findsNothing);
+
+    final planned = find.byKey(const Key('odontogram-status-planned'));
+    final completed = find.byKey(const Key('odontogram-status-completed'));
+    await tester.tap(planned);
+    await tester.pump();
+    expect(tester.widget<ToggleButton>(planned).checked, isTrue);
+    expect(tester.widget<ToggleButton>(completed).checked, isFalse);
+
+    await tester.tap(completed);
+    await tester.pump();
+    expect(tester.widget<ToggleButton>(completed).checked, isTrue);
+
+    await _chooseProcedure(tester, procedure.title);
+    await tester.tap(find.byKey(const Key('record-treatment-event')));
+    await tester.pump();
+
+    final event = odontogramEvents.forPatient('patient1234567').single;
+    expect(event.status, OdontogramEventStatus.completed);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('shows the selected tooth history beside a wide odontogram',
       (tester) async {
     launch.enterLocalDemo();

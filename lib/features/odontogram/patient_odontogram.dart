@@ -48,7 +48,7 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   String selectedGroupID = '';
   String selectedProcedureID = '';
   String initializedProcedureGroupID = '';
-  OdontogramEventStatus selectedStatus = OdontogramEventStatus.planned;
+  OdontogramEventStatus selectedStatus = OdontogramEventStatus.completed;
   String selectedLaboratoryID = '';
   double selectedLaboratoryCost = 0;
   final notesController = TextEditingController();
@@ -237,22 +237,26 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           const SizedBox(height: 9),
           InfoLabel(
             label: txt('clinicalStatus'),
-            child: ComboBox<OdontogramEventStatus>(
-              value: selectedStatus,
-              isExpanded: true,
-              items: OdontogramEventStatus.values
-                  .map(
-                    (status) => ComboBoxItem(
-                      value: status,
-                      child: Text(txt('odontogramStatus_${status.name}')),
-                    ),
-                  )
-                  .toList(),
-              onChanged: canEdit
-                  ? (value) => setState(() {
-                        selectedStatus = value ?? selectedStatus;
-                      })
-                  : null,
+            child: Wrap(
+              key: const Key('odontogram-status-selector'),
+              spacing: 6,
+              runSpacing: 6,
+              children: OdontogramEventStatus.values.map((status) {
+                final label = txt('odontogramStatus_${status.name}');
+                return ToggleButton(
+                  key: Key('odontogram-status-${status.name}'),
+                  checked: selectedStatus == status,
+                  semanticLabel: label,
+                  onChanged: canEdit
+                      ? (_) => setState(() => selectedStatus = status)
+                      : null,
+                  child: ButtonContent(
+                    _statusIcon(status),
+                    label,
+                    size: 13,
+                  ),
+                );
+              }).toList(),
             ),
           ),
           const SizedBox(height: 9),
@@ -1475,6 +1479,14 @@ Color _statusColor(OdontogramEventStatus status) {
     OdontogramEventStatus.cancelled => Colors.grey,
   };
 }
+
+IconData _statusIcon(OdontogramEventStatus status) => switch (status) {
+      OdontogramEventStatus.existing => FluentIcons.history,
+      OdontogramEventStatus.monitor => FluentIcons.view,
+      OdontogramEventStatus.planned => FluentIcons.calendar,
+      OdontogramEventStatus.completed => FluentIcons.completed,
+      OdontogramEventStatus.cancelled => FluentIcons.cancel,
+    };
 
 IconData _handlingModeIcon(ProcedureHandlingMode mode) => switch (mode) {
       ProcedureHandlingMode.surfaceBased => FluentIcons.color,
