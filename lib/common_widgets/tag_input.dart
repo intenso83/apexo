@@ -46,7 +46,8 @@ class TagInputWidget extends StatefulWidget {
 class _TagInputWidgetState extends State<TagInputWidget> {
   final TextEditingController _controller = TextEditingController();
   final _hiddenTappedFlyoutController = FlyoutController();
-  final autoSuggestBoxRef = GlobalKey<AutoSuggestBoxState>();
+  GlobalKey<AutoSuggestBoxState> autoSuggestBoxRef =
+      GlobalKey<AutoSuggestBoxState>();
   late FocusNode _focusNode;
   late List<TagInputItem> _tags;
   late List<TagInputItem> _suggestions;
@@ -105,14 +106,24 @@ class _TagInputWidgetState extends State<TagInputWidget> {
   @override
   void didUpdateWidget(TagInputWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Sync internal _tags when the parent updates initialValue externally
-    // (e.g. after AI receipt scanning populates items).
-    if (oldWidget.initialValue != widget.initialValue &&
-        !_listEquals(_tags, widget.initialValue)) {
-      _tags = List.of(widget.initialValue);
+
+    final suggestionsChanged = oldWidget.strict != widget.strict ||
+        !_listEquals(oldWidget.suggestions, widget.suggestions);
+    final tagsChanged = !_listEquals(_tags, widget.initialValue);
+
+    // Suggestions and selected tags are independent inputs. In particular, a
+    // dependent picker can change its suggestions while both its old and new
+    // selections are empty (for example when changing a treatment group).
+    if (suggestionsChanged) {
       _updateSuggestions();
-      // Don't mark dirty if the widget is no longer mounted
-      if (mounted) setState(() {});
+      // fluent_ui keeps a separate keyboard-navigation cache. Recreating only
+      // the inner box refreshes that cache while retaining this widget's tags,
+      // text controller, and focus node.
+      autoSuggestBoxRef.currentState?.dismissOverlay();
+      autoSuggestBoxRef = GlobalKey<AutoSuggestBoxState>();
+    }
+    if (tagsChanged) {
+      _tags = List.of(widget.initialValue);
     }
   }
 
@@ -131,7 +142,11 @@ class _TagInputWidgetState extends State<TagInputWidget> {
   bool _listEquals(List<TagInputItem> a, List<TagInputItem> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
-      if (a[i].value != b[i].value || a[i].label != b[i].label) return false;
+      if (a[i].value != b[i].value ||
+          a[i].label != b[i].label ||
+          a[i].searchText != b[i].searchText) {
+        return false;
+      }
     }
     return true;
   }

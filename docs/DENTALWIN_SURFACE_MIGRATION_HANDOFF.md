@@ -154,6 +154,11 @@ Planning changes must be recorded in this decision register with a date and the 
 - Removed implicit first-procedure selection from odontogram entry and treatment planning. The group remains a navigation convenience, while procedure-dependent defaults and save actions stay inactive until the user explicitly selects a treatment.
 - Added non-destructive catalogue alias reconciliation for repeated guarded imports served from the same loopback URL. Selection lists use the one current remote record for an unambiguous DentalWin migration identity, while old IDs remain resolvable for historical and financial references; no patient or clinical record is rewritten or deleted.
 
+### Implementation log — 2026-09-06
+
+- Verified the migrated PocketBase catalogue grouping before changing data: `Εμφυτεύματα` has 13 procedures, `Οδον. Χειρουργική 1` has 25, and no procedure references an unknown group. The incorrect visible choices were therefore a client picker-state defect, not a migration mapping defect.
+- Corrected the reusable dependent search picker so a treatment-group change refreshes both pointer suggestions and keyboard-navigation state even when the old and new procedure selections are empty. Added a direct `Οδον. Χειρουργική 1` → `Εμφυτεύματα` odontogram regression test; the same correction applies to treatment planning.
+
 ## Proposed design
 
 - Extend the current procedure-driven system with drawing behavior, semantic surface presets, cervical location, and a default treatment drawing color.

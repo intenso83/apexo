@@ -44,4 +44,51 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets('refreshes suggestions when an empty dependent picker changes',
+      (tester) async {
+    late StateSetter updateHost;
+    var suggestions = [
+      TagInputItem(value: 'surgery', label: 'Oral surgery treatment'),
+    ];
+
+    await pumpApexoApp(
+      tester,
+      StatefulBuilder(
+        builder: (context, setState) {
+          updateHost = setState;
+          return Center(
+            child: SizedBox(
+              width: 360,
+              child: TagInputWidget(
+                key: const Key('dependent-picker'),
+                strict: true,
+                limit: 1,
+                initialValue: const [],
+                suggestions: suggestions,
+                onChanged: (_) {},
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    updateHost(() {
+      suggestions = [
+        TagInputItem(value: 'implant', label: 'Implant treatment'),
+      ];
+    });
+    await tester.pumpAndSettle();
+
+    final openSuggestions = find.descendant(
+      of: find.byKey(const Key('dependent-picker')),
+      matching: find.byIcon(WindowsIcons.chevron_down),
+    );
+    await tester.tap(openSuggestions);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Implant treatment'), findsOneWidget);
+    expect(find.text('Oral surgery treatment'), findsNothing);
+  });
 }
