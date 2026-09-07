@@ -109,12 +109,26 @@ try {
         }
     }
 
+    $sourceHashesUnchanged = Get-RunnerProperty `
+        -InputObject $operation `
+        -Name 'SourceHashesUnchanged' `
+        -Default $null
+    if ($null -eq $sourceHashesUnchanged) {
+        # SyntheticDryRun retains the original singular property name. Real
+        # inventory/private runs use the plural name because they verify every
+        # Access database in the copied DentalWin folder.
+        $sourceHashesUnchanged = Get-RunnerProperty `
+            -InputObject $operation `
+            -Name 'SourceHashUnchanged' `
+            -Default $false
+    }
+
     $result = [ordered]@{
         success = [bool](Get-RunnerProperty -InputObject $operation -Name 'Complete' -Default $false)
         mode = [string](Get-RunnerProperty -InputObject $operation -Name 'Mode' -Default $Mode)
         output_directory = [string](Get-RunnerProperty -InputObject $operation -Name 'OutputDirectory' -Default $OutputDirectory)
         batch_id = [string](Get-RunnerProperty -InputObject $operation -Name 'BatchId' -Default '')
-        source_hashes_unchanged = [bool](Get-RunnerProperty -InputObject $operation -Name 'SourceHashUnchanged' -Default $false)
+        source_hashes_unchanged = [bool]$sourceHashesUnchanged
         review_item_count = [int](Get-RunnerProperty -InputObject $operation -Name 'ReviewItemCount' -Default 0)
         database_count = [int](Get-RunnerProperty -InputObject $operation -Name 'DatabaseCount' -Default 0)
         extracted_table_count = [int](Get-RunnerProperty -InputObject $operation -Name 'ExtractedTableCount' -Default 0)

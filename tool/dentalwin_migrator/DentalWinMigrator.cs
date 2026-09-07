@@ -13,8 +13,8 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("Read-only DentalWin inventory and encrypted migration staging utility")]
 [assembly: AssemblyCompany("Apexo")]
 [assembly: AssemblyProduct("Apexo DentalWin Migrator")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyVersion("0.1.1.0")]
+[assembly: AssemblyFileVersion("0.1.1.0")]
 
 namespace Apexo.DentalWinMigrator
 {
@@ -407,9 +407,19 @@ namespace Apexo.DentalWinMigrator
                 {
                     throw new InvalidOperationException("Embedded migration resource is missing: " + resourceName);
                 }
-                using (FileStream output = File.Create(destination))
+                // Windows PowerShell 5.1 treats a UTF-8 script without a BOM as
+                // the current ANSI code page. Re-emit every embedded text
+                // resource as UTF-8 with a BOM so Greek DentalWin labels remain
+                // valid PowerShell syntax on both 32-bit and 64-bit hosts.
+                using (StreamReader reader = new StreamReader(
+                    input,
+                    new UTF8Encoding(false, true),
+                    true))
                 {
-                    input.CopyTo(output);
+                    File.WriteAllText(
+                        destination,
+                        reader.ReadToEnd(),
+                        new UTF8Encoding(true));
                 }
             }
         }

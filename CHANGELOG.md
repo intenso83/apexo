@@ -10,7 +10,8 @@
 
 - Portable beta and platform planning
     - Added portable USB beta packaging and tooling.
-    - Added migration and Android planning only; no real migration is included, and Android is not yet implemented.
+    - Added the standalone DentalWin read-only inventory and encrypted-staging utility, with embedded-engine and checksum verification.
+    - DentalWin writes remain limited to the guarded empty-server pilot; no production importer is included, and Android is not yet implemented.
 
 ### ____0.15.0-beta.2____
 

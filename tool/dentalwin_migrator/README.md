@@ -41,6 +41,16 @@ pwsh -NoProfile -File tool/dentalwin_migrator/Build-DentalWinMigrator.ps1
 The executable and SHA-256 build manifest are written to
 `output/dentalwin-migrator/`.
 
+## Verify
+
+Run the migration-engine suite and the standalone runner compatibility tests
+before distributing a build:
+
+```powershell
+pwsh -NoProfile -File tool/dentalwin_migration/tests/Run-Tests.ps1
+pwsh -NoProfile -File tool/dentalwin_migrator/tests/Run-Tests.ps1
+```
+
 ## Operator sequence
 
 1. Close DentalWin and make a verified copy of its data folder.
