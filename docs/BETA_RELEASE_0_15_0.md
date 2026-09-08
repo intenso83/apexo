@@ -1,4 +1,4 @@
-# Apexo Clinical Beta 0.15.0-beta.3
+# Apexo Clinical Beta 0.15.0-beta.4
 
 This beta packages the clinical work completed through 6 September 2026 for focused colleague feedback. It preserves Apexo's normal patient, calendar, notes, expenses, accounts, offline and PocketBase workflows.
 

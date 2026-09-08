@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:apexo/core/observable.dart';
 import 'package:apexo/features/appointments/calendar_widget.dart';
 import 'package:apexo/features/calendar_sync/google_calendar_models.dart';
+import 'package:apexo/features/settings/global_settings_id_migration.dart';
 import 'package:apexo/features/settings/settings_model.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/settings/theme_presets.dart';
@@ -99,7 +102,18 @@ void main() {
       expect(globalSettings.defaults, contains('dicom_auto_imp_'));
       expect(globalSettings.defaults, contains('gcal_enabled___'));
       expect(globalSettings.defaults, contains('gcal_client_id_'));
-      expect(globalSettings.defaults, contains('gcal_calendar_id'));
+      expect(globalSettings.defaults, contains(googleCalendarIdSettingKey));
+    });
+
+    test('every global setting key is a valid PocketBase record ID', () {
+      expect(
+        globalSettings.defaults.keys.every(
+          (key) =>
+              key.length <= pocketBaseRecordIdMaxLength &&
+              RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(key),
+        ),
+        isTrue,
+      );
     });
 
     test('currency getter returns non-null string', () {
@@ -148,6 +162,107 @@ void main() {
 
     test('present returns a map', () {
       expect(globalSettings.present, isA<Map<String, Setting>>());
+    });
+  });
+
+  group('Global settings ID migration', () {
+    test('preserves the calendar ID and rewrites its deferred key', () {
+      final migration = planGlobalSettingsIdMigration(
+        records: {
+          legacyGoogleCalendarIdSettingKey:
+              '{"id":"gcal_calendar_id","value":"practice-calendar"}',
+        },
+        deferred: {
+          legacyGoogleCalendarIdSettingKey: 42,
+          'unrelated': 7,
+        },
+        timestamp: 100,
+      );
+
+      expect(migration.isNeeded, isTrue);
+      expect(
+        migration.recordIdsToDelete,
+        {legacyGoogleCalendarIdSettingKey},
+      );
+      expect(migration.deferred, {
+        googleCalendarIdSettingKey: 42,
+        'unrelated': 7,
+      });
+      final migrated = Setting.fromJson(
+        Map<String, dynamic>.from(
+          jsonDecode(migration.recordsToWrite[googleCalendarIdSettingKey]!),
+        ),
+      );
+      expect(migrated.id, googleCalendarIdSettingKey);
+      expect(migrated.value, 'practice-calendar');
+    });
+
+    test('keeps an existing valid record when both keys are present', () {
+      final migration = planGlobalSettingsIdMigration(
+        records: {
+          legacyGoogleCalendarIdSettingKey:
+              '{"id":"gcal_calendar_id","value":"legacy"}',
+          googleCalendarIdSettingKey:
+              '{"id":"gcal_calendarid","value":"current"}',
+        },
+        deferred: {
+          legacyGoogleCalendarIdSettingKey: 20,
+          googleCalendarIdSettingKey: 30,
+        },
+        timestamp: 40,
+      );
+
+      expect(migration.recordsToWrite, isEmpty);
+      expect(migration.deferred, {googleCalendarIdSettingKey: 30});
+      expect(
+        migration.recordIdsToDelete,
+        {legacyGoogleCalendarIdSettingKey},
+      );
+    });
+
+    test('moves a pending legacy write when the valid record already exists',
+        () {
+      final migration = planGlobalSettingsIdMigration(
+        records: {
+          legacyGoogleCalendarIdSettingKey:
+              '{"id":"gcal_calendar_id","value":"legacy"}',
+          googleCalendarIdSettingKey:
+              '{"id":"gcal_calendarid","value":"current"}',
+        },
+        deferred: {legacyGoogleCalendarIdSettingKey: 20},
+        timestamp: 40,
+      );
+
+      expect(migration.recordsToWrite, isEmpty);
+      expect(migration.deferred, {googleCalendarIdSettingKey: 20});
+    });
+
+    test('removes an orphaned invalid deferred key safely', () {
+      final migration = planGlobalSettingsIdMigration(
+        records: const {},
+        deferred: {legacyGoogleCalendarIdSettingKey: 20},
+        timestamp: 40,
+      );
+
+      expect(migration.isNeeded, isTrue);
+      expect(migration.recordsToWrite, isEmpty);
+      expect(migration.deferred, isEmpty);
+    });
+
+    test('is idempotent after the legacy key has been removed', () {
+      final migration = planGlobalSettingsIdMigration(
+        records: {
+          googleCalendarIdSettingKey:
+              '{"id":"gcal_calendarid","value":"primary"}',
+        },
+        deferred: const {},
+        timestamp: 50,
+      );
+
+      expect(migration.isNeeded, isFalse);
+      expect(migration.recordsToWrite, isEmpty);
+      expect(migration.recordIdsToDelete, isEmpty);
+      expect(migration.deferred, isEmpty);
     });
   });
 

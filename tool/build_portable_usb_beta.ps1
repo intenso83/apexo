@@ -58,6 +58,7 @@ $sourceFiles = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'lib') -Recurse -File
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'web') -Recurse -File
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'assets') -Recurse -File
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'CHANGELOG.md')
     Get-Item -LiteralPath (Join-Path $repositoryRoot 'pubspec.yaml')
     Get-Item -LiteralPath (Join-Path $repositoryRoot 'pubspec.lock')
 )

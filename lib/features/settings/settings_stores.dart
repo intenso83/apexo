@@ -18,6 +18,7 @@ import '../../core/save_local.dart';
 import '../../core/save_remote.dart';
 import '../network_actions/network_actions_controller.dart';
 import '../../services/login.dart';
+import 'global_settings_id_migration.dart';
 import 'settings_model.dart';
 import 'theme_presets.dart';
 import '../../core/store.dart';
@@ -42,7 +43,7 @@ class GlobalSettings extends Store<Setting> {
   String get treatmentPlanLogoName => get("txplan_logo_nm_").value;
   bool get googleCalendarSyncEnabled => get("gcal_enabled___").value == "1";
   String get googleCalendarClientId => get("gcal_client_id_").value;
-  String get googleCalendarId => get("gcal_calendar_id").value;
+  String get googleCalendarId => get(googleCalendarIdSettingKey).value;
   String get googleCalendarDirection => get("gcal_direction_").value;
   String get googleCalendarTitleMode => get("gcal_title_mode").value;
 
@@ -103,7 +104,7 @@ class GlobalSettings extends Store<Setting> {
     // refresh tokens are intentionally not stored in global settings.
     "gcal_enabled___": "0",
     "gcal_client_id_": "",
-    "gcal_calendar_id": "primary",
+    googleCalendarIdSettingKey: "primary",
     "gcal_direction_": "twoWay",
     "gcal_title_mode": "generic",
   };
@@ -137,6 +138,7 @@ class GlobalSettings extends Store<Setting> {
       local =
           SaveLocal(name: _storeNameGlobal, uniqueId: simpleHash(login.url));
       await deleteMemoryAndLoadFromPersistence();
+      await _migrateLegacyRecordIds();
 
       remote = SaveRemote(
         pbInstance: login.pb!,
@@ -183,6 +185,26 @@ class GlobalSettings extends Store<Setting> {
         }
       };
     };
+  }
+
+  Future<void> _migrateLegacyRecordIds() async {
+    final persistence = local;
+    if (persistence == null) return;
+
+    final migration = planGlobalSettingsIdMigration(
+      records: await persistence.getAll(),
+      deferred: await persistence.getDeferred(),
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!migration.isNeeded) return;
+
+    if (migration.recordsToWrite.isNotEmpty) {
+      await persistence.put(migration.recordsToWrite);
+    }
+    await persistence.putDeferred(migration.deferred);
+    await persistence.delete(migration.recordIdsToDelete);
+    deferredPresent = migration.deferred.isNotEmpty;
+    await deleteMemoryAndLoadFromPersistence();
   }
 }
 

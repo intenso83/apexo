@@ -17,7 +17,10 @@ does not make an untrusted or infected PC safe.
    `Data\BrowserProfile`. Start refuses if Windows `tar.exe` is unavailable,
    because that profile must be included in complete backups.
 4. Sign in once with the bootstrap superuser so Apexo can initialize its
-   collections. In Apexo's Accounts screen, immediately create a normal user
+   collections. In the login form, enter `http://127.0.0.1:61110` as the
+   **Server URL** (with no `/api` or `/_/` suffix), then enter the administrator
+   email and password created in step 2. In Apexo's Accounts screen,
+   immediately create a normal user
    with only the permissions needed for daily work. Sign out and use that
    least-privileged account for routine sessions; reserve the superuser for
    administration. If the user must own appointments, explicitly enable that

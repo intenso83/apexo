@@ -1,3 +1,10 @@
+### ____0.15.0-beta.4____
+
+- Portable beta corrections
+    - Fixed first-login initialization failing because a Google Calendar setting key exceeded PocketBase's 15-character record-ID limit.
+    - Added an automatic local repair for portable profiles that encountered the original initialization error.
+    - Documented the portable login Server URL explicitly as `http://127.0.0.1:61110`.
+
 ### ____0.15.0-beta.3____
 
 - Clinical workflow refinements

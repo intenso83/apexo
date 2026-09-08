@@ -154,9 +154,12 @@ Apexo-Portable-USB-Template-<version>/
    on the USB; the template itself must not contain that directory.
    `Start-Apexo.cmd` refuses to begin if Windows `tar.exe` is unavailable,
    because a complete portable browser-profile backup is mandatory.
-5. The first superuser login lets Apexo create its normal collections. Open
-   Apexo's Accounts screen, create a **normal user** with only the permissions
-   required for the pilot, sign out, and use that account for all routine work.
+5. In Apexo's login form, enter `http://127.0.0.1:61110` as the **Server URL**
+   (with no `/api` or `/_/` suffix), then use the bootstrap credentials from
+   step 3. The first superuser login lets Apexo create its normal collections.
+   Open Apexo's Accounts screen, create a **normal user** with only the
+   permissions required for the pilot, sign out, and use that account for all
+   routine work.
    Reserve the bootstrap superuser for account/schema administration. If the
    normal user must own appointments, explicitly enable that user's
    operator/clinician setting (and no broader permissions).
