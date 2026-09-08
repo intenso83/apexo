@@ -4,6 +4,69 @@ param()
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
+function Resolve-ApexoManifestCandidate {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RelativePath
+    )
+
+    $normalizedRelative = $RelativePath.Replace('\', '/')
+    $segments = @($normalizedRelative -split '/')
+    if ([string]::IsNullOrWhiteSpace($normalizedRelative) -or
+        [IO.Path]::IsPathRooted($normalizedRelative) -or
+        $normalizedRelative.Contains(':') -or
+        $segments -contains '' -or
+        $segments -contains '.' -or
+        $segments -contains '..') {
+        throw "Unsafe checksum path in manifest: $RelativePath"
+    }
+
+    $rootFullPath = [IO.Path]::GetFullPath($Root)
+    $rootPrefix = $rootFullPath.TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    ) + [IO.Path]::DirectorySeparatorChar
+    $platformRelative = $normalizedRelative.Replace(
+        '/',
+        [IO.Path]::DirectorySeparatorChar
+    )
+    $candidate = [IO.Path]::GetFullPath((Join-Path $rootFullPath $platformRelative))
+    if (-not $candidate.StartsWith(
+            $rootPrefix,
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+        throw "Unsafe checksum path in manifest: $RelativePath"
+    }
+    return $candidate
+}
+
+function ConvertTo-ApexoManifestRelativePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+
+        [Parameter(Mandatory = $true)]
+        [string]$FullPath
+    )
+
+    $rootFullPath = [IO.Path]::GetFullPath($Root)
+    $rootPrefix = $rootFullPath.TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    ) + [IO.Path]::DirectorySeparatorChar
+    $candidate = [IO.Path]::GetFullPath($FullPath)
+    if (-not $candidate.StartsWith(
+            $rootPrefix,
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+        throw "Path is outside the portable bundle: $FullPath"
+    }
+    return $candidate.Substring($rootPrefix.Length).Replace('\', '/')
+}
+
 $bundleRoot = $PSScriptRoot
 $pocketBase = Join-Path $bundleRoot 'Server\pocketbase.exe'
 $expectedHashFile = Join-Path $bundleRoot 'Server\pocketbase.exe.sha256'
@@ -33,7 +96,6 @@ if ($expectedHash -ne $actualHash) {
     throw 'PocketBase checksum mismatch. Do not run this bundle.'
 }
 
-$bundlePrefix = [IO.Path]::GetFullPath($bundleRoot) + [IO.Path]::DirectorySeparatorChar
 $manifestPaths = [Collections.Generic.HashSet[string]]::new(
     [StringComparer]::OrdinalIgnoreCase
 )
@@ -45,10 +107,8 @@ foreach ($line in Get-Content -LiteralPath $fileHashManifest) {
     $manifestRelative = $Matches[2].Replace('\', '/')
     $null = $manifestPaths.Add($manifestRelative)
     $relative = $manifestRelative.Replace('/', [IO.Path]::DirectorySeparatorChar)
-    $candidate = [IO.Path]::GetFullPath((Join-Path $bundleRoot $relative))
-    if (-not $candidate.StartsWith($bundlePrefix, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "Unsafe checksum path in manifest: $relative"
-    }
+    $candidate = Resolve-ApexoManifestCandidate `
+        -Root $bundleRoot -RelativePath $manifestRelative
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
         throw "Portable bundle checksum failed; missing: $relative"
     }
@@ -76,10 +136,12 @@ if ($null -ne $unexpectedReparsePoint) {
 $unexpectedFiles = @($immutableItems | Where-Object {
         -not $_.PSIsContainer -and $_.FullName -ne $fileHashManifest
     } | Where-Object {
-        $relative = $_.FullName.Substring($bundleRoot.Length + 1).Replace('\', '/')
+        $relative = ConvertTo-ApexoManifestRelativePath `
+            -Root $bundleRoot -FullPath $_.FullName
         -not $manifestPaths.Contains($relative)
     } | ForEach-Object {
-        $_.FullName.Substring($bundleRoot.Length + 1).Replace('\', '/')
+        ConvertTo-ApexoManifestRelativePath `
+            -Root $bundleRoot -FullPath $_.FullName
     })
 if ($unexpectedFiles) {
     throw "Portable bundle verification failed; unmanifested immutable file(s): $($unexpectedFiles -join ', ')"

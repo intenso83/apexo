@@ -10,6 +10,7 @@
 
 - Portable beta and platform planning
     - Added portable USB beta packaging and tooling.
+    - Fixed portable verification when the bundle is extracted directly at a USB drive root.
     - Added the standalone DentalWin read-only inventory and encrypted-staging utility, with embedded-engine and checksum verification.
     - DentalWin writes remain limited to the guarded empty-server pilot; no production importer is included, and Android is not yet implemented.
 
