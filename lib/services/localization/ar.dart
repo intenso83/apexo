@@ -347,6 +347,10 @@ class Ar implements En {
     "procedureName": "اسم الإجراء",
     "catalogueSearch": "البحث بالاسم أو رمز المصدر...",
     "hidden": "مخفي",
+    "hideProcedure": "إخفاء الإجراء",
+    "showProcedure": "إظهار الإجراء",
+    "hideProcedureDescription":
+        "سيختفي هذا الإجراء من اختيارات العلاج والمختبر الجديدة. سيبقى سجل المرضى الحالي دون تغيير.",
     "toothRequired": "السن مطلوب",
     "unknownFromSource": "غير معروف من المصدر",
     "odontogramFoundation": "مخطط الأسنان التجريبي",

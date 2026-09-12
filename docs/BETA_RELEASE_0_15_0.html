@@ -24,12 +24,12 @@
 </head>
 <body>
 <main>
-  <header><h1>Apexo Clinical Beta</h1><p>Version 0.15.0-beta.4 · colleague feedback build · 8 September 2026</p></header>
-  <section class="notice"><strong>Start safely:</strong> extract the ZIP, open <code>Apexo-Windows-Portable/apexo.exe</code>, and choose <strong>Demo</strong>. It now opens on the dedicated Clinical Beta home. Back up PocketBase before testing with real clinic data.</section>
+  <header><h1>Apexo Clinical Beta</h1><p>Version 0.15.0-beta.4 · colleague feedback build · 12 September 2026</p></header>
+  <section class="notice"><strong>Start safely:</strong> extract the ZIP, open <code>Apexo-Windows-Portable/apexo.exe</code>, and choose <strong>Demo</strong>. It opens on the dedicated Clinical Beta home. For a real clinic, first back up PocketBase and restore it to an isolated test server. This ZIP contains no database or patient records.</section>
   <section>
     <h2>Clinical additions</h2>
     <div class="grid">
-      <div class="card"><strong>Therapy catalogue</strong>Editable groups, source colours, prices, durations, five automatic workflows and reviewed Greek/English/German names.</div>
+      <div class="card"><strong>Therapy catalogue</strong>Editable groups, source colours, prices, durations, five automatic workflows and reviewed Greek/English/German names. Hide or show a treatment without changing historical records.</div>
       <div class="card"><strong>Odontogram</strong>Permanent dentition, editable DentalWin-style surfaces, tooth-specific history, filtered treatment groups, one-click statuses, bridges and removable prosthetics.</div>
       <div class="card"><strong>Treatment planning</strong>Alternative plans, internal discounts, patient-facing A4 PDFs, consent records and completion into treatment history.</div>
       <div class="card"><strong>Periodontal chart</strong>Six-site rapid entry, PD/GM/CAL and clinical markers, lightweight graphs, patient PDF and blank handwriting form.</div>
@@ -51,6 +51,9 @@
     <ul>
       <li>Demo uses fake, disposable data and includes the 279-treatment demonstration catalogue.</li>
       <li>A real clinic keeps its own catalogue; this practice's list is never inserted automatically.</li>
+      <li>This is an application bundle, not a USB server. The colleague needs their own PocketBase server; do not run old and new Apexo clients against a live clinic simultaneously.</li>
+      <li>Hidden treatments can be shown again. Permanent deletion is not available in this beta because another device may hold local treatment-plan references.</li>
+      <li>Original Apexo Dental Notes remain visible, but are not automatically converted into structured odontogram entries or exact surfaces.</li>
       <li>Treatment plans remain local to this device in this beta. Completing an item creates the clinical event, never a payment.</li>
       <li>Periodontal charting currently covers permanent teeth; voice entry is reserved but not enabled.</li>
       <li>Google's privacy-safe defaults use the generic “Dental appointment” title and omit address. For this practice, explicitly select the patient-name title and enable telephone, mobile, email and address for the testing user.</li>

@@ -14,6 +14,16 @@ $releaseRoot = Join-Path $outputRoot $releaseName
 $archivePath = Join-Path $outputRoot "$releaseName.zip"
 $checksumPath = "$archivePath.sha256"
 
+# The source archive below is taken from HEAD while Flutter builds the working
+# tree. Refuse a mixed release whose source does not match its binaries.
+$workingTreeChanges = & git -C $repositoryRoot status --porcelain --untracked-files=normal
+if ($LASTEXITCODE -ne 0) {
+    throw 'Could not verify the Git working tree before building the beta.'
+}
+if ($workingTreeChanges) {
+    throw 'Refusing to package a dirty working tree: commit the intended changes first so the source archive matches the binaries.'
+}
+
 foreach ($existing in @($releaseRoot, $archivePath, $checksumPath)) {
     if (Test-Path -LiteralPath $existing) {
         throw "Refusing to overwrite an existing beta artifact: $existing"
@@ -150,6 +160,11 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\BETA_RELEASE_0_15_0.md')
     -Destination (Join-Path $releaseRoot 'RELEASE_NOTES.md')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE.md') `
     -Destination (Join-Path $releaseRoot 'LICENSE.md')
+
+$workingTreeChanges = & git -C $repositoryRoot status --porcelain --untracked-files=normal
+if ($LASTEXITCODE -ne 0 -or $workingTreeChanges) {
+    throw 'The working tree changed during the build; refusing to attach a mismatched source archive.'
+}
 
 $sourceArchive = Join-Path $releaseRoot "Apexo-Source-$Version.zip"
 & git -C $repositoryRoot archive --format=zip --output=$sourceArchive HEAD

@@ -62,5 +62,29 @@ void main() {
       routes.panels().single.selectedTab(),
       ClinicalBetaScreen.odontogramTabIndex,
     );
+
+    final patientTabs = routes.panels().single.tabs;
+    expect(
+      patientTabs.map((tab) => tab.icon),
+      orderedEquals([
+        FluentIcons.contact_card,
+        FluentIcons.archive,
+        FluentIcons.clipboard_list,
+        FluentIcons.teeth,
+        FluentIcons.line_chart,
+        FluentIcons.medical,
+        FluentIcons.edit_note,
+        FluentIcons.calendar,
+        FluentIcons.history,
+        FluentIcons.check_list,
+        FluentIcons.payment_card,
+        FluentIcons.q_r_code,
+      ]),
+    );
+    expect(
+      patientTabs.map((tab) => tab.icon).toSet(),
+      hasLength(patientTabs.length),
+      reason: 'Every patient toolbar destination should have a distinct icon.',
+    );
   });
 }

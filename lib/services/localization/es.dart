@@ -362,6 +362,10 @@ class Es implements En {
     "procedureName": "Nombre del procedimiento",
     "catalogueSearch": "Buscar nombre o código de origen...",
     "hidden": "Oculto",
+    "hideProcedure": "Ocultar procedimiento",
+    "showProcedure": "Mostrar procedimiento",
+    "hideProcedureDescription":
+        "Este procedimiento desaparecerá de las nuevas selecciones de tratamiento y laboratorio. El historial existente de los pacientes no cambiará.",
     "toothRequired": "Requiere diente",
     "unknownFromSource": "Desconocido en el origen",
     "odontogramFoundation": "Odontograma beta",

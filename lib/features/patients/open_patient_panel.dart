@@ -54,7 +54,7 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
     selectedTabIndex: selectedTabIndex,
     item: editingCopy,
     store: patients,
-    icon: FluentIcons.medication_admin,
+    icon: FluentIcons.contact_card,
     title: patients.get(editingCopy.id) == null
         ? txt("newPatient")
         : editingCopy.title,
@@ -71,17 +71,17 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
     tabs: [
       PanelTab(
         title: txt("patientDetails"),
-        icon: FluentIcons.medication_admin,
+        icon: FluentIcons.contact_card,
         body: PatientDetailsForm(patient: editingCopy),
       ),
       PanelTab(
         title: txt("legacyFields"),
-        icon: FluentIcons.edit,
+        icon: FluentIcons.archive,
         body: _PatientDetails(editingCopy),
       ),
       PanelTab(
         title: txt("patientFieldsPrototype"),
-        icon: FluentIcons.view,
+        icon: FluentIcons.clipboard_list,
         body: PatientFieldsPrototype(patient: editingCopy),
       ),
       PanelTab(
@@ -92,7 +92,7 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
       ),
       PanelTab(
         title: txt("periodontalChart"),
-        icon: FluentIcons.health,
+        icon: FluentIcons.line_chart,
         body: PatientPeriodontalChart(patient: editingCopy),
         onlyIfSaved: true,
       ),
@@ -104,7 +104,7 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
       ),
       PanelTab(
         title: txt("dentalNotes"),
-        icon: FluentIcons.teeth,
+        icon: FluentIcons.edit_note,
         footer: (network.isOnline() && globalSettings.aiServicesEnabled)
             ? Builder(
                 builder: (context) => AudioRecorderButton(
@@ -201,7 +201,7 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
       if (login.perm(Perm.appointments).some)
         PanelTab(
           title: txt("appointments"),
-          icon: WindowsIcons.calendar,
+          icon: FluentIcons.calendar,
           body: PatientAppointments(editingCopy),
           footer: AppointmentsListFooter(forPatientID: editingCopy.id),
           onlyIfSaved: true,
@@ -215,14 +215,14 @@ Future<Patient> openPatient([Patient? patient, int? selectedTabIndex]) {
       ),
       PanelTab(
         title: txt("treatmentPlanning"),
-        icon: FluentIcons.health,
+        icon: FluentIcons.check_list,
         body: PatientTreatmentPlanning(patient: editingCopy),
         onlyIfSaved: true,
       ),
       if (login.perm(Perm.revenue).read)
         PanelTab(
           title: txt("financialOverview"),
-          icon: FluentIcons.money,
+          icon: FluentIcons.payment_card,
           body: PatientFinancialOverview(patientID: editingCopy.id),
           onlyIfSaved: true,
         ),

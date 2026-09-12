@@ -356,6 +356,10 @@ class El implements En {
     "procedureName": "Όνομα εργασίας",
     "catalogueSearch": "Αναζήτηση ονόματος ή κωδικού πηγής...",
     "hidden": "Κρυφό",
+    "hideProcedure": "Απόκρυψη εργασίας",
+    "showProcedure": "Εμφάνιση εργασίας",
+    "hideProcedureDescription":
+        "Η εργασία θα αφαιρεθεί από τις νέες επιλογές θεραπείας και εργαστηριακών εργασιών. Το υπάρχον ιστορικό ασθενών δεν θα αλλάξει.",
     "toothRequired": "Απαιτείται δόντι",
     "unknownFromSource": "Άγνωστο στην πηγή",
     "odontogramFoundation": "Οδοντόγραμμα beta",

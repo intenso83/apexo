@@ -268,6 +268,14 @@ class _ProcedurePane extends StatelessWidget {
                                 children: [
                                   if (item.sourceCode.isNotEmpty)
                                     Text('#${item.sourceCode}'),
+                                  if (item.hidden)
+                                    Text(
+                                      txt('hidden'),
+                                      style: TextStyle(
+                                        color: Colors.orange.dark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   Text(
                                     '${txt('price')}: ${item.basePrice.toStringAsFixed(2)}',
                                   ),
@@ -318,13 +326,43 @@ class _ProcedurePane extends StatelessWidget {
                                 ],
                               ),
                               trailing: login.isAdmin
-                                  ? IconButton(
-                                      icon: const Icon(FluentIcons.edit),
-                                      onPressed: () => _showProcedureDialog(
-                                        context,
-                                        group!,
-                                        item,
-                                      ),
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          key: ValueKey(
+                                            'edit-procedure-${item.id}',
+                                          ),
+                                          icon: const Icon(FluentIcons.edit),
+                                          onPressed: () => _showProcedureDialog(
+                                            context,
+                                            group!,
+                                            item,
+                                          ),
+                                        ),
+                                        Tooltip(
+                                          message: txt(
+                                            item.hidden
+                                                ? 'showProcedure'
+                                                : 'hideProcedure',
+                                          ),
+                                          child: IconButton(
+                                            key: ValueKey(
+                                              'toggle-procedure-visibility-${item.id}',
+                                            ),
+                                            icon: Icon(
+                                              item.hidden
+                                                  ? FluentIcons.view
+                                                  : FluentIcons.hide3,
+                                            ),
+                                            onPressed: () =>
+                                                _toggleProcedureVisibility(
+                                              context,
+                                              item,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     )
                                   : null,
                             );
@@ -365,6 +403,39 @@ class _ProcedurePane extends StatelessWidget {
       'wholeTooth' => txt('surfaceWholeTooth'),
       _ => stored,
     };
+  }
+
+  Future<void> _toggleProcedureVisibility(
+    BuildContext context,
+    ProcedureCatalogItem item,
+  ) async {
+    final shouldHide = !item.hidden;
+    if (shouldHide) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => ContentDialog(
+          key: const Key('hide-procedure-dialog'),
+          title: Text(txt('hideProcedure')),
+          content: Text(txt('hideProcedureDescription')),
+          actions: [
+            Button(
+              key: const Key('hide-procedure-cancel'),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(txt('cancel')),
+            ),
+            FilledButton(
+              key: const Key('hide-procedure-confirm'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(txt('hideProcedure')),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
+    final updated = item.copy(false)..hidden = shouldHide;
+    procedureCatalog.set(updated);
   }
 }
 

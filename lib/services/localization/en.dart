@@ -353,6 +353,10 @@ class En {
     "procedureName": "Procedure name",
     "catalogueSearch": "Search name or source code...",
     "hidden": "Hidden",
+    "hideProcedure": "Hide procedure",
+    "showProcedure": "Show procedure",
+    "hideProcedureDescription":
+        "This procedure will disappear from new treatment and laboratory selections. Existing patient history will remain unchanged.",
     "toothRequired": "Tooth required",
     "unknownFromSource": "Unknown from source",
     "odontogramFoundation": "Odontogram beta",

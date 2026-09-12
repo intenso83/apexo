@@ -351,6 +351,10 @@ class Fa implements En {
     "procedureName": "نام اقدام",
     "catalogueSearch": "جست‌وجوی نام یا کد منبع...",
     "hidden": "پنهان",
+    "hideProcedure": "پنهان کردن اقدام",
+    "showProcedure": "نمایش اقدام",
+    "hideProcedureDescription":
+        "این اقدام از انتخاب‌های جدید درمان و لابراتوار حذف می‌شود. سوابق موجود بیماران بدون تغییر باقی می‌ماند.",
     "toothRequired": "نیازمند انتخاب دندان",
     "unknownFromSource": "در منبع نامشخص",
     "odontogramFoundation": "ادونتوگرام آزمایشی",
