@@ -6,6 +6,7 @@ import 'package:apexo/features/appointments/appointments_store.dart';
 import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/treatment_history/treatment_history_model.dart';
 import 'package:apexo/features/treatment_history/treatment_history_store.dart';
+import 'package:apexo/features/treatment_payments/patient_treatment_payments.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
@@ -146,23 +147,30 @@ class PatientFinancialOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MStreamBuilder(
-      streams: [
-        treatmentHistory.observableMap.stream,
-        appointments.observableMap.stream,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PatientTreatmentPayments(patientID: patientID),
+        const SizedBox(height: 12),
+        MStreamBuilder(
+          streams: [
+            treatmentHistory.observableMap.stream,
+            appointments.observableMap.stream,
+          ],
+          builder: (context, snapshot) {
+            final history =
+                historyEntries ?? treatmentHistory.forPatient(patientID);
+            final doneAppointments = appointmentEntries ??
+                (appointments.byPatient[patientID]?['done'] ?? const []);
+            return _FinancialOverviewBody(
+              apexo: ApexoFinancialSnapshot.fromAppointments(doneAppointments),
+              legacy: LegacyFinancialSnapshot.fromEntries(history),
+              history: history,
+              currencySymbol: currencySymbol ?? currency(),
+            );
+          },
+        ),
       ],
-      builder: (context, snapshot) {
-        final history =
-            historyEntries ?? treatmentHistory.forPatient(patientID);
-        final doneAppointments = appointmentEntries ??
-            (appointments.byPatient[patientID]?['done'] ?? const []);
-        return _FinancialOverviewBody(
-          apexo: ApexoFinancialSnapshot.fromAppointments(doneAppointments),
-          legacy: LegacyFinancialSnapshot.fromEntries(history),
-          history: history,
-          currencySymbol: currencySymbol ?? currency(),
-        );
-      },
     );
   }
 }
@@ -198,7 +206,7 @@ class _FinancialOverviewBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _Section(
-          title: txt('currentApexoFinancials'),
+          title: txt('appointmentFinancialsHistorical'),
           child: _SummaryCards(
             cards: [
               _SummaryCardData(

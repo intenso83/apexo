@@ -7,6 +7,7 @@ import 'package:apexo/features/settings/settings_stores.dart';
 import 'package:apexo/features/therapy_catalog/procedure_catalog_model.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/therapy_catalog/therapy_group_model.dart';
+import 'package:apexo/features/treatment_payments/treatment_bill_store.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/services/login.dart';
 import 'package:apexo/services/perm.dart';
@@ -48,16 +49,29 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
   String selectedGroupID = '';
   String selectedProcedureID = '';
   String initializedProcedureGroupID = '';
+  bool showCustomTreatmentComposer = false;
   OdontogramEventStatus selectedStatus = OdontogramEventStatus.completed;
   String selectedLaboratoryID = '';
   double selectedLaboratoryCost = 0;
   final notesController = TextEditingController();
+  final customTreatmentNameController = TextEditingController();
+  final customTreatmentPriceController = TextEditingController();
+
+  double? get _customTreatmentPrice {
+    final raw = customTreatmentPriceController.text.trim().replaceAll(',', '.');
+    final price = double.tryParse(raw);
+    return raw.isNotEmpty && price != null && price.isFinite && price >= 0
+        ? price
+        : null;
+  }
 
   bool get canEdit => login.isAdmin || login.perm(Perm.patients).full;
 
   @override
   void dispose() {
     notesController.dispose();
+    customTreatmentNameController.dispose();
+    customTreatmentPriceController.dispose();
     super.dispose();
   }
 
@@ -69,14 +83,19 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
         therapyGroups.observableMap.stream,
         procedureCatalog.observableMap.stream,
         expenses.observableMap.stream,
+        treatmentBills.observableMap.stream,
+        treatmentPaymentEntries.observableMap.stream,
       ],
       builder: (context, _) {
         final groups = therapyGroups.ordered
             .where((group) => !group.hidden)
             .toList(growable: false);
         if (!groups.any((group) => group.id == selectedGroupID)) {
-          selectedGroupID = groups.firstOrNull?.id ?? '';
-          _clearProcedureSelection();
+          final nextGroupID = groups.firstOrNull?.id ?? '';
+          if (selectedGroupID != nextGroupID) {
+            selectedGroupID = nextGroupID;
+            _clearProcedureSelection();
+          }
         }
         final procedures = procedureCatalog
             .forGroup(selectedGroupID)
@@ -90,6 +109,13 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           _clearProcedureSelection();
         }
         final events = odontogramEvents.forPatient(widget.patientID);
+        final canViewPayments = login.isAdmin || login.perm(Perm.revenue).read;
+        final billsByEventID = <String, TreatmentBillAccount>{
+          if (canViewPayments)
+            for (final bill
+                in treatmentBills.accountsForPatient(widget.patientID))
+              bill.odontogramEventID: bill,
+        };
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -104,7 +130,11 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             LayoutBuilder(
               builder: (context, constraints) {
                 final composer = _buildComposer(groups, procedures);
-                final timeline = _EventTimeline(events: events);
+                final timeline = _EventTimeline(
+                  events: events,
+                  billsByEventID: billsByEventID,
+                  canViewPayments: canViewPayments,
+                );
                 if (constraints.maxWidth >= 820) {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +162,9 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
     List<ProcedureCatalogItem> procedures,
   ) {
     final selectedGroup = therapyGroups.get(selectedGroupID);
-    final selectedProcedure = procedureCatalog.get(selectedProcedureID);
+    final selectedProcedure = showCustomTreatmentComposer
+        ? null
+        : procedureCatalog.get(selectedProcedureID);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: _cardDecoration(context),
@@ -144,66 +176,143 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
             style: FluentTheme.of(context).typography.subtitle,
           ),
           const SizedBox(height: 10),
-          InfoLabel(
-            label: txt('therapyGroups'),
-            child: ComboBox<String>(
-              value: selectedGroupID.isEmpty ? null : selectedGroupID,
-              isExpanded: true,
-              items: groups
-                  .map(
-                    (group) => ComboBoxItem(
-                      value: group.id,
-                      child: Text(group.title),
+          Button(
+            key: const Key('show-custom-odontogram-treatment-composer'),
+            onPressed: canEdit
+                ? () => setState(() {
+                      showCustomTreatmentComposer =
+                          !showCustomTreatmentComposer;
+                      _clearProcedureSelection();
+                    })
+                : null,
+            child: ButtonContent(
+              showCustomTreatmentComposer
+                  ? FluentIcons.chevron_up
+                  : FluentIcons.add,
+              txt('customOdontogramTreatment'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (showCustomTreatmentComposer) ...[
+            Text(txt('customOdontogramTreatmentDescription')),
+            const SizedBox(height: 9),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.end,
+              children: [
+                SizedBox(
+                  width: 280,
+                  child: InfoLabel(
+                    label: txt('customTreatmentNameRequired'),
+                    child: TextBox(
+                      key: const Key('custom-odontogram-treatment-name'),
+                      controller: customTreatmentNameController,
+                      enabled: canEdit,
+                      onChanged: (_) => setState(() {}),
                     ),
-                  )
-                  .toList(),
-              onChanged: canEdit
-                  ? (value) => setState(() {
-                        selectedGroupID = value ?? '';
-                        _clearProcedureSelection();
-                      })
-                  : null,
+                  ),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: InfoLabel(
+                    label:
+                        '${txt('customTreatmentPriceRequired')} (${currency()})',
+                    child: TextBox(
+                      key: const Key('custom-odontogram-treatment-price'),
+                      controller: customTreatmentPriceController,
+                      enabled: canEdit,
+                      placeholder: '0,00',
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 9),
-          InfoLabel(
-            label: txt('procedureName'),
-            child: TagInputWidget(
-              key: const Key('procedure-selector'),
-              strict: true,
-              limit: 1,
-              multiline: false,
-              enabled: canEdit,
-              placeholder: txt('catalogueSearch'),
-              initialValue: procedures
-                  .where((procedure) => procedure.id == selectedProcedureID)
-                  .map((procedure) => TagInputItem(
-                        value: procedure.id,
-                        label: procedure.title,
-                        searchText:
-                            '${procedure.title} ${procedure.sourceCode}',
-                      ))
-                  .toList(),
-              suggestions: procedures
-                  .map((procedure) => TagInputItem(
-                        value: procedure.id,
-                        label: procedure.title,
-                        searchText:
-                            '${procedure.title} ${procedure.sourceCode}',
-                      ))
-                  .toList(),
-              onChanged: (items) {
-                if (!canEdit) return;
-                _selectProcedure(items.isEmpty ? '' : items.first.value ?? '');
-              },
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                Checkbox(
+                  key: const Key('custom-odontogram-patient-scope'),
+                  checked: selectedTargetScope == TreatmentTargetScope.patient,
+                  onChanged: canEdit
+                      ? (value) => setState(() {
+                            selectedTargetScope = value == true
+                                ? TreatmentTargetScope.patient
+                                : TreatmentTargetScope.tooth;
+                            selectedSurfaces.clear();
+                          })
+                      : null,
+                ),
+                const SizedBox(width: 7),
+                Expanded(child: Text(txt('customTreatmentPatientScope'))),
+              ],
             ),
-          ),
-          if (groups.isEmpty) ...[
-            const SizedBox(height: 8),
-            InfoBar(
-              title: Text(txt('catalogueRequiredFirst')),
-              severity: InfoBarSeverity.warning,
+          ] else ...[
+            InfoLabel(
+              label: txt('therapyGroups'),
+              child: ComboBox<String>(
+                value: selectedGroupID.isEmpty ? null : selectedGroupID,
+                isExpanded: true,
+                items: groups
+                    .map(
+                      (group) => ComboBoxItem(
+                        value: group.id,
+                        child: Text(group.title),
+                      ),
+                    )
+                    .toList(),
+                onChanged: canEdit
+                    ? (value) => setState(() {
+                          selectedGroupID = value ?? '';
+                          _clearProcedureSelection();
+                        })
+                    : null,
+              ),
             ),
+            const SizedBox(height: 9),
+            InfoLabel(
+              label: txt('procedureName'),
+              child: TagInputWidget(
+                key: const Key('procedure-selector'),
+                strict: true,
+                limit: 1,
+                multiline: false,
+                enabled: canEdit,
+                placeholder: txt('catalogueSearch'),
+                initialValue: procedures
+                    .where((procedure) => procedure.id == selectedProcedureID)
+                    .map((procedure) => TagInputItem(
+                          value: procedure.id,
+                          label: procedure.title,
+                          searchText:
+                              '${procedure.title} ${procedure.sourceCode}',
+                        ))
+                    .toList(),
+                suggestions: procedures
+                    .map((procedure) => TagInputItem(
+                          value: procedure.id,
+                          label: procedure.title,
+                          searchText:
+                              '${procedure.title} ${procedure.sourceCode}',
+                        ))
+                    .toList(),
+                onChanged: (items) {
+                  if (!canEdit) return;
+                  _selectProcedure(
+                      items.isEmpty ? '' : items.first.value ?? '');
+                },
+              ),
+            ),
+            if (groups.isEmpty) ...[
+              const SizedBox(height: 8),
+              InfoBar(
+                title: Text(txt('catalogueRequiredFirst')),
+                severity: InfoBarSeverity.warning,
+              ),
+            ],
           ],
           const SizedBox(height: 9),
           if (selectedProcedure != null)
@@ -261,7 +370,9 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           ),
           const SizedBox(height: 9),
           InfoLabel(
-            label: txt('notes'),
+            label: showCustomTreatmentComposer
+                ? txt('customTreatmentNotes')
+                : txt('notes'),
             child: TextBox(
               controller: notesController,
               maxLines: 3,
@@ -270,16 +381,26 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
           ),
           const SizedBox(height: 12),
           FilledButton(
-            key: const Key('record-treatment-event'),
+            key: Key(showCustomTreatmentComposer
+                ? 'record-custom-odontogram-treatment-event'
+                : 'record-treatment-event'),
             onPressed: canEdit &&
-                    selectedGroup != null &&
-                    selectedProcedure != null &&
+                    (showCustomTreatmentComposer
+                        ? customTreatmentNameController.text
+                                .trim()
+                                .isNotEmpty &&
+                            _customTreatmentPrice != null
+                        : selectedGroup != null && selectedProcedure != null) &&
                     _targetConfigurationValid
-                ? () => _recordEvent(selectedGroup, selectedProcedure)
+                ? () => showCustomTreatmentComposer
+                    ? _recordCustomEvent()
+                    : _recordEvent(selectedGroup!, selectedProcedure!)
                 : null,
             child: ButtonContent(
               FluentIcons.add_event,
-              txt('recordOdontogramEvent'),
+              showCustomTreatmentComposer
+                  ? txt('recordCustomOdontogramTreatment')
+                  : txt('recordOdontogramEvent'),
             ),
           ),
         ],
@@ -941,6 +1062,40 @@ class _PatientOdontogramState extends State<PatientOdontogram> {
       _applyProcedureDefaults(procedure);
     });
   }
+
+  void _recordCustomEvent() {
+    final name = customTreatmentNameController.text.trim();
+    final price = _customTreatmentPrice;
+    if (name.isEmpty || price == null) return;
+    final event = OdontogramEvent.fromJson({
+      'patientID': widget.patientID,
+      'targetScope': selectedTargetScope.name,
+      if (selectedTargetScope == TreatmentTargetScope.tooth) ...{
+        'toothFdi': selectedFdi,
+        'surfaces': selectedSurfaces.map((surface) => surface.name).toList(),
+      },
+      'procedureNameSnapshot': name,
+      'therapyGroupNameSnapshot': txt('customOdontogramTreatment'),
+      'overlayKind': OdontogramOverlayKind.none.name,
+      'priceSnapshot': price,
+      'eventKind': OdontogramEventKind.treatment.name,
+      'status': selectedStatus.name,
+      'recordedAt': (DateTime.now().millisecondsSinceEpoch / 60000).round(),
+      'notes': notesController.text.trim(),
+      'migration': {
+        'source': 'odontogram_free_text',
+        'isCustom': true,
+        'financialMutation': false,
+      },
+    });
+    odontogramEvents.set(event);
+    setState(() {
+      customTreatmentNameController.clear();
+      customTreatmentPriceController.clear();
+      notesController.clear();
+      selectedSurfaces.clear();
+    });
+  }
 }
 
 class _ProcedureHandlingBadge extends StatelessWidget {
@@ -1349,10 +1504,71 @@ class _EventOverlayBadge extends StatelessWidget {
   }
 }
 
+/// A glanceable account summary for one explicitly billed treatment. An
+/// unconfirmed catalogue/reference price is never presented as a debt.
+class _EventPaymentStrip extends StatelessWidget {
+  const _EventPaymentStrip({required this.eventID, required this.account});
+
+  final String eventID;
+  final TreatmentBillAccount? account;
+
+  String _money(double value) =>
+      '${value.toStringAsFixed(2)} ${currency().trim()}';
+
+  @override
+  Widget build(BuildContext context) {
+    final bill = account;
+    final accent = bill == null
+        ? Colors.grey
+        : bill.isOverpaid
+            ? Colors.red
+            : bill.isFullyPaid
+                ? Colors.teal
+                : Colors.orange;
+    final caption = FluentTheme.of(context).typography.caption;
+    return Container(
+      key: Key('odontogram-payment-$eventID'),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: bill == null
+          ? Text(txt('treatmentPaymentUncharged'), style: caption)
+          : Wrap(
+              spacing: 10,
+              runSpacing: 3,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text('${txt('price')}: ${_money(bill.chargeAmount)}',
+                    style: caption),
+                Text('${txt('paid')}: ${_money(bill.paidAmount)}',
+                    style: caption),
+                Text(
+                  bill.isFullyPaid
+                      ? txt('fullyPaid')
+                      : '${txt(bill.isOverpaid ? 'overpaid' : 'underpaid')}: ${_money(bill.balance.abs())}',
+                  style: caption?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
 class _EventTimeline extends StatelessWidget {
-  const _EventTimeline({required this.events});
+  const _EventTimeline({
+    required this.events,
+    required this.billsByEventID,
+    required this.canViewPayments,
+  });
 
   final List<OdontogramEvent> events;
+  final Map<String, TreatmentBillAccount> billsByEventID;
+  final bool canViewPayments;
 
   @override
   Widget build(BuildContext context) {
@@ -1408,6 +1624,26 @@ class _EventTimeline extends StatelessWidget {
                     Text(
                       _targetDescription(event),
                     ),
+                    if (canViewPayments &&
+                        event.eventKind == OdontogramEventKind.treatment &&
+                        (billsByEventID.containsKey(event.id) ||
+                            (event.treatmentHistoryID.isEmpty &&
+                                event.status ==
+                                    OdontogramEventStatus.completed))) ...[
+                      const SizedBox(height: 5),
+                      _EventPaymentStrip(
+                        eventID: event.id,
+                        account: billsByEventID[event.id],
+                      ),
+                    ],
+                    if (event.migration['source'] == 'odontogram_free_text' &&
+                        event.priceSnapshot != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${txt('customTreatmentReferencePrice')}: ${event.priceSnapshot!.toStringAsFixed(2)} ${currency()}',
+                        style: FluentTheme.of(context).typography.caption,
+                      ),
+                    ],
                     if (event.notes.isNotEmpty) ...[
                       const SizedBox(height: 5),
                       Text(event.notes),

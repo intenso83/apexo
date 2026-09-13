@@ -8,6 +8,7 @@ import 'package:apexo/features/dicom/dicom_screen.dart';
 import 'package:apexo/features/dashboard/dashboard_screen.dart';
 import 'package:apexo/features/clinical_beta/clinical_beta_screen.dart';
 import 'package:apexo/features/expenses/expenses_screen.dart';
+import 'package:apexo/features/finances/finances_screen.dart';
 import 'package:apexo/features/labwork/labworks_screen.dart';
 import 'package:apexo/features/medical_history/medical_history_store.dart';
 import 'package:apexo/features/notes/notes_screen.dart';
@@ -23,6 +24,7 @@ import 'package:apexo/services/login.dart';
 import 'package:apexo/services/launch.dart';
 import 'package:apexo/features/expenses/expenses_store.dart';
 import 'package:apexo/features/patients/patients_store.dart';
+import 'package:apexo/features/treatment_payments/treatment_bill_store.dart';
 import 'package:apexo/services/perm.dart';
 import 'package:apexo/utils/constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -291,6 +293,27 @@ class _Routes {
               await accounts.reloadFromRemote();
               await patients.synchronize();
               expenses.synchronize();
+            },
+          ),
+        if (login.perm(Perm.revenue).read ||
+            login.perm(Perm.expenses).some ||
+            login.isAdmin)
+          Route(
+            title: txt('finances'),
+            identifier: 'finances',
+            navbarTitle: txt('finances'),
+            icon: FluentIcons.payment_card,
+            screen: FinancesScreen.new,
+            accessible: true,
+            onSelect: () async {
+              if (login.isAdmin || login.perm(Perm.revenue).read) {
+                await patients.synchronize();
+                await treatmentBills.synchronize();
+                await treatmentPaymentEntries.synchronize();
+              }
+              if (login.isAdmin || login.perm(Perm.expenses).some) {
+                await expenses.synchronize();
+              }
             },
           ),
         if (login.perm(Perm.stats).some || login.isAdmin)

@@ -44,7 +44,16 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
   String? selectedGroupID;
   String? selectedProcedureID;
   String? initializedProcedureGroupID;
+  bool showCustomTreatmentComposer = false;
+  bool customTreatmentToothScope = false;
+  final TextEditingController customTreatmentNameController =
+      TextEditingController();
+  final TextEditingController customTreatmentDescriptionController =
+      TextEditingController();
+  final TextEditingController customTreatmentPriceController =
+      TextEditingController();
   int draftSelectedFdi = 11;
+  final Set<int> draftSelectedFdis = {11};
   int? bridgeRangeAnchorFdi;
   final Map<String, int> bridgeDraftTooth = {};
   final Map<String, BridgeUnitRole> bridgeDraftRole = {};
@@ -55,6 +64,14 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
   void initState() {
     super.initState();
     translationsFuture = TreatmentCatalogueTranslations.load();
+  }
+
+  @override
+  void dispose() {
+    customTreatmentNameController.dispose();
+    customTreatmentDescriptionController.dispose();
+    customTreatmentPriceController.dispose();
+    super.dispose();
   }
 
   @override
@@ -135,7 +152,13 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                         child: Text(plan.title),
                       ))
                   .toList(),
-              onChanged: (value) => setState(() => selectedPlanID = value),
+              onChanged: (value) => setState(() {
+                selectedPlanID = value;
+                selectedItemID = null;
+                draftSelectedFdis
+                  ..clear()
+                  ..add(draftSelectedFdi);
+              }),
             ),
           FilledButton(
             key: const Key('new-treatment-plan'),
@@ -179,11 +202,13 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         const SizedBox(height: 10),
         _buildCatalogueComposer(plan, translations),
         const SizedBox(height: 10),
+        _buildCustomTreatmentComposer(plan),
+        const SizedBox(height: 10),
         if (plan.items.isEmpty)
           const InfoBar(
             title: Text('Δεν έχουν προστεθεί θεραπείες'),
             content: Text(
-              'Επιλέξτε ομάδα και θεραπεία από τον κατάλογο για να δημιουργήσετε το σχέδιο.',
+              'Επιλέξτε θεραπεία από τον κατάλογο ή προσθέστε μία ελεύθερη θεραπεία.',
             ),
           )
         else ...[
@@ -282,19 +307,21 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         .map(_planItemAsOdontogramEvent)
         .toList(growable: false);
     final clinicalEvents = odontogramEvents.forPatient(widget.patient.id);
-    final selectedTeeth = selectedItem == null
-        ? <int>{draftSelectedFdi}
-        : _itemTeeth(selectedItem).toSet();
-    if (selectedTeeth.isEmpty) selectedTeeth.add(draftSelectedFdi);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PatientOdontogramChart(
-          selectedFdis: selectedTeeth,
+          selectedFdis: draftSelectedFdis,
           bridgeUnits: selectedItem?.bridgeUnits ?? const <BridgeUnit>[],
           events: [...planEvents, ...clinicalEvents],
           onSelected: (fdi, extendSelection) =>
               _selectPlanningTooth(plan, fdi, extendSelection),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Κλικ: ένα δόντι · Shift + κλικ: πολλά δόντια για θεραπείες ανά δόντι '
+          '(${draftSelectedFdis.length} επιλεγμένα). Στη γέφυρα επιλέγεται εύρος.',
+          style: FluentTheme.of(context).typography.caption,
         ),
         const SizedBox(height: 6),
         const Wrap(
@@ -361,6 +388,19 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     var changed = false;
     setState(() {
       draftSelectedFdi = fdi;
+      if (extendSelection && item?.targetScope != TreatmentTargetScope.bridge) {
+        if (!draftSelectedFdis.add(fdi) && draftSelectedFdis.length > 1) {
+          draftSelectedFdis.remove(fdi);
+          draftSelectedFdi = draftSelectedFdis.last;
+        }
+        return;
+      }
+      if (!extendSelection ||
+          item?.targetScope != TreatmentTargetScope.bridge) {
+        draftSelectedFdis
+          ..clear()
+          ..add(fdi);
+      }
       if (item == null || item.isCompleted) return;
       switch (item.targetScope) {
         case TreatmentTargetScope.patient:
@@ -374,6 +414,9 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
           if (extendSelection) {
             final range = _fdiRange(anchor, fdi);
             if (range != null) {
+              draftSelectedFdis
+                ..clear()
+                ..addAll(range);
               item.bridgeUnits
                 ..clear()
                 ..addAll(range.indexed.map((entry) => BridgeUnit(
@@ -471,7 +514,16 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
       onTap: () => setState(() {
         selectedItemID = item.id;
         final teeth = _itemTeeth(item);
-        if (teeth.isNotEmpty) draftSelectedFdi = teeth.first;
+        if (teeth.isNotEmpty) {
+          draftSelectedFdi = teeth.first;
+          draftSelectedFdis
+            ..clear()
+            ..addAll(teeth);
+        } else {
+          draftSelectedFdis
+            ..clear()
+            ..add(draftSelectedFdi);
+        }
       }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
@@ -667,6 +719,15 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         !procedures.any((procedure) => procedure.id == selectedProcedureID)) {
       selectedProcedureID = null;
     }
+    final chosenProcedure = procedureCatalog.get(selectedProcedureID ?? '');
+    final batchToothCount = chosenProcedure != null &&
+            procedureCatalog
+                    .handlingDecision(chosenProcedure)
+                    .mode
+                    .targetScope ==
+                TreatmentTargetScope.tooth
+        ? draftSelectedFdis.length
+        : 1;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -755,17 +816,141 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
                 onPressed: selectedProcedureID == null
                     ? null
                     : () => _addProcedure(plan, translations),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(FluentIcons.add),
-                    SizedBox(width: 6),
-                    Text('Προσθήκη'),
+                    const Icon(FluentIcons.add),
+                    const SizedBox(width: 6),
+                    Text(batchToothCount > 1
+                        ? 'Προσθήκη σε $batchToothCount δόντια'
+                        : 'Προσθήκη'),
                   ],
                 ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  double? get _customTreatmentPrice {
+    final raw = customTreatmentPriceController.text.trim().replaceAll(',', '.');
+    final parsed = double.tryParse(raw);
+    if (raw.isEmpty || parsed == null || !parsed.isFinite || parsed < 0) {
+      return null;
+    }
+    return parsed;
+  }
+
+  Widget _buildCustomTreatmentComposer(TreatmentPlan plan) {
+    final canAdd = customTreatmentNameController.text.trim().isNotEmpty &&
+        _customTreatmentPrice != null;
+    final toothCount = draftSelectedFdis.isEmpty ? 1 : draftSelectedFdis.length;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: FluentTheme.of(context).resources.cardBackgroundFillColorDefault,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withAlpha(45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Button(
+            key: const Key('show-custom-treatment-composer'),
+            onPressed: () => setState(() {
+              showCustomTreatmentComposer = !showCustomTreatmentComposer;
+            }),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(showCustomTreatmentComposer
+                    ? FluentIcons.chevron_up
+                    : FluentIcons.add),
+                const SizedBox(width: 6),
+                const Text('Ελεύθερη θεραπεία'),
+              ],
+            ),
+          ),
+          if (showCustomTreatmentComposer) ...[
+            const SizedBox(height: 10),
+            const Text(
+              'Μόνο για αυτό το σχέδιο· δεν προστίθεται στον κατάλογο. '
+              'Η τιμή εμφανίζεται στο σχέδιο και στο PDF, χωρίς αυτόματη χρέωση υπολοίπου.',
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: InfoLabel(
+                    label: 'Όνομα θεραπείας *',
+                    child: TextBox(
+                      key: const Key('custom-treatment-name'),
+                      controller: customTreatmentNameController,
+                      placeholder: 'Περιγράψτε τη θεραπεία',
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 165,
+                  child: InfoLabel(
+                    label: 'Τιμή (${currency()}) *',
+                    child: TextBox(
+                      key: const Key('custom-treatment-price'),
+                      controller: customTreatmentPriceController,
+                      placeholder: '0,00',
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            InfoLabel(
+              label: 'Περιγραφή (προαιρετική, εμφανίζεται στο PDF)',
+              child: TextBox(
+                key: const Key('custom-treatment-description'),
+                controller: customTreatmentDescriptionController,
+                minLines: 2,
+                maxLines: 3,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      key: const Key('custom-treatment-tooth-scope'),
+                      checked: customTreatmentToothScope,
+                      onChanged: (value) => setState(() {
+                        customTreatmentToothScope = value ?? false;
+                      }),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text('Στα επιλεγμένα δόντια'),
+                  ],
+                ),
+                FilledButton(
+                  key: const Key('add-custom-treatment-plan-item'),
+                  onPressed: canAdd ? () => _addCustomTreatment(plan) : null,
+                  child: Text(customTreatmentToothScope && toothCount > 1
+                      ? 'Προσθήκη σε $toothCount δόντια'
+                      : 'Προσθήκη ελεύθερης θεραπείας'),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -802,6 +987,21 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
             ],
           ),
           const SizedBox(height: 10),
+          if (item.isCustom && !completed) ...[
+            _PersistedTextBox(
+              key: ValueKey('plan-item-custom-name-${item.id}'),
+              label: 'Όνομα ελεύθερης θεραπείας',
+              value: item.procedureNameElSnapshot,
+              onChanged: (value) {
+                if (value.trim().isEmpty) return;
+                item.procedureNameElSnapshot = value;
+                item.procedureNameEnSnapshot = value;
+                item.procedureNameDeSnapshot = value;
+                treatmentPlans.set(plan);
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -868,7 +1068,9 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
           const SizedBox(height: 8),
           _PersistedTextBox(
             key: ValueKey('plan-item-notes-${item.id}'),
-            label: 'Σημειώσεις',
+            label: item.isCustom
+                ? 'Περιγραφή (εμφανίζεται στο PDF)'
+                : 'Σημειώσεις',
             value: item.notes,
             enabled: !completed,
             multiline: true,
@@ -1543,7 +1745,13 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
       'consentTextDe': globalSettings.treatmentPlanConsentDe,
     });
     treatmentPlans.set(plan);
-    setState(() => selectedPlanID = plan.id);
+    setState(() {
+      selectedPlanID = plan.id;
+      selectedItemID = null;
+      draftSelectedFdis
+        ..clear()
+        ..add(draftSelectedFdi);
+    });
   }
 
   List<int>? _fdiRange(int start, int end) {
@@ -1567,6 +1775,39 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
         : BridgeUnitRole.pontic;
   }
 
+  void _addCustomTreatment(TreatmentPlan plan) {
+    final name = customTreatmentNameController.text.trim();
+    final price = _customTreatmentPrice;
+    if (name.isEmpty || price == null) return;
+
+    final description = customTreatmentDescriptionController.text.trim();
+    final teeth = draftSelectedFdis.isEmpty
+        ? <int>[draftSelectedFdi]
+        : draftSelectedFdis.toList(growable: false);
+    final newItems = <TreatmentPlanItem>[];
+    for (final toothFdi in customTreatmentToothScope ? teeth : <int?>[null]) {
+      final item = TreatmentPlanItem()
+        ..isCustom = true
+        ..procedureNameElSnapshot = name
+        ..procedureNameEnSnapshot = name
+        ..procedureNameDeSnapshot = name
+        ..handlingMode = customTreatmentToothScope
+            ? ProcedureHandlingMode.surfaceBased
+            : ProcedureHandlingMode.patientLevel
+        ..toothFdi = toothFdi
+        ..unitPrice = price
+        ..notes = description;
+      newItems.add(item);
+    }
+    plan.items.addAll(newItems);
+    selectedItemID = newItems.last.id;
+    treatmentPlans.set(plan);
+    customTreatmentNameController.clear();
+    customTreatmentDescriptionController.clear();
+    customTreatmentPriceController.clear();
+    setState(() => customTreatmentToothScope = false);
+  }
+
   void _addProcedure(
     TreatmentPlan plan,
     TreatmentCatalogueTranslations translations,
@@ -1575,39 +1816,63 @@ class _PatientTreatmentPlanningState extends State<PatientTreatmentPlanning> {
     if (procedure == null) return;
     final translation = translations.forProcedure(procedure);
     final decision = procedureCatalog.handlingDecision(procedure);
-    final item = TreatmentPlanItem()
-      ..procedureID = procedure.id
-      ..procedureNameElSnapshot = procedure.title
-      ..procedureNameEnSnapshot = translation?.english ?? procedure.title
-      ..procedureNameDeSnapshot = translation?.german ?? procedure.title
-      ..therapyGroupID = procedure.therapyGroupID
-      ..therapyGroupNameSnapshot =
-          therapyGroups.get(procedure.therapyGroupID)?.title ?? ''
-      ..handlingMode = decision.mode
-      ..odontogramOverlay = procedureCatalog.overlayFor(procedure)
-      ..unitPrice = procedure.basePrice
-      ..surfaces = [...decision.mode.automaticSurfaces];
-    switch (item.targetScope) {
-      case TreatmentTargetScope.patient:
-        break;
-      case TreatmentTargetScope.tooth:
-        item.toothFdi = draftSelectedFdi;
-      case TreatmentTargetScope.bridge:
-        item.bridgeUnits = [
-          BridgeUnit(
-            toothFdi: draftSelectedFdi,
-            role: BridgeUnitRole.abutment,
-          ),
-        ];
-        bridgeDraftTooth[item.id] = draftSelectedFdi;
-        bridgeRangeAnchorFdi = draftSelectedFdi;
-      case TreatmentTargetScope.removableProsthesis:
-        item.arch =
-            draftSelectedFdi ~/ 10 <= 2 ? DentalArch.upper : DentalArch.lower;
-        removableDraftTooth[item.id] = draftSelectedFdi;
+    final toothTargets = draftSelectedFdis.isEmpty
+        ? <int>[draftSelectedFdi]
+        : draftSelectedFdis.toList(growable: false);
+    final batchToothTreatment =
+        decision.mode.targetScope == TreatmentTargetScope.tooth &&
+            toothTargets.length > 1;
+    final targets = decision.mode.targetScope == TreatmentTargetScope.tooth
+        ? toothTargets
+        : <int>[draftSelectedFdi];
+    final newItems = <TreatmentPlanItem>[];
+    for (final toothFdi in targets) {
+      // A selected row can be the first member of a Shift-click batch. Keep
+      // that row (including any edited price/surfaces) instead of duplicating
+      // it when the same treatment is added to the remaining teeth.
+      if (batchToothTreatment &&
+          plan.items.any((existing) =>
+              existing.status == TreatmentPlanItemStatus.planned &&
+              existing.procedureID == procedure.id &&
+              existing.toothFdi == toothFdi)) {
+        continue;
+      }
+      final item = TreatmentPlanItem()
+        ..procedureID = procedure.id
+        ..procedureNameElSnapshot = procedure.title
+        ..procedureNameEnSnapshot = translation?.english ?? procedure.title
+        ..procedureNameDeSnapshot = translation?.german ?? procedure.title
+        ..therapyGroupID = procedure.therapyGroupID
+        ..therapyGroupNameSnapshot =
+            therapyGroups.get(procedure.therapyGroupID)?.title ?? ''
+        ..handlingMode = decision.mode
+        ..odontogramOverlay = procedureCatalog.overlayFor(procedure)
+        ..unitPrice = procedure.basePrice
+        ..surfaces = [...decision.mode.automaticSurfaces];
+      switch (item.targetScope) {
+        case TreatmentTargetScope.patient:
+          break;
+        case TreatmentTargetScope.tooth:
+          item.toothFdi = toothFdi;
+        case TreatmentTargetScope.bridge:
+          item.bridgeUnits = [
+            BridgeUnit(
+              toothFdi: draftSelectedFdi,
+              role: BridgeUnitRole.abutment,
+            ),
+          ];
+          bridgeDraftTooth[item.id] = draftSelectedFdi;
+          bridgeRangeAnchorFdi = draftSelectedFdi;
+        case TreatmentTargetScope.removableProsthesis:
+          item.arch =
+              draftSelectedFdi ~/ 10 <= 2 ? DentalArch.upper : DentalArch.lower;
+          removableDraftTooth[item.id] = draftSelectedFdi;
+      }
+      newItems.add(item);
     }
-    plan.items.add(item);
-    selectedItemID = item.id;
+    if (newItems.isEmpty) return;
+    plan.items.addAll(newItems);
+    selectedItemID = newItems.last.id;
     treatmentPlans.set(plan);
   }
 

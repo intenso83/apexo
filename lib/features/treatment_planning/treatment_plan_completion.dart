@@ -48,7 +48,9 @@ OdontogramEvent completeTreatmentPlanItem({
       'removableComponents': item.removableComponents
           .map((component) => component.toJson())
           .toList(),
-    'procedureID': item.procedureID,
+    // A one-off description is not a catalogue entry, even if an old record
+    // accidentally retained a procedure ID.
+    'procedureID': item.isCustom ? '' : item.procedureID,
     'procedureNameSnapshot': item.procedureNameElSnapshot,
     'therapyGroupID': item.therapyGroupID,
     'therapyGroupNameSnapshot': item.therapyGroupNameSnapshot,
@@ -67,6 +69,7 @@ OdontogramEvent completeTreatmentPlanItem({
       'source': 'treatment_plan',
       'treatmentPlanID': plan.id,
       'treatmentPlanItemID': item.id,
+      if (item.isCustom) 'isCustom': true,
       'financialMutation': false,
     },
   });

@@ -447,21 +447,40 @@ pw.Widget _itemsTable({
           money.format(item.net),
         ];
         return pw.TableRow(
-          children: cells
-              .map((cell) => pw.Padding(
-                    padding: const pw.EdgeInsets.all(6),
-                    child: pw.Text(
+          children: cells.asMap().entries.map((cellEntry) {
+            final column = cellEntry.key;
+            final cell = cellEntry.value;
+            final isAmount = column == cells.length - 1;
+            final description = item.isCustom ? item.notes.trim() : '';
+            return pw.Padding(
+              padding: const pw.EdgeInsets.all(6),
+              child: column == 1 && description.isNotEmpty
+                  ? pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          cell,
+                          style: pw.TextStyle(color: grey, fontSize: 7.4),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          description,
+                          style: pw.TextStyle(color: grey, fontSize: 6.8),
+                        ),
+                      ],
+                    )
+                  : pw.Text(
                       cell,
                       style: pw.TextStyle(
-                        color: cell == cells.last ? blue : grey,
+                        color: isAmount ? blue : grey,
                         fontSize: 7.4,
-                        fontWeight: cell == cells.last
+                        fontWeight: isAmount
                             ? pw.FontWeight.bold
                             : pw.FontWeight.normal,
                       ),
                     ),
-                  ))
-              .toList(),
+            );
+          }).toList(),
         );
       }),
     ],

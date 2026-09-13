@@ -11,6 +11,7 @@ import 'package:apexo/features/shopping/shopping_store.dart';
 import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
 import 'package:apexo/features/treatment_history/treatment_history_store.dart';
 import 'package:apexo/features/treatment_planning/treatment_plan_store.dart';
+import 'package:apexo/features/treatment_payments/treatment_bill_store.dart';
 
 initializeStores() {
   globalSettings.init();
@@ -21,6 +22,8 @@ initializeStores() {
   therapyGroups.init();
   procedureCatalog.init();
   odontogramEvents.init();
+  treatmentPaymentEntries.init();
+  treatmentBills.init();
   periodontalCharts.init();
   treatmentPlans.init();
   shoppingList.init();

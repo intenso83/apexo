@@ -199,6 +199,166 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets(
+      'records a one-off priced treatment on a tooth without changing the catalogue',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    final group = TherapyGroup.fromJson({
+      'id': 'free-text-group',
+      'name': 'Existing catalogue group',
+    });
+    final existingProcedure = ProcedureCatalogItem.fromJson({
+      'id': 'existing-procedure',
+      'name': 'Existing treatment',
+      'therapyGroupID': group.id,
+    });
+    therapyGroups.set(group);
+    procedureCatalog.set(existingProcedure);
+    final catalogueSize = procedureCatalog.observableMap.values.length;
+
+    tester.view.physicalSize = const Size(1400, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1400,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const Key('show-custom-odontogram-treatment-composer')),
+    );
+    await tester.pumpAndSettle();
+    final record =
+        find.byKey(const Key('record-custom-odontogram-treatment-event'));
+    expect(tester.widget<FilledButton>(record).onPressed, isNull);
+
+    await tester.enterText(
+      find.byKey(const Key('custom-odontogram-treatment-name')),
+      'Ειδική αποκατάσταση',
+    );
+    await tester.enterText(
+      find.byKey(const Key('custom-odontogram-treatment-price')),
+      '85.50',
+    );
+    await _tapSurface(
+      tester,
+      fdi: 11,
+      surface: DentalSurface.mesial,
+    );
+    await tester.tap(find.byKey(const Key('odontogram-status-planned')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(record).onPressed, isNotNull);
+
+    await tester.tap(record);
+    await tester.pumpAndSettle();
+
+    final event = odontogramEvents.forPatient('patient1234567').single;
+    expect(event.procedureNameSnapshot, 'Ειδική αποκατάσταση');
+    expect(event.procedureID, isEmpty);
+    expect(event.targetScope.name, 'tooth');
+    expect(event.toothFdi, 11);
+    expect(event.surfaces, ['mesial']);
+    expect(event.priceSnapshot, 85.5);
+    expect(event.status, OdontogramEventStatus.planned);
+    expect(event.overlayKind?.name, 'none');
+    expect(event.migration['source'], 'odontogram_free_text');
+    expect(event.migration['isCustom'], isTrue);
+    expect(event.migration['financialMutation'], isFalse);
+    expect(event.validationErrors(), isEmpty);
+    expect(procedureCatalog.observableMap.values, hasLength(catalogueSize));
+    expect(procedureCatalog.get(existingProcedure.id), same(existingProcedure));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('selected-tooth-treatment-panel')),
+        matching: find.text('Ειδική αποκατάσταση'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('selected-tooth-treatment-panel')),
+        matching: find.textContaining('85.50'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('allows patient-level one-off treatment without a tooth marker',
+      (tester) async {
+    launch.enterLocalDemo();
+    therapyGroups.observableMap.clear();
+    procedureCatalog.observableMap.clear();
+    odontogramEvents.observableMap.clear();
+
+    tester.view.physicalSize = const Size(1400, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      launch.exitLocalDemo();
+    });
+
+    await pumpApexoApp(
+      tester,
+      const SingleChildScrollView(
+        child: SizedBox(
+          width: 1400,
+          child: PatientOdontogram(patientID: 'patient1234567'),
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const Key('show-custom-odontogram-treatment-composer')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('custom-odontogram-patient-scope')),
+    );
+    await tester.enterText(
+      find.byKey(const Key('custom-odontogram-treatment-name')),
+      'Εξατομικευμένη συμβουλευτική',
+    );
+    await tester.enterText(
+      find.byKey(const Key('custom-odontogram-treatment-price')),
+      '0',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('record-custom-odontogram-treatment-event')),
+    );
+    await tester.pumpAndSettle();
+
+    final event = odontogramEvents.forPatient('patient1234567').single;
+    expect(event.targetScope.name, 'patient');
+    expect(event.toothFdi, isNull);
+    expect(event.surfaces, isEmpty);
+    expect(event.priceSnapshot, 0);
+    expect(event.drawsOnTooth(11), isFalse);
+    expect(event.validationErrors(), isEmpty);
+    expect(procedureCatalog.observableMap.values, isEmpty);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('shows the selected tooth history beside a wide odontogram',
       (tester) async {
     launch.enterLocalDemo();

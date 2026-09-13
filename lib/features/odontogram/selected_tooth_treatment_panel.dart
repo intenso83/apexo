@@ -259,6 +259,14 @@ class _SelectedToothEventCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
+          if (event.migration['source'] == 'odontogram_free_text' &&
+              event.priceSnapshot != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              '${txt('customTreatmentReferencePrice')}: ${event.priceSnapshot!.toStringAsFixed(2)} ${currency()}',
+              style: FluentTheme.of(context).typography.caption,
+            ),
+          ],
           if (event.laboratoryNameSnapshot.trim().isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(

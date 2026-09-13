@@ -10,8 +10,12 @@ import 'package:apexo/common_widgets/show_more_bar.dart';
 import 'package:apexo/common_widgets/teeth_selector/tx_options.dart';
 import 'package:apexo/core/multi_stream_builder.dart';
 import 'package:apexo/features/appointments/appointments_store.dart';
+import 'package:apexo/features/odontogram/odontogram_event_model.dart';
+import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/patients/open_patient_panel.dart';
 import 'package:apexo/features/patients/patient_model.dart';
+import 'package:apexo/features/therapy_catalog/therapy_catalog_store.dart';
+import 'package:apexo/features/treatment_history/treatment_history_store.dart';
 import 'package:apexo/services/localization/locale.dart';
 import 'package:apexo/features/patients/patients_store.dart';
 import 'package:apexo/features/patient_intake/patient_intake_dialog.dart';
@@ -32,6 +36,10 @@ class PatientsScreen extends StatelessWidget {
         streams: [
           patients.observableMap.stream,
           appointments.observableMap.stream,
+          therapyGroups.observableMap.stream,
+          procedureCatalog.observableMap.stream,
+          treatmentHistory.observableMap.stream,
+          odontogramEvents.observableMap.stream,
           routes.panels.stream
         ],
         builder: (context, snapshot) {
@@ -51,6 +59,8 @@ class _PatientsPage extends StatefulWidget {
 class _PatientsPageState extends State<_PatientsPage> {
   Set<String> selected = {};
   String? byTreatment;
+  String? byCatalogueGroupID;
+  String? byCatalogueProcedureID;
   int sortBy = -1;
   int sortDirection = 1;
   int slice = 10;
@@ -94,6 +104,19 @@ class _PatientsPageState extends State<_PatientsPage> {
   }
 
   void _updateItems() {
+    final visibleGroups = therapyGroups.ordered.where((group) => !group.hidden);
+    if (byCatalogueGroupID != null &&
+        !visibleGroups.any((group) => group.id == byCatalogueGroupID)) {
+      byCatalogueGroupID = null;
+      byCatalogueProcedureID = null;
+    }
+    if (byCatalogueProcedureID != null &&
+        !procedureCatalog.forGroup(byCatalogueGroupID ?? '').any(
+              (procedure) =>
+                  procedure.id == byCatalogueProcedureID && !procedure.hidden,
+            )) {
+      byCatalogueProcedureID = null;
+    }
     final searchString = _searchController.text;
     final words = normalizePatientSearch(searchString).split(" ");
 
@@ -115,6 +138,16 @@ class _PatientsPageState extends State<_PatientsPage> {
               patient.allPredefinedTreatments.contains("bridge");
         }
       }).toList();
+    }
+
+    if (byCatalogueGroupID != null) {
+      final matchingPatientIDs = _catalogueTreatmentPatientIDs(
+        byCatalogueGroupID!,
+        byCatalogueProcedureID,
+      );
+      candidates = candidates
+          .where((patient) => matchingPatientIDs.contains(patient.id))
+          .toList();
     }
 
     _totalFilteredCount = candidates.length;
@@ -143,6 +176,69 @@ class _PatientsPageState extends State<_PatientsPage> {
     setState(() {
       _displayedItems = result;
     });
+  }
+
+  /// Search the canonical imported history as well as native odontogram
+  /// entries. Only some DentalWin rows have drawable odontogram projections,
+  /// so using those projections alone would silently miss treatments.
+  Set<String> _catalogueTreatmentPatientIDs(
+    String groupID,
+    String? procedureID,
+  ) {
+    final group = therapyGroups.get(groupID);
+    if (group == null) return const {};
+    final canonicalGroupID = therapyGroups.canonicalID(groupID);
+    final groupName = normalizePatientSearch(group.title);
+    final procedures = procedureCatalog.forGroup(canonicalGroupID);
+    final sourceCodes = procedures
+        .map((procedure) => procedure.sourceCode.trim())
+        .where((code) => code.isNotEmpty)
+        .toSet();
+    final selectedProcedure =
+        procedureID == null ? null : procedureCatalog.get(procedureID);
+    final selectedSourceCode = selectedProcedure?.sourceCode.trim() ?? '';
+    final selectedCanonicalProcedureID =
+        procedureID == null ? null : procedureCatalog.canonicalID(procedureID);
+    final matching = <String>{};
+
+    for (final event in odontogramEvents.present.values) {
+      if (event.eventKind != OdontogramEventKind.treatment ||
+          event.status == OdontogramEventStatus.cancelled) {
+        continue;
+      }
+      final eventGroupID = event.therapyGroupID.isNotEmpty
+          ? event.therapyGroupID
+          : procedureCatalog.get(event.procedureID)?.therapyGroupID ?? '';
+      final inGroup = eventGroupID.isNotEmpty
+          ? therapyGroups.canonicalID(eventGroupID) == canonicalGroupID
+          : groupName.isNotEmpty &&
+              normalizePatientSearch(event.therapyGroupNameSnapshot) ==
+                  groupName;
+      if (!inGroup) continue;
+      if (selectedCanonicalProcedureID != null &&
+          (event.procedureID.isEmpty ||
+              procedureCatalog.canonicalID(event.procedureID) !=
+                  selectedCanonicalProcedureID)) {
+        continue;
+      }
+      matching.add(event.patientID);
+    }
+
+    for (final entry in treatmentHistory.present.values) {
+      final code = entry.sourceCatalogCode.trim();
+      final inGroup = (code.isNotEmpty && sourceCodes.contains(code)) ||
+          (groupName.isNotEmpty &&
+              normalizePatientSearch(entry.therapyGroup) == groupName);
+      if (!inGroup) continue;
+      // A saved source code is an exact DentalWin catalogue identity. A
+      // similar free-text name alone must not imply the same procedure.
+      if (selectedCanonicalProcedureID != null &&
+          (selectedSourceCode.isEmpty || code != selectedSourceCode)) {
+        continue;
+      }
+      matching.add(entry.patientID);
+    }
+    return matching;
   }
 
   @override
@@ -179,6 +275,9 @@ class _PatientsPageState extends State<_PatientsPage> {
               spacing: 5,
               children: [
                 _buildTxFilter(),
+                _buildCatalogueGroupFilter(),
+                if (byCatalogueGroupID != null)
+                  _buildCatalogueProcedureFilter(),
                 _buildsortByTitle(),
                 ..._buildSortByLabels()
               ],
@@ -437,6 +536,72 @@ class _PatientsPageState extends State<_PatientsPage> {
           },
         )
       ],
+    );
+  }
+
+  Widget _buildCatalogueGroupFilter() {
+    final groups = therapyGroups.ordered
+        .where((group) => !group.hidden)
+        .toList(growable: false);
+    return SizedBox(
+      width: 190,
+      child: ComboBox<String>(
+        key: const Key('patients-treatment-group-filter'),
+        isExpanded: true,
+        value: byCatalogueGroupID,
+        placeholder: Txt(txt('therapyGroups')),
+        items: [
+          ComboBoxItem<String>(
+            value: null,
+            child: Txt(txt('allTreatments')),
+          ),
+          for (final group in groups)
+            ComboBoxItem<String>(
+              value: group.id,
+              child: Text(group.title, overflow: TextOverflow.ellipsis),
+            ),
+        ],
+        onChanged: groups.isEmpty
+            ? null
+            : (groupID) {
+                setState(() {
+                  byCatalogueGroupID = groupID;
+                  byCatalogueProcedureID = null;
+                });
+                _updateItems();
+              },
+      ),
+    );
+  }
+
+  Widget _buildCatalogueProcedureFilter() {
+    final procedures = procedureCatalog
+        .forGroup(byCatalogueGroupID!)
+        .where((procedure) => !procedure.hidden)
+        .toList(growable: false);
+    return SizedBox(
+      width: 230,
+      child: ComboBox<String>(
+        key: const Key('patients-treatment-procedure-filter'),
+        isExpanded: true,
+        value: byCatalogueProcedureID,
+        placeholder: Txt(txt('allTreatments')),
+        items: [
+          ComboBoxItem<String>(
+            value: null,
+            child: Txt(txt('allTreatments')),
+          ),
+          for (final procedure in procedures)
+            ComboBoxItem<String>(
+              value: procedure.id,
+              child: Text(procedure.title, overflow: TextOverflow.ellipsis),
+            ),
+        ],
+        onChanged: (procedureID) {
+          setState(() => byCatalogueProcedureID = procedureID);
+          _updateItems();
+        },
+      ),
     );
   }
 

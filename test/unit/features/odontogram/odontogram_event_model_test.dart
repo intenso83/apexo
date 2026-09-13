@@ -133,6 +133,71 @@ void main() {
     expect(event.validationErrors(), isEmpty);
   });
 
+  test('only marked one-off plan completions may omit a catalogue ID', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'patient',
+      'procedureNameSnapshot': 'One-off treatment',
+      'eventKind': 'treatment',
+      'status': 'completed',
+      'migration': {
+        'source': 'treatment_plan',
+        'treatmentPlanItemID': 'item12345678901',
+        'isCustom': true,
+      },
+    });
+
+    expect(event.procedureID, isEmpty);
+    expect(event.validationErrors(), isEmpty);
+    expect(
+        OdontogramEvent.fromJson(event.toJson()).validationErrors(), isEmpty);
+
+    final ordinary = OdontogramEvent.fromJson({
+      ...event.toJson(),
+      'migration': {'source': 'treatment_plan'},
+    });
+    expect(ordinary.validationErrors(), contains('procedureID'));
+
+    final otherSource = OdontogramEvent.fromJson({
+      ...event.toJson(),
+      'migration': {
+        'source': 'native',
+        'treatmentPlanItemID': 'item12345678901',
+        'isCustom': true,
+      },
+    });
+    expect(otherSource.validationErrors(), contains('procedureID'));
+  });
+
+  test('marked free-text odontogram entry is valid without a catalogue ID', () {
+    final event = OdontogramEvent.fromJson({
+      'patientID': 'patient1234567',
+      'targetScope': 'tooth',
+      'toothFdi': 11,
+      'surfaces': ['mesial'],
+      'procedureNameSnapshot': 'One-off restoration',
+      'priceSnapshot': 85,
+      'eventKind': 'treatment',
+      'status': 'completed',
+      'migration': {
+        'source': 'odontogram_free_text',
+        'isCustom': true,
+        'financialMutation': false,
+      },
+    });
+
+    expect(event.procedureID, isEmpty);
+    expect(event.validationErrors(), isEmpty);
+    expect(
+        OdontogramEvent.fromJson(event.toJson()).validationErrors(), isEmpty);
+
+    final unmarked = OdontogramEvent.fromJson({
+      ...event.toJson(),
+      'migration': {'source': 'odontogram_free_text'},
+    });
+    expect(unmarked.validationErrors(), contains('procedureID'));
+  });
+
   test('bridge remains one event with explicit unit roles', () {
     final event = OdontogramEvent.fromJson({
       'patientID': 'patient1234567',

@@ -17,6 +17,9 @@ class TreatmentPlanItem {
   TreatmentPlanItem({String? id}) : id = id ?? uuid();
 
   String id;
+
+  /// One-off entry with no catalogue procedure to resolve later.
+  bool isCustom = false;
   String procedureID = '';
   String procedureNameElSnapshot = '';
   String procedureNameEnSnapshot = '';
@@ -44,6 +47,7 @@ class TreatmentPlanItem {
 
   factory TreatmentPlanItem.fromJson(Map<String, dynamic> json) {
     final item = TreatmentPlanItem(id: json['id']?.toString());
+    item.isCustom = json['isCustom'] == true;
     item.procedureID = json['procedureID']?.toString() ?? '';
     item.procedureNameElSnapshot =
         json['procedureNameElSnapshot']?.toString() ?? '';
@@ -92,6 +96,7 @@ class TreatmentPlanItem {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        if (isCustom) 'isCustom': true,
         'procedureID': procedureID,
         'procedureNameElSnapshot': procedureNameElSnapshot,
         if (procedureNameEnSnapshot.isNotEmpty)

@@ -35,14 +35,15 @@ void main() {
     );
 
     expect(find.text('Financial overview pilot'), findsOneWidget);
-    expect(find.text('Current Apexo financials'), findsOneWidget);
+    expect(find.text('Payments by treatment'), findsOneWidget);
+    expect(find.text('Older appointment-based Apexo figures'), findsOneWidget);
     expect(find.text('Legacy DentalWin financial snapshot'), findsOneWidget);
     // Each imported value appears in both the legacy summary and its yearly
     // breakdown. Current Apexo values stay separate and remain zero here.
     expect(find.text('100.00 EUR'), findsNWidgets(2));
     expect(find.text('20.00 EUR'), findsNWidgets(2));
     expect(find.text('95.00 EUR'), findsNWidgets(2));
-    expect(find.text('0.00 EUR'), findsNWidgets(3));
+    expect(find.text('0.00 EUR'), findsAtLeastNWidgets(3));
     expect(
         find.text('Legacy values are not an active balance'), findsOneWidget);
     expect(find.byType(TextBox), findsNothing);

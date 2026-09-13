@@ -620,7 +620,6 @@ class _OperativeDetailsState extends State<_OperativeDetails> {
   final TextEditingController postOpNotesController = TextEditingController();
   final MoneyEditingController priceController = MoneyEditingController();
   final MoneyEditingController paidController = MoneyEditingController();
-  bool didNotEditPaidYet = true;
 
   void setToDone() {
     setState(() {
@@ -640,7 +639,6 @@ class _OperativeDetailsState extends State<_OperativeDetails> {
   void initState() {
     super.initState();
     _fillControllers();
-    if (widget.appointment.paid != 0) didNotEditPaidYet = false;
     transcriptionEditCounter.observe(_updateWhenTranscriptionOccurs);
   }
 
@@ -817,6 +815,12 @@ class _OperativeDetailsState extends State<_OperativeDetails> {
                 );
               }),
         const Divider(direction: Axis.horizontal),
+        InfoBar(
+          severity: InfoBarSeverity.info,
+          title: Text(txt('appointmentFinancialsHistorical')),
+          content: Text(txt('financesScopeNote')),
+        ),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
@@ -825,17 +829,7 @@ class _OperativeDetailsState extends State<_OperativeDetails> {
                 child: CupertinoTextField(
                   key: WK.fieldAppointmentPrice,
                   controller: priceController,
-                  onChanged: (v) {
-                    setState(() {
-                      widget.appointment.price = moneyInputFormatter.parse(v);
-                      if (didNotEditPaidYet) {
-                        widget.appointment.paid = widget.appointment.price;
-                        paidController.text = moneyInputFormatter
-                            .formatDouble(widget.appointment.paid);
-                      }
-                      widget.appointment.isDone = true;
-                    });
-                  },
+                  readOnly: true,
                   placeholder: txt("price"),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -850,13 +844,7 @@ class _OperativeDetailsState extends State<_OperativeDetails> {
                 child: CupertinoTextField(
                   key: WK.fieldAppointmentPayment,
                   controller: paidController,
-                  onChanged: (v) {
-                    setState(() {
-                      didNotEditPaidYet = false;
-                      widget.appointment.paid = moneyInputFormatter.parse(v);
-                      widget.appointment.isDone = true;
-                    });
-                  },
+                  readOnly: true,
                   placeholder: txt("paid"),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),

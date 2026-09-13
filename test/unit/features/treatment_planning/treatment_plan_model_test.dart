@@ -88,6 +88,25 @@ void main() {
     expect(plan.total, 132.5);
   });
 
+  test('one-off item retains its custom marker and free-text price', () {
+    final item = TreatmentPlanItem.fromJson({
+      'isCustom': true,
+      'procedureID': '',
+      'procedureNameElSnapshot': 'Ειδική εργασία',
+      'unitPrice': 75,
+      'quantity': 2,
+      'discountAmount': 10,
+      'handlingMode': 'patientLevel',
+    });
+
+    expect(item.isCustom, isTrue);
+    expect(item.procedureID, isEmpty);
+    expect(item.net, 140);
+    expect(TreatmentPlanItem.fromJson(item.toJson()).toJson(), item.toJson());
+    expect(TreatmentPlanItem.fromJson({'procedureID': 'catalogued'}).isCustom,
+        isFalse);
+  });
+
   test('completion creates a timestamped odontogram event without payment', () {
     final completedAt = DateTime(2026, 8, 30, 10, 45);
     final plan = TreatmentPlan.fromJson({
@@ -141,5 +160,43 @@ void main() {
         BridgeUnit(toothFdi: 14, role: BridgeUnitRole.abutment),
       ];
     expect(item.targetValidationErrors(), ['bridgeUnits']);
+  });
+
+  test('completing a one-off item keeps its description without a catalogue ID',
+      () {
+    final plan = TreatmentPlan.fromJson({
+      'id': 'plan12345678901',
+      'patientID': 'patient1234567',
+      'items': [
+        {
+          'id': 'item12345678901',
+          'isCustom': true,
+          'procedureID': '',
+          'procedureNameElSnapshot': 'Ειδική εργασία',
+          'unitPrice': 80,
+          'notes': 'Detailed description',
+          'handlingMode': 'patientLevel',
+        },
+      ],
+    });
+    treatmentPlans.set(plan);
+
+    final event = completeTreatmentPlanItem(
+      plan: plan,
+      itemID: plan.items.single.id,
+      completedAt: DateTime(2026, 9, 12, 12),
+    );
+
+    expect(event.procedureID, isEmpty);
+    expect(event.procedureNameSnapshot, 'Ειδική εργασία');
+    expect(event.priceSnapshot, 80);
+    expect(event.notes, 'Detailed description');
+    expect(event.migration['source'], 'treatment_plan');
+    expect(event.migration['isCustom'], isTrue);
+    expect(event.migration['treatmentPlanItemID'], plan.items.single.id);
+    expect(event.migration['financialMutation'], isFalse);
+    expect(event.validationErrors(), isEmpty);
+    expect(plan.items.single.status, TreatmentPlanItemStatus.completed);
+    expect(plan.items.single.odontogramEventID, event.id);
   });
 }

@@ -202,13 +202,22 @@ class OdontogramEvent extends Model {
     final errors = <String>[];
     if (patientID.isEmpty) errors.add('patientID');
     if (procedureNameSnapshot.trim().isEmpty) errors.add('procedure');
-    // Native events point at the live catalogue. Imported legacy projections
-    // may instead point at their canonical treatment-history record when no
-    // reliable catalogue match exists. This keeps an honest custom DentalWin
-    // row valid without inventing a catalogue relationship.
+    // Native catalogue events require a live procedure. Imported legacy
+    // projections can link to canonical history instead. A one-off treatment
+    // plan completion or a direct one-off odontogram entry is explicitly
+    // marked and intentionally has no catalogue procedure, without weakening
+    // validation for other native events.
+    final isCustomPlanCompletion = migration['source'] == 'treatment_plan' &&
+        migration['isCustom'] == true &&
+        (migration['treatmentPlanItemID']?.toString().isNotEmpty ?? false);
+    final isCustomOdontogramEntry =
+        migration['source'] == 'odontogram_free_text' &&
+            migration['isCustom'] == true;
     if (eventKind == OdontogramEventKind.treatment &&
         procedureID.isEmpty &&
-        treatmentHistoryID.isEmpty) {
+        treatmentHistoryID.isEmpty &&
+        !isCustomPlanCompletion &&
+        !isCustomOdontogramEntry) {
       errors.add('procedureID');
     }
     if (toothFdi != null && !isValidFdi(toothFdi!)) {
