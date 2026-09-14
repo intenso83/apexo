@@ -1,7 +1,7 @@
 # DentalWin surface migration: continuity and handoff
 
 Date: 2026-09-04
-Last planning reconciliation: 2026-09-06
+Last planning reconciliation: 2026-09-14
 Status: Phase 2 isolated projection review is ready. Protected staging, immutable snapshots, layered rendering, and a five-patient loopback-only odontogram pilot were completed and verified on 2026-09-05; production import remains disabled.
 
 ## Task provenance
@@ -128,6 +128,15 @@ The aggregate expectations retained for this gate are 2,572 filling-render rows 
 ### Change-control rule
 
 Planning changes must be recorded in this decision register with a date and the evidence or owner decision that caused the change. The 2026-09-05 authorization covers implementation and synthetic/isolated verification. It does not authorize importing into a production PocketBase instance or mutating the original DentalWin databases.
+
+### Payment/odontogram pilot safety hold — 2026-09-14
+
+- The isolated five-patient pilot at `127.0.0.1:8093` has four treatment-bill records created by the older per-treatment payment build with the **same PocketBase record IDs** as their odontogram events. The four corresponding event rows are missing; three payment entries refer to those event IDs. This is a confirmed record-ID collision in the shared `data` collection, not a new DentalWin mapping defect.
+- A private pre-reset database backup from 2026-09-13 contains all four missing events. Their patient, treatment/title, and creation fields match the current bills in aggregate checks. This supports a targeted recovery, but the backed-up event state may predate later browser-local edits.
+- Before any further app deployment, a fresh SQLite online snapshot of the active pilot `data.db` and `auxiliary.db` passed integrity checks, and the prior web build was hash-verified into `dentalwin_migration_private/phase6-visible-projection-test-server/backup-pre-payment-web-update-20260914-0818-online/`. The pilot database itself has not been repaired or rolled back.
+- Do not re-key or delete the old bill records on the server alone: browser-local Hive copies do not receive remote deletions and could coexist with replacement bills. Recovery needs a cache-aware, idempotent procedure that preserves the three payment entries, restores only the verified event rows, updates event timestamps so clients pull them, and verifies all finance/chart counts in a disposable copy before touching the pilot.
+- Until that procedure is validated, legacy bills and related payments must remain visible for review but must not be edited or synchronized through the old shared-ID path. No larger migration or production financial import is authorized by this pilot finding.
+- The 2026-09-14 local web build on `127.0.0.1:61112` now assigns distinct deterministic bill IDs for new records, rejects old shared-ID writes at both sync and direct-write boundaries, and shows the loaded legacy payment history read-only with a warning. Focused unit/widget tests, isolated PocketBase regression, release build, local HTTP checks, and post-switch pilot-row equality check passed. This is a containment update, **not** recovery of the four missing chart events.
 
 ### Implementation log — 2026-09-05
 

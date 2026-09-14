@@ -20,6 +20,67 @@ void main() {
     expect(store.accountForEvent(eventID), isNull);
   });
 
+  test('bill ID is distinct, valid, and stable across offline clients', () {
+    final first = TreatmentBills();
+    final second = TreatmentBills();
+    final firstBill = billFor(first).bill;
+    final secondBill = billFor(second).bill;
+    expect(firstBill.id, matches(RegExp(r'^b[a-z0-9]{14}$')));
+    expect(firstBill.id, isNot(eventID));
+    expect(secondBill.id, firstBill.id);
+    expect(billFor(first).bill.id, firstBill.id);
+    expect(first.forPatient('patient-1'), hasLength(1));
+  });
+
+  test('legacy colliding bill is readable but cannot be edited or synced',
+      () async {
+    final store = TreatmentBills();
+    final legacy = TreatmentBill.fromJson({
+      'id': eventID,
+      'patientID': 'patient-1',
+      'odontogramEventID': eventID,
+      'treatmentNameSnapshot': 'Legacy treatment',
+      'chargeAmount': 500,
+    });
+    store.observableMap.set(legacy); // Simulates a bill loaded from old data.
+    expect(store.forEvent(eventID)?.id, eventID);
+    expect(store.accountForEvent(eventID)?.chargeAmount, 500);
+    expect(() => billFor(store), throwsStateError);
+    expect(
+      () => store.addPayment(
+        odontogramEventID: eventID,
+        amount: 10,
+        receipt: false,
+      ),
+      throwsStateError,
+    );
+    final result = await store.synchronize();
+    expect(result.single.exception, contains('legacy treatment bill'));
+  });
+
+  test('duplicate bills for one event are rejected, not double-counted', () {
+    final store = TreatmentBills();
+    billFor(store);
+    expect(
+      () => store.set(TreatmentBill.fromJson({
+        'id': treatmentBillRecordID('another-event'),
+        'patientID': 'patient-1',
+        'odontogramEventID': eventID,
+        'treatmentNameSnapshot': 'Duplicate treatment',
+        'chargeAmount': 500,
+      })),
+      throwsStateError,
+    );
+    store.observableMap.set(TreatmentBill.fromJson({
+      'id': eventID,
+      'patientID': 'patient-1',
+      'odontogramEventID': eventID,
+      'treatmentNameSnapshot': 'Legacy treatment',
+      'chargeAmount': 500,
+    }));
+    expect(() => store.forEvent(eventID), throwsStateError);
+  });
+
   test('settlement then correction derives partial state and keeps both rows',
       () {
     final store = TreatmentBills();

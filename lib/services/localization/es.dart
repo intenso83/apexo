@@ -512,13 +512,20 @@ class Es implements En {
     "tooth": "Diente",
     "financialOverview": "Resumen financiero",
     "treatmentPaymentsTitle": "Pagos por tratamiento",
-    "treatmentPaymentsDescription": "Confirme el cargo del tratamiento antes de registrar pagos. Los importes de citas y DentalWin se mantienen separados.",
-    "treatmentPaymentsEmpty": "Aún no hay tratamientos de Apexo completados para cobrar",
+    "treatmentPaymentsDescription":
+        "Confirme el cargo del tratamiento antes de registrar pagos. Los importes de citas y DentalWin se mantienen separados.",
+    "treatmentPaymentLegacyReadOnlyTitle":
+        "Los pagos de tratamientos son temporalmente de solo lectura",
+    "treatmentPaymentLegacyReadOnlyBody":
+        "Una factura de tratamiento anterior usa un ID de registro compartido. Los importes y el historial siguen visibles, pero se bloquean los cambios de cargos y pagos de todos los pacientes hasta revisar y conciliar los registros.",
+    "treatmentPaymentsEmpty":
+        "Aún no hay tratamientos de Apexo completados para cobrar",
     "treatmentPaymentsTreatments": "Tratamientos",
     "treatmentPaymentSelected": "Tratamiento seleccionado",
     "treatmentPaymentUncharged": "Sin cargo confirmado",
     "treatmentPaymentPartial": "Pagado parcialmente",
-    "treatmentPaymentReferencePriceInfo": "El precio del catálogo es solo una sugerencia; confirme el cargo real abajo.",
+    "treatmentPaymentReferencePriceInfo":
+        "El precio del catálogo es solo una sugerencia; confirme el cargo real abajo.",
     "treatmentPaymentChargeAmount": "Cargo del tratamiento (€)",
     "treatmentPaymentConfirmCharge": "Confirmar cargo",
     "treatmentPaymentPartialAmount": "Importe del pago parcial (€)",
@@ -528,14 +535,19 @@ class Es implements En {
     "treatmentPaymentNone": "Aún no hay pagos",
     "treatmentPaymentCorrect": "Corregir",
     "treatmentPaymentCorrectAmount": "Importe corregido (€)",
-    "treatmentPaymentCorrected": "Pago corregido; el valor anterior se conserva en el historial",
+    "treatmentPaymentCorrected":
+        "Pago corregido; el valor anterior se conserva en el historial",
     "treatmentPaymentVoidTitle": "Anular pago",
-    "treatmentPaymentVoidQuestion": "¿Anular este pago? Permanecerá visible en el historial, pero dejará de contarse como pagado.",
+    "treatmentPaymentVoidQuestion":
+        "¿Anular este pago? Permanecerá visible en el historial, pero dejará de contarse como pagado.",
     "treatmentPaymentVoid": "Anular pago",
     "treatmentPaymentVoided": "Anulado",
-    "treatmentPaymentInvalidCharge": "Introduzca un cargo válido de cero o más.",
-    "treatmentPaymentInvalidAmount": "Introduzca un importe válido mayor que cero y no superior al saldo pendiente.",
-    "treatmentPaymentOverpaidReconcile": "Los pagos superan el cargo del tratamiento. Revise el historial y corrija o anule el pago erróneo.",
+    "treatmentPaymentInvalidCharge":
+        "Introduzca un cargo válido de cero o más.",
+    "treatmentPaymentInvalidAmount":
+        "Introduzca un importe válido mayor que cero y no superior al saldo pendiente.",
+    "treatmentPaymentOverpaidReconcile":
+        "Los pagos superan el cargo del tratamiento. Revise el historial y corrija o anule el pago erróneo.",
     "appointmentFinancialsHistorical": "Importes anteriores de Apexo por cita",
     "finances": "Finanzas",
     "financesScopeNote":

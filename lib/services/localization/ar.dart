@@ -489,13 +489,19 @@ class Ar implements En {
     "tooth": "السن",
     "financialOverview": "نظرة مالية عامة",
     "treatmentPaymentsTitle": "المدفوعات حسب العلاج",
-    "treatmentPaymentsDescription": "أكّد تكلفة العلاج قبل تسجيل المدفوعات. تبقى مبالغ المواعيد وDentalWin منفصلة.",
+    "treatmentPaymentsDescription":
+        "أكّد تكلفة العلاج قبل تسجيل المدفوعات. تبقى مبالغ المواعيد وDentalWin منفصلة.",
+    "treatmentPaymentLegacyReadOnlyTitle":
+        "مدفوعات العلاجات للقراءة فقط مؤقتًا",
+    "treatmentPaymentLegacyReadOnlyBody":
+        "تستخدم فاتورة علاج قديمة معرّف سجل مشتركًا. تبقى المبالغ والسجل ظاهرين، لكن تُحظر تغييرات الرسوم والمدفوعات لجميع المرضى حتى تُراجع السجلات وتُسوّى.",
     "treatmentPaymentsEmpty": "لا توجد علاجات Apexo مكتملة متاحة للتحصيل بعد",
     "treatmentPaymentsTreatments": "العلاجات",
     "treatmentPaymentSelected": "العلاج المحدد",
     "treatmentPaymentUncharged": "لم تُؤكَّد التكلفة بعد",
     "treatmentPaymentPartial": "مدفوع جزئيًا",
-    "treatmentPaymentReferencePriceInfo": "سعر القائمة مجرد اقتراح؛ أكّد التكلفة الفعلية أدناه.",
+    "treatmentPaymentReferencePriceInfo":
+        "سعر القائمة مجرد اقتراح؛ أكّد التكلفة الفعلية أدناه.",
     "treatmentPaymentChargeAmount": "تكلفة العلاج (€)",
     "treatmentPaymentConfirmCharge": "تأكيد التكلفة",
     "treatmentPaymentPartialAmount": "مبلغ الدفعة الجزئية (€)",
@@ -505,14 +511,19 @@ class Ar implements En {
     "treatmentPaymentNone": "لا توجد مدفوعات بعد",
     "treatmentPaymentCorrect": "تصحيح",
     "treatmentPaymentCorrectAmount": "المبلغ المصحح (€)",
-    "treatmentPaymentCorrected": "دفعة مصححة — القيمة السابقة محفوظة في سجل التغييرات",
+    "treatmentPaymentCorrected":
+        "دفعة مصححة — القيمة السابقة محفوظة في سجل التغييرات",
     "treatmentPaymentVoidTitle": "إلغاء الدفعة",
-    "treatmentPaymentVoidQuestion": "هل تريد إلغاء هذه الدفعة؟ ستبقى ظاهرة في السجل لكنها لن تُحتسب ضمن المدفوع.",
+    "treatmentPaymentVoidQuestion":
+        "هل تريد إلغاء هذه الدفعة؟ ستبقى ظاهرة في السجل لكنها لن تُحتسب ضمن المدفوع.",
     "treatmentPaymentVoid": "إلغاء الدفعة",
     "treatmentPaymentVoided": "مُلغاة",
-    "treatmentPaymentInvalidCharge": "أدخل تكلفة علاج صالحة تساوي صفرًا أو أكثر.",
-    "treatmentPaymentInvalidAmount": "أدخل مبلغًا صالحًا أكبر من صفر ولا يتجاوز الرصيد المتبقي.",
-    "treatmentPaymentOverpaidReconcile": "تتجاوز المدفوعات تكلفة هذا العلاج. راجع سجل المدفوعات وصحح الدفعة الخاطئة أو ألغها.",
+    "treatmentPaymentInvalidCharge":
+        "أدخل تكلفة علاج صالحة تساوي صفرًا أو أكثر.",
+    "treatmentPaymentInvalidAmount":
+        "أدخل مبلغًا صالحًا أكبر من صفر ولا يتجاوز الرصيد المتبقي.",
+    "treatmentPaymentOverpaidReconcile":
+        "تتجاوز المدفوعات تكلفة هذا العلاج. راجع سجل المدفوعات وصحح الدفعة الخاطئة أو ألغها.",
     "appointmentFinancialsHistorical": "مبالغ Apexo السابقة حسب الموعد",
     "finances": "المالية",
     "financesScopeNote":

@@ -42,7 +42,7 @@ class TreatmentBill extends Model {
     final errors = <String>[];
     if (patientID.trim().isEmpty) errors.add('patientID');
     if (odontogramEventID.trim().isEmpty) errors.add('odontogramEventID');
-    if (id != odontogramEventID) errors.add('id');
+    if (id.trim().isEmpty) errors.add('id');
     if (treatmentNameSnapshot.trim().isEmpty) {
       errors.add('treatmentNameSnapshot');
     }

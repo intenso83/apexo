@@ -1,9 +1,11 @@
 @Tags(['live_backend', 'serial'])
 library;
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:apexo/common_widgets/error_dialog.dart';
 import 'package:apexo/core/save_local.dart';
 import 'package:apexo/core/save_remote.dart';
 import 'package:apexo/core/store.dart';
@@ -229,6 +231,16 @@ void main() {
         expect(persistedBill.items, hasLength(1));
         final originalBill = persistedBill.items.single;
         expect(originalBill.data['data']['chargeAmount'], 500);
+        // A second offline client derives the same ID; upserting that bill
+        // must keep one bill and leave the separate event row untouched.
+        await treatmentBills.remote!.put([
+          RowToWriteRemotely(
+            id: originalBill.id,
+            data: jsonEncode(treatmentBills.forEvent(eventID)),
+          ),
+        ]);
+        expect(await _remoteCount(pb, 'treatment_bills'), 1);
+        expect(await _remoteCount(pb, 'odontogram_events'), 1);
 
         // A separate empty Hive profile represents a second client/restart.
         for (final bound in stores) {
@@ -249,6 +261,98 @@ void main() {
         expect(treatmentPaymentEntries.forEvent(eventID), hasLength(6));
         _expectFinances(
             charges: 450, income: 250, rec: 250, noRec: 0, balance: 200);
+
+        // An old queued bill must never be allowed to replace a restored
+        // treatment event, through either Store sync or direct remote put.
+        final legacyEventID = uuid();
+        odontogramEvents.set(OdontogramEvent.fromJson({
+          'id': legacyEventID,
+          'patientID': patientID,
+          'targetScope': 'tooth',
+          'toothFdi': 12,
+          'procedureID': 'synthetic-legacy',
+          'procedureNameSnapshot': 'Synthetic legacy treatment',
+          'eventKind': 'treatment',
+          'status': 'completed',
+        }));
+        await odontogramEvents.waitUntilChangesAreProcessed();
+        final legacyBill = TreatmentBill.fromJson({
+          'id': legacyEventID,
+          'patientID': patientID,
+          'odontogramEventID': legacyEventID,
+          'treatmentNameSnapshot': 'Synthetic legacy treatment',
+          'chargeAmount': 100,
+        });
+        // Bypass TreatmentBills.set as an observer or bulk loader could do.
+        // The immediate Store persistence path must still be unable to
+        // replace the event on the shared PocketBase data collection.
+        // The headless runner has no app BuildContext for the expected
+        // "remote write rejected" dialog; keep the persistence path intact.
+        final previousErrorDialogShown = errorDialogShown;
+        errorDialogShown = true;
+        try {
+          treatmentBills.observableMap.set(legacyBill);
+          await treatmentBills.waitUntilChangesAreProcessed();
+        } finally {
+          errorDialogShown = previousErrorDialogShown;
+        }
+        expect(
+          (await pb.collection(dataCollectionName).getOne(legacyEventID))
+              .getStringValue('store'),
+          'odontogram_events',
+        );
+        expect(
+          (await treatmentBills.local!.getDeferred())
+              .containsKey(legacyEventID),
+          isTrue,
+        );
+        await treatmentBills.reload();
+        final legacySync = await treatmentBills.synchronize();
+        expect(legacySync.single.exception, contains('legacy treatment bill'));
+        await expectLater(
+          treatmentBills.remote!.put([
+            RowToWriteRemotely(
+              id: legacyEventID,
+              data: jsonEncode(legacyBill),
+            ),
+          ]),
+          throwsStateError,
+        );
+        expect(
+          (await pb.collection(dataCollectionName).getOne(legacyEventID))
+              .getStringValue('store'),
+          'odontogram_events',
+        );
+
+        // Even a rare collision with a different store's existing record is
+        // rejected before PocketBase's cross-store upsert can replace it.
+        const unrelatedEventID = 'otherbilltest01';
+        final occupiedBillID = treatmentBillRecordID(unrelatedEventID);
+        await pb.collection(dataCollectionName).create(body: {
+          'id': occupiedBillID,
+          'store': 'odontogram_events',
+          'data': {'id': occupiedBillID, 'title': 'Synthetic other row'},
+        });
+        await expectLater(
+          treatmentBills.remote!.put([
+            RowToWriteRemotely(
+              id: occupiedBillID,
+              data: jsonEncode(TreatmentBill.fromJson({
+                'id': occupiedBillID,
+                'patientID': patientID,
+                'odontogramEventID': unrelatedEventID,
+                'treatmentNameSnapshot': 'Synthetic other charge',
+                'chargeAmount': 1,
+              })),
+            ),
+          ]),
+          throwsStateError,
+        );
+        expect(
+          (await pb.collection(dataCollectionName).getOne(occupiedBillID))
+              .getStringValue('store'),
+          'odontogram_events',
+        );
 
         for (final bound in stores) {
           await bound.close();
@@ -309,7 +413,9 @@ class _BoundStore {
       uniqueId: 'payment-e2e-$client',
       storagePath: hiveDir.path,
     );
-    store.remote = SaveRemote(pbInstance: pb, storeName: name);
+    store.remote = store is TreatmentBills
+        ? TreatmentBillSaveRemote(pbInstance: pb)
+        : SaveRemote(pbInstance: pb, storeName: name);
     store.manualSyncOnly = true;
     await store.remote!.checkOnline();
     await store.deleteMemoryAndLoadFromPersistence();

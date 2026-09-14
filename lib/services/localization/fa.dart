@@ -495,13 +495,20 @@ class Fa implements En {
     "tooth": "دندان",
     "financialOverview": "نمای کلی مالی",
     "treatmentPaymentsTitle": "پرداخت‌ها به تفکیک درمان",
-    "treatmentPaymentsDescription": "پیش از ثبت پرداخت، هزینهٔ درمان را تأیید کنید. مبالغ نوبت‌ها و DentalWin جدا باقی می‌مانند.",
-    "treatmentPaymentsEmpty": "هنوز درمان تکمیل‌شده‌ای در Apexo برای دریافت هزینه وجود ندارد",
+    "treatmentPaymentsDescription":
+        "پیش از ثبت پرداخت، هزینهٔ درمان را تأیید کنید. مبالغ نوبت‌ها و DentalWin جدا باقی می‌مانند.",
+    "treatmentPaymentLegacyReadOnlyTitle":
+        "پرداخت‌های درمان موقتاً فقط خواندنی هستند",
+    "treatmentPaymentLegacyReadOnlyBody":
+        "یک صورتحساب درمان قدیمی از شناسهٔ مشترک رکورد استفاده می‌کند. مبالغ و سابقه همچنان دیده می‌شوند، اما تغییر هزینه‌ها و پرداخت‌های همهٔ بیماران تا زمان بررسی و تطبیق رکوردها مسدود است.",
+    "treatmentPaymentsEmpty":
+        "هنوز درمان تکمیل‌شده‌ای در Apexo برای دریافت هزینه وجود ندارد",
     "treatmentPaymentsTreatments": "درمان‌ها",
     "treatmentPaymentSelected": "درمان انتخاب‌شده",
     "treatmentPaymentUncharged": "هزینه هنوز تأیید نشده است",
     "treatmentPaymentPartial": "پرداخت‌شده به‌صورت جزئی",
-    "treatmentPaymentReferencePriceInfo": "قیمت فهرست فقط پیشنهادی است؛ هزینهٔ واقعی را در پایین تأیید کنید.",
+    "treatmentPaymentReferencePriceInfo":
+        "قیمت فهرست فقط پیشنهادی است؛ هزینهٔ واقعی را در پایین تأیید کنید.",
     "treatmentPaymentChargeAmount": "هزینهٔ درمان (€)",
     "treatmentPaymentConfirmCharge": "تأیید هزینه",
     "treatmentPaymentPartialAmount": "مبلغ پرداخت جزئی (€)",
@@ -511,14 +518,19 @@ class Fa implements En {
     "treatmentPaymentNone": "هنوز پرداختی ثبت نشده است",
     "treatmentPaymentCorrect": "اصلاح",
     "treatmentPaymentCorrectAmount": "مبلغ اصلاح‌شده (€)",
-    "treatmentPaymentCorrected": "پرداخت اصلاح شد — مقدار قبلی در سابقهٔ تغییرات حفظ شده است",
+    "treatmentPaymentCorrected":
+        "پرداخت اصلاح شد — مقدار قبلی در سابقهٔ تغییرات حفظ شده است",
     "treatmentPaymentVoidTitle": "ابطال پرداخت",
-    "treatmentPaymentVoidQuestion": "این پرداخت باطل شود؟ در سابقه نمایش داده می‌شود، اما دیگر جزو مبالغ پرداخت‌شده محاسبه نمی‌شود.",
+    "treatmentPaymentVoidQuestion":
+        "این پرداخت باطل شود؟ در سابقه نمایش داده می‌شود، اما دیگر جزو مبالغ پرداخت‌شده محاسبه نمی‌شود.",
     "treatmentPaymentVoid": "ابطال پرداخت",
     "treatmentPaymentVoided": "باطل‌شده",
-    "treatmentPaymentInvalidCharge": "هزینهٔ معتبر درمان را با مقدار صفر یا بیشتر وارد کنید.",
-    "treatmentPaymentInvalidAmount": "مبلغی معتبر، بیشتر از صفر و حداکثر برابر مانده وارد کنید.",
-    "treatmentPaymentOverpaidReconcile": "پرداخت‌ها از هزینهٔ این درمان بیشتر است. سابقه را بررسی کنید و پرداخت اشتباه را اصلاح یا باطل کنید.",
+    "treatmentPaymentInvalidCharge":
+        "هزینهٔ معتبر درمان را با مقدار صفر یا بیشتر وارد کنید.",
+    "treatmentPaymentInvalidAmount":
+        "مبلغی معتبر، بیشتر از صفر و حداکثر برابر مانده وارد کنید.",
+    "treatmentPaymentOverpaidReconcile":
+        "پرداخت‌ها از هزینهٔ این درمان بیشتر است. سابقه را بررسی کنید و پرداخت اشتباه را اصلاح یا باطل کنید.",
     "appointmentFinancialsHistorical": "مبالغ قدیمی Apexo بر اساس نوبت",
     "finances": "امور مالی",
     "financesScopeNote":

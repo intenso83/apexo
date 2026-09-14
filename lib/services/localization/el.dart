@@ -501,13 +501,20 @@ class El implements En {
     "tooth": "Δόντι",
     "financialOverview": "Οικονομική επισκόπηση",
     "treatmentPaymentsTitle": "Πληρωμές ανά θεραπεία",
-    "treatmentPaymentsDescription": "Επιβεβαιώστε τη χρέωση θεραπείας πριν καταχωρίσετε πληρωμές. Τα ποσά ραντεβού και DentalWin παραμένουν χωριστά.",
-    "treatmentPaymentsEmpty": "Δεν υπάρχουν ακόμη ολοκληρωμένες θεραπείες Apexo προς χρέωση",
+    "treatmentPaymentsDescription":
+        "Επιβεβαιώστε τη χρέωση θεραπείας πριν καταχωρίσετε πληρωμές. Τα ποσά ραντεβού και DentalWin παραμένουν χωριστά.",
+    "treatmentPaymentLegacyReadOnlyTitle":
+        "Οι πληρωμές θεραπειών είναι προσωρινά μόνο για προβολή",
+    "treatmentPaymentLegacyReadOnlyBody":
+        "Μια παλαιότερη χρέωση θεραπείας χρησιμοποιεί κοινό αναγνωριστικό εγγραφής. Τα ποσά και το ιστορικό παραμένουν ορατά, αλλά οι αλλαγές σε χρεώσεις και πληρωμές όλων των ασθενών αποκλείονται μέχρι να ελεγχθούν και να συμφωνηθούν οι εγγραφές.",
+    "treatmentPaymentsEmpty":
+        "Δεν υπάρχουν ακόμη ολοκληρωμένες θεραπείες Apexo προς χρέωση",
     "treatmentPaymentsTreatments": "Θεραπείες",
     "treatmentPaymentSelected": "Επιλεγμένη θεραπεία",
     "treatmentPaymentUncharged": "Χωρίς επιβεβαιωμένη χρέωση",
     "treatmentPaymentPartial": "Μερικώς πληρωμένο",
-    "treatmentPaymentReferencePriceInfo": "Η τιμή καταλόγου είναι μόνο πρόταση· επιβεβαιώστε την πραγματική χρέωση παρακάτω.",
+    "treatmentPaymentReferencePriceInfo":
+        "Η τιμή καταλόγου είναι μόνο πρόταση· επιβεβαιώστε την πραγματική χρέωση παρακάτω.",
     "treatmentPaymentChargeAmount": "Χρέωση θεραπείας (€)",
     "treatmentPaymentConfirmCharge": "Επιβεβαίωση χρέωσης",
     "treatmentPaymentPartialAmount": "Ποσό μερικής πληρωμής (€)",
@@ -517,15 +524,21 @@ class El implements En {
     "treatmentPaymentNone": "Δεν υπάρχουν πληρωμές ακόμη",
     "treatmentPaymentCorrect": "Διόρθωση",
     "treatmentPaymentCorrectAmount": "Διορθωμένο ποσό (€)",
-    "treatmentPaymentCorrected": "Διορθωμένη πληρωμή — η προηγούμενη τιμή διατηρείται στο ιστορικό αλλαγών",
+    "treatmentPaymentCorrected":
+        "Διορθωμένη πληρωμή — η προηγούμενη τιμή διατηρείται στο ιστορικό αλλαγών",
     "treatmentPaymentVoidTitle": "Ακύρωση πληρωμής",
-    "treatmentPaymentVoidQuestion": "Να ακυρωθεί αυτή η πληρωμή; Θα παραμείνει ορατή στο ιστορικό, αλλά δεν θα υπολογίζεται στα πληρωμένα.",
+    "treatmentPaymentVoidQuestion":
+        "Να ακυρωθεί αυτή η πληρωμή; Θα παραμείνει ορατή στο ιστορικό, αλλά δεν θα υπολογίζεται στα πληρωμένα.",
     "treatmentPaymentVoid": "Ακύρωση πληρωμής",
     "treatmentPaymentVoided": "Ακυρώθηκε",
-    "treatmentPaymentInvalidCharge": "Δώστε έγκυρη χρέωση θεραπείας ίση ή μεγαλύτερη από μηδέν.",
-    "treatmentPaymentInvalidAmount": "Δώστε έγκυρο ποσό μεγαλύτερο από μηδέν και έως το υπόλοιπο.",
-    "treatmentPaymentOverpaidReconcile": "Οι πληρωμές ξεπερνούν τη χρέωση της θεραπείας. Ελέγξτε το ιστορικό και διορθώστε ή ακυρώστε την εσφαλμένη πληρωμή.",
-    "appointmentFinancialsHistorical": "Παλαιότερα οικονομικά στοιχεία Apexo ανά ραντεβού",
+    "treatmentPaymentInvalidCharge":
+        "Δώστε έγκυρη χρέωση θεραπείας ίση ή μεγαλύτερη από μηδέν.",
+    "treatmentPaymentInvalidAmount":
+        "Δώστε έγκυρο ποσό μεγαλύτερο από μηδέν και έως το υπόλοιπο.",
+    "treatmentPaymentOverpaidReconcile":
+        "Οι πληρωμές ξεπερνούν τη χρέωση της θεραπείας. Ελέγξτε το ιστορικό και διορθώστε ή ακυρώστε την εσφαλμένη πληρωμή.",
+    "appointmentFinancialsHistorical":
+        "Παλαιότερα οικονομικά στοιχεία Apexo ανά ραντεβού",
     "finances": "Οικονομικά",
     "financesScopeNote":
         "Η κατάσταση περιλαμβάνει μόνο πληρωμές θεραπειών με ρητά καταχωρισμένη χρέωση στο Apexo. Οι παλιές πληρωμές ραντεβού και τα εισαγόμενα ποσά DentalWin εμφανίζονται χωριστά και δεν προστίθενται εδώ.",

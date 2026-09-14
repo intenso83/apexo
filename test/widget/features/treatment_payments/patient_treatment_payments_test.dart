@@ -2,7 +2,6 @@ import 'package:apexo/features/odontogram/odontogram_event_model.dart';
 import 'package:apexo/features/odontogram/odontogram_event_store.dart';
 import 'package:apexo/features/treatment_payments/patient_treatment_payments.dart';
 import 'package:apexo/features/treatment_payments/treatment_bill_store.dart';
-import 'package:apexo/features/treatment_payments/treatment_payment_entry_store.dart';
 import 'package:apexo/services/launch.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -139,6 +138,109 @@ void main() {
     expect(account.chargeAmount, 450);
     expect(account.balance, 450);
     expect(treatmentPaymentEntries.forEvent(eventID), hasLength(1));
+  });
+
+  testWidgets('legacy shared-ID bill shows amounts and history read-only',
+      (tester) async {
+    _prepareDemo();
+    addTearDown(_clearDemo);
+    _addCompletedTreatment(patientID: patientID, eventID: eventID);
+    // Model a bill already saved by the older build. The repaired store
+    // correctly refuses to create a new one with this ID.
+    treatmentBills.observableMap.set(TreatmentBill.fromJson({
+      'id': eventID,
+      'patientID': patientID,
+      'odontogramEventID': eventID,
+      'treatmentNameSnapshot': 'Στεφάνη επί εμφυτεύματος',
+      'chargeAmount': 500,
+    }));
+    treatmentPaymentEntries.set(TreatmentPaymentEntry.fromJson({
+      'id': 'legacypayment01',
+      'patientID': patientID,
+      'odontogramEventID': eventID,
+      'kind': 'payment',
+      'amount': 100,
+      'receipt': true,
+      'sequence': 1,
+    }));
+
+    await _pumpPayments(tester, patientID);
+
+    expect(find.byKey(const Key('treatment-payment-legacy-warning')),
+        findsOneWidget);
+    expect(find.textContaining('500.00'), findsWidgets);
+    expect(find.textContaining('100.00'), findsWidgets);
+    expect(find.textContaining('400.00'), findsWidgets);
+    expect(
+        tester
+            .widget<Button>(
+              find.byKey(const Key('treatment-payment-edit-charge')),
+            )
+            .onPressed,
+        isNull);
+    expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('treatment-payment-settle')),
+            )
+            .onPressed,
+        isNull);
+    expect(
+        tester
+            .widget<Button>(
+              find.byKey(const Key('treatment-payment-add-partial')),
+            )
+            .onPressed,
+        isNull);
+    expect(
+        tester
+            .widget<Checkbox>(
+              find.byKey(const Key('treatment-payment-rec-legacypayment01')),
+            )
+            .onChanged,
+        isNull);
+    expect(
+        tester
+            .widget<Button>(
+              find.byKey(const Key('treatment-payment-edit-legacypayment01')),
+            )
+            .onPressed,
+        isNull);
+    expect(treatmentPaymentEntries.forEvent(eventID), hasLength(1));
+  });
+
+  testWidgets('a legacy bill for another patient blocks new charges globally',
+      (tester) async {
+    _prepareDemo();
+    addTearDown(_clearDemo);
+    _addCompletedTreatment(patientID: patientID, eventID: eventID);
+    treatmentBills.observableMap.set(TreatmentBill.fromJson({
+      'id': 'otherevent00001',
+      'patientID': 'patient00000002',
+      'odontogramEventID': 'otherevent00001',
+      'treatmentNameSnapshot': 'Older charge',
+      'chargeAmount': 50,
+    }));
+
+    await _pumpPayments(tester, patientID);
+
+    expect(find.byKey(const Key('treatment-payment-legacy-warning')),
+        findsOneWidget);
+    expect(
+        tester
+            .widget<TextBox>(
+              find.byKey(const Key('treatment-payment-charge-input')),
+            )
+            .enabled,
+        isFalse);
+    expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('treatment-payment-confirm-charge')),
+            )
+            .onPressed,
+        isNull);
+    expect(treatmentBills.accountsForPatient(patientID), isEmpty);
   });
 }
 

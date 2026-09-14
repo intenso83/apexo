@@ -498,13 +498,20 @@ class En {
     "tooth": "Tooth",
     "financialOverview": "Financial overview",
     "treatmentPaymentsTitle": "Payments by treatment",
-    "treatmentPaymentsDescription": "Confirm a treatment charge before recording payments. Appointment and DentalWin amounts remain separate.",
-    "treatmentPaymentsEmpty": "No completed Apexo treatments are available for charging yet",
+    "treatmentPaymentsDescription":
+        "Confirm a treatment charge before recording payments. Appointment and DentalWin amounts remain separate.",
+    "treatmentPaymentLegacyReadOnlyTitle":
+        "Treatment payments are temporarily read-only",
+    "treatmentPaymentLegacyReadOnlyBody":
+        "An older treatment bill uses a shared record ID. Amounts and history remain visible, but charge and payment changes are blocked for all patients until the records are reviewed and reconciled.",
+    "treatmentPaymentsEmpty":
+        "No completed Apexo treatments are available for charging yet",
     "treatmentPaymentsTreatments": "Treatments",
     "treatmentPaymentSelected": "Selected treatment",
     "treatmentPaymentUncharged": "Not charged yet",
     "treatmentPaymentPartial": "Partly paid",
-    "treatmentPaymentReferencePriceInfo": "The catalogue price is only a suggestion; confirm the actual charge below.",
+    "treatmentPaymentReferencePriceInfo":
+        "The catalogue price is only a suggestion; confirm the actual charge below.",
     "treatmentPaymentChargeAmount": "Treatment charge (€)",
     "treatmentPaymentConfirmCharge": "Confirm charge",
     "treatmentPaymentPartialAmount": "Partial payment amount (€)",
@@ -514,14 +521,19 @@ class En {
     "treatmentPaymentNone": "No payments yet",
     "treatmentPaymentCorrect": "Correct",
     "treatmentPaymentCorrectAmount": "Corrected amount (€)",
-    "treatmentPaymentCorrected": "Corrected payment — earlier value retained in the audit trail",
+    "treatmentPaymentCorrected":
+        "Corrected payment — earlier value retained in the audit trail",
     "treatmentPaymentVoidTitle": "Void payment",
-    "treatmentPaymentVoidQuestion": "Void this payment? It will remain visible in the history, but no longer count as paid.",
+    "treatmentPaymentVoidQuestion":
+        "Void this payment? It will remain visible in the history, but no longer count as paid.",
     "treatmentPaymentVoid": "Void payment",
     "treatmentPaymentVoided": "Voided",
-    "treatmentPaymentInvalidCharge": "Enter a valid treatment charge of zero or more.",
-    "treatmentPaymentInvalidAmount": "Enter a valid amount greater than zero and no more than the remaining balance.",
-    "treatmentPaymentOverpaidReconcile": "Payments exceed this treatment charge. Check the payment history and correct or void the mistaken entry.",
+    "treatmentPaymentInvalidCharge":
+        "Enter a valid treatment charge of zero or more.",
+    "treatmentPaymentInvalidAmount":
+        "Enter a valid amount greater than zero and no more than the remaining balance.",
+    "treatmentPaymentOverpaidReconcile":
+        "Payments exceed this treatment charge. Check the payment history and correct or void the mistaken entry.",
     "appointmentFinancialsHistorical": "Older appointment-based Apexo figures",
     "finances": "Finances",
     "financesScopeNote":

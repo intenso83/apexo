@@ -32,6 +32,14 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
 
   bool get _canEdit => login.isAdmin || login.perm(Perm.patients).full;
 
+  // A legacy bill can block synchronization for the whole bill store, not
+  // just its patient. Keep all payment changes read-only until reconciliation.
+  bool get _legacyBillLoaded => treatmentBills.docs.values.any(
+        (bill) => bill.id == bill.odontogramEventID,
+      );
+
+  bool get _canEditPayments => _canEdit && !_legacyBillLoaded;
+
   @override
   void dispose() {
     _chargeController.dispose();
@@ -63,7 +71,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
   }
 
   void _confirmCharge(_BillEntry entry) {
-    if (!_canEdit) return;
+    if (!_canEditPayments) return;
     final amount = _parseAmount(_chargeController);
     if (amount == null || !amount.isFinite || amount < 0) {
       setState(() => _error = txt('treatmentPaymentInvalidCharge'));
@@ -86,7 +94,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
   }
 
   void _addPayment(TreatmentBillAccount bill, {required bool settle}) {
-    if (!_canEdit) return;
+    if (!_canEditPayments) return;
     final amount = settle ? bill.balance : _parseAmount(_partialController);
     if (amount == null ||
         !amount.isFinite ||
@@ -112,7 +120,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
   }
 
   void _correctPayment(TreatmentBillAccount bill, TreatmentPayment payment) {
-    if (!_canEdit) return;
+    if (!_canEditPayments) return;
     final amount = _parseAmount(_correctionController);
     if (amount == null || !amount.isFinite || amount <= 0) {
       setState(() => _error = txt('treatmentPaymentInvalidAmount'));
@@ -135,7 +143,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
 
   Future<void> _voidPayment(
       TreatmentBillAccount bill, TreatmentPayment payment) async {
-    if (!_canEdit) return;
+    if (!_canEditPayments) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => ContentDialog(
@@ -153,7 +161,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted || !_canEditPayments) return;
     try {
       treatmentBills.voidPayment(
         odontogramEventID: bill.odontogramEventID,
@@ -170,7 +178,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
 
   void _setReceipt(
       TreatmentBillAccount bill, TreatmentPayment payment, bool value) {
-    if (!_canEdit) return;
+    if (!_canEditPayments) return;
     try {
       treatmentBills.setReceipt(
         odontogramEventID: bill.odontogramEventID,
@@ -244,6 +252,15 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
             const SizedBox(height: 5),
             Text(txt('treatmentPaymentsDescription')),
             const SizedBox(height: 12),
+            if (_legacyBillLoaded) ...[
+              InfoBar(
+                key: const Key('treatment-payment-legacy-warning'),
+                severity: InfoBarSeverity.warning,
+                title: Text(txt('treatmentPaymentLegacyReadOnlyTitle')),
+                content: Text(txt('treatmentPaymentLegacyReadOnlyBody')),
+              ),
+              const SizedBox(height: 12),
+            ],
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -348,13 +365,13 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
               child: TextBox(
                 key: const Key('treatment-payment-charge-input'),
                 controller: _chargeController,
-                enabled: _canEdit,
+                enabled: _canEditPayments,
               ),
             ),
             const SizedBox(height: 9),
             FilledButton(
               key: const Key('treatment-payment-confirm-charge'),
-              onPressed: _canEdit ? () => _confirmCharge(entry) : null,
+              onPressed: _canEditPayments ? () => _confirmCharge(entry) : null,
               child: Text(txt('treatmentPaymentConfirmCharge')),
             ),
           ] else ...[
@@ -364,12 +381,14 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
               if (!_editingCharge)
                 Button(
                   key: const Key('treatment-payment-edit-charge'),
-                  onPressed: () => setState(() {
-                    _chargeController.text =
-                        bill.chargeAmount.toStringAsFixed(2);
-                    _editingCharge = true;
-                    _error = null;
-                  }),
+                  onPressed: _canEditPayments
+                      ? () => setState(() {
+                            _chargeController.text =
+                                bill.chargeAmount.toStringAsFixed(2);
+                            _editingCharge = true;
+                            _error = null;
+                          })
+                      : null,
                   child: Text(txt('treatmentPaymentCorrectAmount')),
                 )
               else ...[
@@ -378,6 +397,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
                   child: TextBox(
                     key: const Key('treatment-payment-charge-correction-input'),
                     controller: _chargeController,
+                    enabled: _canEditPayments,
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -387,7 +407,8 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
                     FilledButton(
                       key:
                           const Key('treatment-payment-save-charge-correction'),
-                      onPressed: () => _confirmCharge(entry),
+                      onPressed:
+                          _canEditPayments ? () => _confirmCharge(entry) : null,
                       child: Text(txt('save')),
                     ),
                     Button(
@@ -413,14 +434,14 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
                 child: TextBox(
                   key: const Key('treatment-payment-partial-input'),
                   controller: _partialController,
-                  enabled: _canEdit,
+                  enabled: _canEditPayments,
                 ),
               ),
               const SizedBox(height: 7),
               Checkbox(
                 key: const Key('treatment-payment-new-rec'),
                 checked: _newReceipt,
-                onChanged: _canEdit
+                onChanged: _canEditPayments
                     ? (value) => setState(() => _newReceipt = value == true)
                     : null,
                 content: const Text('Rec'),
@@ -432,14 +453,15 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
                 children: [
                   FilledButton(
                     key: const Key('treatment-payment-settle'),
-                    onPressed:
-                        _canEdit ? () => _addPayment(bill, settle: true) : null,
+                    onPressed: _canEditPayments
+                        ? () => _addPayment(bill, settle: true)
+                        : null,
                     child: Text(
                         '${txt('treatmentPaymentSettle')} ${_money(bill.balance)}'),
                   ),
                   Button(
                     key: const Key('treatment-payment-add-partial'),
-                    onPressed: _canEdit
+                    onPressed: _canEditPayments
                         ? () => _addPayment(bill, settle: false)
                         : null,
                     child: Text(txt('treatmentPaymentAddPartial')),
@@ -488,14 +510,14 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
                 Checkbox(
                   key: Key('treatment-payment-rec-${payment.id}'),
                   checked: payment.receipt,
-                  onChanged: _canEdit
+                  onChanged: _canEditPayments
                       ? (value) => _setReceipt(bill, payment, value == true)
                       : null,
                   content: const Text('Rec'),
                 ),
                 Button(
                   key: Key('treatment-payment-edit-${payment.id}'),
-                  onPressed: _canEdit
+                  onPressed: _canEditPayments
                       ? () => setState(() {
                             _editingPaymentID = payment.id;
                             _correctionController.text =
@@ -518,6 +540,7 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
               child: TextBox(
                 key: const Key('treatment-payment-correction-input'),
                 controller: _correctionController,
+                enabled: _canEditPayments,
               ),
             ),
             const SizedBox(height: 7),
@@ -527,7 +550,9 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
               children: [
                 FilledButton(
                   key: const Key('treatment-payment-save-correction'),
-                  onPressed: () => _correctPayment(bill, payment),
+                  onPressed: _canEditPayments
+                      ? () => _correctPayment(bill, payment)
+                      : null,
                   child: Text(txt('save')),
                 ),
                 Button(
@@ -536,7 +561,9 @@ class _PatientTreatmentPaymentsState extends State<PatientTreatmentPayments> {
                 ),
                 Button(
                   key: const Key('treatment-payment-void'),
-                  onPressed: () => _voidPayment(bill, payment),
+                  onPressed: _canEditPayments
+                      ? () => _voidPayment(bill, payment)
+                      : null,
                   child: Text(txt('treatmentPaymentVoid')),
                 ),
               ],
